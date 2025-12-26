@@ -1,1 +1,297 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>하루마음 - 같은 그림 찾기</title>
+
+<style>
+:root{
+  --bg:#0b1020;
+  --text:#e8ecff;
+  --muted:#b9c2ff;
+  --accent:#6ee7b7;
+  --shadow:0 10px 25px rgba(0,0,0,.35);
+  --radius:18px;
+
+  /* 기본 크기(조절용) */
+  --fs-base:16px;
+  --fs-title:20px;
+  --fs-msg:18px;
+  --fs-hint:14px;
+  --fs-pill:14px;
+  --tile-h:90px;
+  --tile-fs:42px;
+  --gap:12px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
+  background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  padding:18px;
+  font-size:var(--fs-base);
+}
+
+/* ✅ 큰 글씨 모드 */
+body.bigText{
+  --fs-base:18px;
+  --fs-title:24px;
+  --fs-msg:22px;
+  --fs-hint:16px;
+  --fs-pill:16px;
+  --tile-h:104px;
+  --tile-fs:52px;
+  --gap:14px;
+}
+
+.wrap{
+  width:min(560px,100%);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+.titleRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.title{font-size:var(--fs-title);font-weight:900;}
+.ver{font-size:12px;color:var(--muted);}
+.sub{font-size:14px;color:var(--muted);margin-top:4px;}
+
+.stats{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
+}
+.pill{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:var(--fs-pill);
+}
+
+.controls{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+}
+button,select{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+button.primary{
+  background:rgba(110,231,183,.18);
+  border-color:rgba(110,231,183,.45);
+}
+
+#msg{font-size:var(--fs-msg);font-weight:900;}
+#hint{font-size:var(--fs-hint);color:var(--muted);margin-top:4px;}
+
+.board{display:grid;gap:var(--gap);}
+.tile{
+  height:var(--tile-h);
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--tile-fs);
+  cursor:pointer;
+  user-select:none;
+  position:relative;
+}
+.tile[data-state="down"]::after{content:"?";font-weight:900;}
+.tile[data-state="up"]::after{content:attr(data-emoji);}
+.tile.matched{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+}
+
+/* 방법 보기 팝업 */
+.modalBack{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+}
+.modal{
+  background:#1a2250;
+  border-radius:18px;
+  padding:20px;
+  max-width:520px;
+}
+.modalTitle{font-size:20px;font-weight:900;}
+.modalBody{
+  margin-top:12px;
+  font-size:18px;
+  line-height:1.85;
+  color:#eef2ff;
+}
+
+/* ✅ 맞췄을 때 보상 연출 */
+.reward{
+  position:fixed;
+  font-size:22px;
+  font-weight:900;
+  color:var(--accent);
+  pointer-events:none;
+  animation: rewardPop 0.9s ease-out forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,.45);
+  z-index:70;
+}
+@keyframes rewardPop{
+  0%   { opacity:0; transform:translate(-50%, 10px) scale(0.6); }
+  30%  { opacity:1; transform:translate(-50%, 0) scale(1.15); }
+  100% { opacity:0; transform:translate(-50%, -18px) scale(1); }
+}
+
+/* ✅ 완료 팝업 (자동 닫힘 없음) */
+.finishBack{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:90;
+  opacity:0;
+  animation: dimIn 0.35s ease-out forwards;
+}
+.finishCard{
+  position:fixed;
+  left:50%; top:26%;
+  transform:translateX(-50%);
+  z-index:100;
+
+  width:min(440px, calc(100% - 36px));
+  background:#1a2250;
+  border:1px solid rgba(110,231,183,.55);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:18px 20px;
+  text-align:center;
+
+  opacity:0;
+  animation: cardIn 0.38s ease-out forwards;
+}
+.finishCard .big{font-size:22px;font-weight:900;}
+.finishCard .small{
+  margin-top:8px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.finishCard .actions{
+  margin-top:14px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.finishCard .actions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+@keyframes dimIn{from{opacity:0;}to{opacity:1;}}
+@keyframes cardIn{
+  0%{opacity:0; transform:translateX(-50%) translateY(14px) scale(.96);}
+  100%{opacity:1; transform:translateX(-50%) translateY(0) scale(1);}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <div class="titleRow">
+      <div class="title">같은 그림 찾기</div>
+      <div class="ver">v1.36 (분리구조)</div>
+    </div>
+    <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
+
+    <div class="stats">
+      <div class="pill">오늘의 게임 <b id="todayKey"></b></div>
+      <div class="pill">맞춘 개수 <b id="matched">0</b></div>
+      <div class="pill">칭찬점수 <b id="score">0</b></div>
+      <div class="pill">오늘 완료 <b id="todayClear">0</b>회</div>
+      <div class="pill">오늘 최고 <b id="todayBest">0</b>점</div>
+    </div>
+
+    <div class="controls">
+      <select id="level" title="난이도 선택">
+        <option value="2x2">쉬움 (2x2)</option>
+        <option value="3x2" selected>보통 (3x2)</option>
+        <option value="4x3">어려움 (4x3)</option>
+      </select>
+
+      <select id="peekSec" title="잠깐보기 시간(선택하면 실행)">
+        <option value="" selected disabled>잠깐보기 (선택)</option>
+        <option value="2">잠깐보기 2초</option>
+        <option value="3">잠깐보기 3초</option>
+        <option value="5">잠깐보기 5초</option>
+      </select>
+
+      <button class="primary" id="newGame">새로 시작</button>
+      <button id="howBtn">방법 보기</button>
+      <button id="sfxBtn" title="효과음 켜기/끄기">🔔 효과음: 켜기</button>
+      <button id="bigBtn" title="글자/버튼 크게">🔎 큰 글씨: 끄기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="msg">같은 그림 2개를 찾아보세요!</div>
+    <div id="hint">팁: 너무 빨리 누르지 않아도 돼요.</div>
+  </div>
+
+  <div class="card">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="card" style="font-size:12px;color:var(--muted);">
+    본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
+    하루마음 · harumind.kr
+  </div>
+
+</div>
+
+<div class="modalBack" id="modalBack">
+  <div class="modal">
+    <div class="modalTitle">게임 방법</div>
+    <div class="modalBody">
+      1) 물음표(?) 카드를 눌러 그림을 확인해요.<br/>
+      2) 같은 그림 2개를 찾으면 성공이에요.<br/>
+      3) 틀려도 괜찮아요 😊 다시 해보면 됩니다.<br/><br/>
+      처음엔 <b>쉬움(2x2)</b>이 좋아요.<br/>
+      하루에 한 번만 해도 충분해요.
+    </div>
+    <button style="margin-top:14px;" onclick="HarumindUI.closeModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 순서 중요: config → storage → ui → game -->
+<script src="./config.js"></script>
+<script src="./storage.js"></script>
+<script src="./ui.js"></script>
+<script src="./game.js"></script>
+</body>
+</html>
 
