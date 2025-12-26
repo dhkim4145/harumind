@@ -97,6 +97,7 @@ button.primary{
   font-size:42px;
   cursor:pointer;
   user-select:none;
+  position:relative;
 }
 .tile[data-state="down"]::after{content:"?";font-weight:900;}
 .tile[data-state="up"]::after{content:attr(data-emoji);}
@@ -127,6 +128,83 @@ button.primary{
   line-height:1.85;
   color:#eef2ff;
 }
+
+/* ✅ 맞췄을 때 보상 연출 */
+.reward{
+  position:fixed; /* 화면 기준(정확한 위치) */
+  font-size:22px;
+  font-weight:900;
+  color:var(--accent);
+  pointer-events:none;
+  animation: rewardPop 0.9s ease-out forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,.45);
+  z-index:70;
+}
+@keyframes rewardPop{
+  0%   { opacity:0; transform:translate(-50%, 10px) scale(0.6); }
+  30%  { opacity:1; transform:translate(-50%, 0) scale(1.15); }
+  100% { opacity:0; transform:translate(-50%, -18px) scale(1); }
+}
+
+/* ✅ 완료 마일드 팝업 */
+.finishBack{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:90;
+  opacity:0;
+  animation: dimIn 0.6s ease-out forwards;
+}
+.finishCard{
+  position:fixed;
+  left:50%; top:28%;
+  transform:translateX(-50%);
+  z-index:100;
+
+  width:min(420px, calc(100% - 36px));
+  background:#1a2250;
+  border:1px solid rgba(110,231,183,.45);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:18px 20px;
+  text-align:center;
+
+  opacity:0;
+  animation: cardPop 1.1s ease-out forwards;
+}
+.finishCard .big{
+  font-size:22px;
+  font-weight:900;
+}
+.finishCard .small{
+  margin-top:8px;
+  font-size:14px;
+  color:var(--muted);
+}
+.finishCard .actions{
+  margin-top:14px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+.finishCard .actions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+
+@keyframes dimIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+@keyframes cardPop{
+  0%   {opacity:0; transform:translateX(-50%) translateY(14px) scale(.92);}
+  30%  {opacity:1; transform:translateX(-50%) translateY(0) scale(1.02);}
+  100% {opacity:0; transform:translateX(-50%) translateY(-10px) scale(1);}
+}
 </style>
 </head>
 
@@ -137,7 +215,7 @@ button.primary{
   <div class="card">
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
-      <div class="ver">v1.31</div>
+      <div class="ver">v1.33</div>
     </div>
     <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
 
@@ -155,15 +233,17 @@ button.primary{
         <option value="4x3">어려움 (4x3)</option>
       </select>
 
-      <!-- 잠깐보기(선택하면 즉시 실행) -->
+      <!-- ✅ 잠깐보기: placeholder + 실행 후 리셋 -->
       <select id="peekSec" title="잠깐보기 시간(선택하면 실행)">
-        <option value="2" selected>잠깐보기 2초</option>
+        <option value="" selected disabled>잠깐보기 (선택)</option>
+        <option value="2">잠깐보기 2초</option>
         <option value="3">잠깐보기 3초</option>
         <option value="5">잠깐보기 5초</option>
       </select>
 
       <button class="primary" id="newGame">새로 시작</button>
       <button id="howBtn">방법 보기</button>
+      <button id="sfxBtn" title="효과음 켜기/끄기">🔔 효과음: 켜기</button>
     </div>
   </div>
 
@@ -221,6 +301,98 @@ function today(){
 }
 todayKey.textContent=today();
 
+/*** SFX (저작권 걱정 없는 비프톤) ***/
+const sfxBtn = document.getElementById("sfxBtn");
+const SFX_KEY = "harumind_sfx_on";
+let sfxOn = (localStorage.getItem(SFX_KEY) !== "0"); // 기본 ON
+
+function renderSfx(){
+  sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
+}
+renderSfx();
+
+sfxBtn.onclick = () => {
+  sfxOn = !sfxOn;
+  localStorage.setItem(SFX_KEY, sfxOn ? "1" : "0");
+  renderSfx();
+};
+
+function playBeep(freq=880, ms=70, gain=0.03){
+  if(!sfxOn) return;
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.value = freq;
+
+    g.gain.value = 0;
+    osc.connect(g);
+    g.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(gain, now + 0.01);
+    g.gain.linearRampToValueAtTime(0, now + ms/1000);
+
+    osc.start(now);
+    osc.stop(now + ms/1000 + 0.02);
+
+    osc.onended = () => ctx.close();
+  }catch(e){
+    // 조용히 무시
+  }
+}
+
+/*** 보상 연출(+10) ***/
+function showReward(tile, text){
+  const r = document.createElement("div");
+  r.className = "reward";
+  r.textContent = text;
+
+  const rect = tile.getBoundingClientRect();
+  r.style.left = (rect.left + rect.width/2) + "px";
+  r.style.top  = (rect.top + rect.height/2) + "px";
+
+  document.body.appendChild(r);
+  setTimeout(()=>r.remove(), 900);
+}
+
+/*** 완료 마일드 팝업(새로 시작 버튼 포함) ***/
+function showFinishPopup(title, sub){
+  const back = document.createElement("div");
+  back.className = "finishBack";
+
+  const card = document.createElement("div");
+  card.className = "finishCard";
+  card.innerHTML = `
+    <div class="big">${title}</div>
+    <div class="small">${sub}</div>
+    <div class="actions">
+      <button id="finishRestartBtn">새로 시작</button>
+    </div>
+  `;
+
+  document.body.appendChild(back);
+  document.body.appendChild(card);
+
+  const cleanup = () => {
+    back.remove();
+    card.remove();
+  };
+
+  card.querySelector("#finishRestartBtn").onclick = () => {
+    cleanup();
+    build();
+  };
+
+  setTimeout(()=>cleanup(), 1200);
+}
+
 function build(){
   // 잠깐보기 진행 중이면 타이머 정리
   if(peekTimer){ clearTimeout(peekTimer); peekTimer=null; }
@@ -270,7 +442,13 @@ function clickTile(t){
   if(first.dataset.emoji===t.dataset.emoji){
     first.classList.add("matched");
     t.classList.add("matched");
-    matched++; score+=10;
+
+    matched++;
+    score += 10;
+
+    // ✅ 보상 연출
+    showReward(t, "+10");
+
     matchedEl.textContent=matched;
     scoreEl.textContent=score;
 
@@ -282,6 +460,11 @@ function clickTile(t){
     if(matched===totalPairs){
       msgEl.textContent="완료! 정말 잘하셨어요 🎉";
       hintEl.textContent="오늘도 수고하셨어요. 내일 또 해볼까요?";
+      showFinishPopup("오늘의 게임 완료! 🎉", "정말 잘하셨어요. 내일도 5분만 해볼까요?");
+      playBeep(988, 90, 0.035); // ✅ 완료 소리(아주 작게)
+    }else{
+      // (선택) 맞췄을 때 아주 약하게
+      playBeep(880, 55, 0.015);
     }
   }else{
     msgEl.textContent="괜찮아요 🙂 다시 해보면 됩니다.";
@@ -296,6 +479,13 @@ function clickTile(t){
 
 function doPeek(sec){
   if(lock) return;
+
+  // ✅ 카드 1장 열어둔 상태에서 peek하면 first 꼬임 방지
+  if(first){
+    first.dataset.state="down";
+    first=null;
+  }
+
   lock=true;
 
   // 기존 타이머 있으면 정리
@@ -317,19 +507,21 @@ function doPeek(sec){
 }
 
 /*** 이벤트 ***/
-document.getElementById("newGame").onclick=build;
-
-// ✅ 난이도 변경 시 안내 문구 + 자동 새로시작
-levelSel.onchange=()=>{
-  msgEl.textContent="난이도를 바꿨어요 🙂 새로 시작할게요.";
-  hintEl.textContent="천천히 해도 괜찮아요.";
+document.getElementById("newGame").onclick = () => {
   build();
 };
 
-// ✅ 잠깐보기: 드롭다운에서 초를 고르면 즉시 실행
+levelSel.onchange=()=>{
+  build();
+  msgEl.textContent="난이도를 바꿨어요 🙂 새로 시작했어요.";
+  hintEl.textContent="천천히 해도 괜찮아요.";
+};
+
 peekSel.onchange=()=>{
   const sec=parseInt(peekSel.value,10) || 2;
   doPeek(sec);
+  // ✅ 같은 값 재선택 가능하도록 리셋
+  peekSel.value="";
 };
 
 function openModal(){document.getElementById("modalBack").style.display="flex";}
@@ -340,4 +532,3 @@ build();
 </script>
 </body>
 </html>
-
