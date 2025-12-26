@@ -1,343 +1,296 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>하루마인드 - 같은 그림 찾기</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>하루마음 - 같은 그림 찾기</title>
 
-  <style>
-    :root{
-      --bg:#0b1020;
-      --card:rgba(255,255,255,.05);
-      --card2:rgba(255,255,255,.03);
-      --line:rgba(255,255,255,.09);
-      --text:#e8ecff;
-      --muted:#b9c2ff;
-      --accent:#6ee7b7;
-      --shadow:0 10px 25px rgba(0,0,0,.35);
-      --radius:18px;
-    }
-    *{box-sizing:border-box;}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
-      background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
-      color:var(--text);
-      display:flex;
-      justify-content:center;
-      padding:18px;
-    }
-    .wrap{
-      width:min(720px,100%);
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-    .card{
-      background: linear-gradient(180deg, var(--card), var(--card2));
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:16px;
-    }
+<style>
+:root{
+  --bg:#0b1020;
+  --text:#e8ecff;
+  --muted:#b9c2ff;
+  --accent:#6ee7b7;
+  --shadow:0 10px 25px rgba(0,0,0,.35);
+  --radius:18px;
 
-    /* ===== 상단 타이틀 ===== */
-    .titleRow{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .title{
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:-.4px;
-    }
-    .sub{
-      margin-top:6px;
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.35;
-    }
+  /* 기본 크기(조절용) */
+  --fs-base:16px;
+  --fs-title:20px;
+  --fs-msg:18px;
+  --fs-hint:14px;
+  --fs-pill:14px;
+  --tile-h:90px;
+  --tile-fs:42px;
+  --gap:12px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
+  background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  padding:18px;
+  font-size:var(--fs-base);
+}
 
-    /* ===== 오늘 요약(1줄) ===== */
-    .summaryBar{
-      margin-top:12px;
-      padding:10px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.04);
-      color:rgba(233,238,255,.95);
-      font-weight:800;
-      font-size:14px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      justify-content:space-between;
-    }
-    .summaryLeft{
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .tiny{
-      font-size:12px;
-      color:rgba(185,194,255,.9);
-      font-weight:700;
-    }
+/* ✅ 큰 글씨 모드 */
+body.bigText{
+  --fs-base:18px;
+  --fs-title:24px;
+  --fs-msg:22px;
+  --fs-hint:16px;
+  --fs-pill:16px;
+  --tile-h:104px;
+  --tile-fs:52px;
+  --gap:14px;
+}
 
-    /* ===== 핵심 조작 3개 ===== */
-    .mainControls{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-top:12px;
-    }
-    .control{
-      width:100%;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.05);
-      color:var(--text);
-      padding:12px 12px;
-      font-weight:900;
-      font-size:16px;
-      outline:none;
-    }
-    select.control{
-      appearance:auto;
-      font-weight:900;
-    }
-    .btnPrimary{
-      border:2px solid rgba(110,231,183,.45);
-      background:rgba(110,231,183,.18);
-    }
-    .btnPrimary.big{
-      grid-column: 1 / -1; /* 새로 시작은 크게(한 줄 전체) */
-      font-size:18px;
-      padding:14px 14px;
-      border-radius:16px;
-    }
+.wrap{
+  width:min(560px,100%);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+.titleRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.title{font-size:var(--fs-title);font-weight:900;}
+.ver{font-size:12px;color:var(--muted);}
+.sub{font-size:14px;color:var(--muted);margin-top:4px;}
 
-    /* ===== 설정(접기) ===== */
-    details.settings{
-      margin-top:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background:rgba(255,255,255,.03);
-      overflow:hidden;
-    }
-    details.settings > summary{
-      list-style:none;
-      cursor:pointer;
-      padding:12px 14px;
-      font-weight:900;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    details.settings > summary::-webkit-details-marker{display:none;}
-    .settingsBody{
-      border-top:1px solid rgba(255,255,255,.08);
-      padding:12px 14px 14px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-    }
-    .settingsBody .control{ font-size:15px; padding:11px 12px; }
-    .settingsBody .control.full{ grid-column: 1 / -1; }
+.stats{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
+}
+.pill{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:var(--fs-pill);
+}
 
-    /* ===== 보드 영역 ===== */
-    .boardCard{ padding:14px; }
-    .boardTitle{
-      font-size:18px;
-      font-weight:900;
-      letter-spacing:-.3px;
-    }
-    .boardTip{
-      margin-top:6px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
+.controls{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+}
+button,select{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+button.primary{
+  background:rgba(110,231,183,.18);
+  border-color:rgba(110,231,183,.45);
+}
 
-    /* 기존 UI에서 보드가 들어갈 컨테이너(기존 ui.js가 여기 넣는 구조일 가능성) */
-    #board{
-      margin-top:12px;
-      display:grid;
-      gap:10px;
-    }
+#msg{font-size:var(--fs-msg);font-weight:900;}
+#hint{font-size:var(--fs-hint);color:var(--muted);margin-top:4px;}
 
-    /* 하단 안내 */
-    .footerNote{
-      color:rgba(185,194,255,.92);
-      font-size:12px;
-      line-height:1.5;
-    }
+.board{display:grid;gap:var(--gap);}
+.tile{
+  height:var(--tile-h);
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--tile-fs);
+  cursor:pointer;
+  user-select:none;
+  position:relative;
+}
+.tile[data-state="down"]::after{content:"?";font-weight:900;}
+.tile[data-state="up"]::after{content:attr(data-emoji);}
+.tile.matched{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+}
 
-    /* 모바일: 글자/간격 조금만 줄이기 */
-    @media (max-width: 420px){
-      body{ padding:14px; }
-      .card{ padding:14px; }
-      .title{ font-size:20px; }
-      .mainControls{ grid-template-columns: 1fr 1fr; }
-      .btnPrimary.big{ font-size:17px; }
-      .settingsBody{ grid-template-columns: 1fr 1fr; }
-    }
-  </style>
+/* 방법 보기 팝업 */
+.modalBack{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+}
+.modal{
+  background:#1a2250;
+  border-radius:18px;
+  padding:20px;
+  max-width:520px;
+}
+.modalTitle{font-size:20px;font-weight:900;}
+.modalBody{
+  margin-top:12px;
+  font-size:18px;
+  line-height:1.85;
+  color:#eef2ff;
+}
+
+/* ✅ 맞췄을 때 보상 연출 */
+.reward{
+  position:fixed;
+  font-size:22px;
+  font-weight:900;
+  color:var(--accent);
+  pointer-events:none;
+  animation: rewardPop 0.9s ease-out forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,.45);
+  z-index:70;
+}
+@keyframes rewardPop{
+  0%   { opacity:0; transform:translate(-50%, 10px) scale(0.6); }
+  30%  { opacity:1; transform:translate(-50%, 0) scale(1.15); }
+  100% { opacity:0; transform:translate(-50%, -18px) scale(1); }
+}
+
+/* ✅ 완료 팝업 (자동 닫힘 없음) */
+.finishBack{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:90;
+  opacity:0;
+  animation: dimIn 0.35s ease-out forwards;
+}
+.finishCard{
+  position:fixed;
+  left:50%; top:26%;
+  transform:translateX(-50%);
+  z-index:100;
+
+  width:min(440px, calc(100% - 36px));
+  background:#1a2250;
+  border:1px solid rgba(110,231,183,.55);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:18px 20px;
+  text-align:center;
+
+  opacity:0;
+  animation: cardIn 0.38s ease-out forwards;
+}
+.finishCard .big{font-size:22px;font-weight:900;}
+.finishCard .small{
+  margin-top:8px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.finishCard .actions{
+  margin-top:14px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.finishCard .actions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+@keyframes dimIn{from{opacity:0;}to{opacity:1;}}
+@keyframes cardIn{
+  0%{opacity:0; transform:translateX(-50%) translateY(14px) scale(.96);}
+  100%{opacity:1; transform:translateX(-50%) translateY(0) scale(1);}
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
+<div class="wrap">
 
-    <!-- ===== 상단 카드 ===== -->
-    <div class="card">
-      <div class="titleRow">
-        <div>
-          <div class="title">같은 그림 찾기</div>
-          <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
-        </div>
-      </div>
+  <div class="card">
+    <div class="titleRow">
+      <div class="title">같은 그림 찾기</div>
+      <div class="ver">v1.36 (분리구조)</div>
+    </div>
+    <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
 
-      <!-- ✅ 오늘 요약 1줄 (정보성) -->
-      <div class="summaryBar" aria-live="polite">
-        <div class="summaryLeft" id="summaryText">오늘 0판 완료 · 최고 0점</div>
-        <div class="tiny" id="summaryTiny">맞춤 0 · 점수 0</div>
-      </div>
-
-      <!-- ✅ 핵심 조작 3개 -->
-      <div class="mainControls">
-        <!-- 난이도: (2단계 추천) -->
-        <select id="difficulty" class="control" title="난이도">
-          <option value="easy">보통</option>
-          <option value="hard">어려움</option>
-        </select>
-
-        <!-- 잠깐보기: 2초 고정 -->
-        <button id="peekBtn" class="control" type="button">잠깐보기</button>
-
-        <!-- 새로 시작: 크게 -->
-        <button id="restartBtn" class="control btnPrimary big" type="button">새로 시작</button>
-      </div>
-
-      <!-- ✅ 설정: 기본 접기 -->
-      <details class="settings">
-        <summary>
-          <span>⚙️ 설정</span>
-          <span class="tiny">효과음 · 큰 글씨 · 방법</span>
-        </summary>
-        <div class="settingsBody">
-          <button id="soundToggle" class="control" type="button">🔔 효과음: 켜짐</button>
-          <button id="bigTextToggle" class="control" type="button">🔎 큰 글씨: 꺼짐</button>
-          <button id="helpBtn" class="control full" type="button">방법 보기</button>
-        </div>
-      </details>
+    <div class="stats">
+      <div class="pill">오늘의 게임 <b id="todayKey"></b></div>
+      <div class="pill">맞춘 개수 <b id="matched">0</b></div>
+      <div class="pill">칭찬점수 <b id="score">0</b></div>
+      <div class="pill">오늘 완료 <b id="todayClear">0</b>회</div>
+      <div class="pill">오늘 최고 <b id="todayBest">0</b>점</div>
     </div>
 
-    <!-- ===== 게임(보드) 카드 ===== -->
-    <div class="card boardCard">
-      <div class="boardTitle">같은 그림 2개를 찾아보세요!</div>
-      <div class="boardTip">팁: 너무 빨리 누르지 않아도 돼요.</div>
+    <div class="controls">
+      <select id="level" title="난이도 선택">
+        <option value="2x2">쉬움 (2x2)</option>
+        <option value="3x2" selected>보통 (3x2)</option>
+        <option value="4x3">어려움 (4x3)</option>
+      </select>
 
-      <!-- 기존 게임 UI가 렌더링될 영역 -->
-      <div id="board"></div>
+      <select id="peekSec" title="잠깐보기 시간(선택하면 실행)">
+        <option value="" selected disabled>잠깐보기 (선택)</option>
+        <option value="2">잠깐보기 2초</option>
+        <option value="3">잠깐보기 3초</option>
+        <option value="5">잠깐보기 5초</option>
+      </select>
 
-      <div style="margin-top:12px;" class="footerNote">
-        본 서비스는 의료 목적이 아닌, 일상적인 인지 자극을 위한 놀이입니다.<br/>
-        하루마인드 · harumind.kr
-      </div>
+      <button class="primary" id="newGame">새로 시작</button>
+      <button id="howBtn">방법 보기</button>
+      <button id="sfxBtn" title="효과음 켜기/끄기">🔔 효과음: 켜기</button>
+      <button id="bigBtn" title="글자/버튼 크게">🔎 큰 글씨: 끄기</button>
     </div>
-
   </div>
 
-  <!-- ===== 기존 분리 파일 로드(현재 구조 유지) ===== -->
-  <script src="./config.js"></script>
-  <script src="./storage.js"></script>
-  <script src="./ui.js"></script>
-  <script src="./game.js"></script>
+  <div class="card">
+    <div id="msg">같은 그림 2개를 찾아보세요!</div>
+    <div id="hint">팁: 너무 빨리 누르지 않아도 돼요.</div>
+  </div>
 
-  <!-- ===== UI 연결(핵심: 요약 1줄 + 버튼 이벤트) ===== -->
-  <script>
-    // ✅ 값 표시용(기존 코드가 아래 id들을 쓰고 있을 가능성 높아서 숨은 상태로 유지)
-    // (기존 코드가 직접 DOM을 찾는다면 도움이 됨)
-    const hidden = document.createElement('div');
-    hidden.style.display = 'none';
-    hidden.innerHTML = `
-      <span id="todayKey"></span>
-      <span id="matched">0</span>
-      <span id="score">0</span>
-      <span id="todayClear">0</span>
-      <span id="todayBest">0</span>
-    `;
-    document.body.appendChild(hidden);
+  <div class="card">
+    <div class="board" id="board"></div>
+  </div>
 
-    // ✅ 요약 1줄 업데이트
-    function refreshSummary(){
-      const todayClear = document.getElementById('todayClear')?.textContent?.trim() || '0';
-      const todayBest  = document.getElementById('todayBest')?.textContent?.trim()  || '0';
-      const matched    = document.getElementById('matched')?.textContent?.trim()    || '0';
-      const score      = document.getElementById('score')?.textContent?.trim()      || '0';
+  <div class="card" style="font-size:12px;color:var(--muted);">
+    본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
+    하루마음 · harumind.kr
+  </div>
 
-      document.getElementById('summaryText').textContent = `오늘 ${todayClear}판 완료 · 최고 ${todayBest}점`;
-      document.getElementById('summaryTiny').textContent = `맞춤 ${matched} · 점수 ${score}`;
-    }
-    setInterval(refreshSummary, 600);
+</div>
 
-    // ✅ 잠깐보기(2초 고정) - 기존 함수가 있으면 그걸 호출, 없으면 이벤트만 던짐
-    const peekBtn = document.getElementById('peekBtn');
-    peekBtn.addEventListener('click', () => {
-      // 1) 기존 전역 함수가 있으면 우선 사용
-      if (typeof window.peek === 'function') return window.peek(2000);
-      if (typeof window.showPeek === 'function') return window.showPeek(2000);
+<div class="modalBack" id="modalBack">
+  <div class="modal">
+    <div class="modalTitle">게임 방법</div>
+    <div class="modalBody">
+      1) 물음표(?) 카드를 눌러 그림을 확인해요.<br/>
+      2) 같은 그림 2개를 찾으면 성공이에요.<br/>
+      3) 틀려도 괜찮아요 😊 다시 해보면 됩니다.<br/><br/>
+      처음엔 <b>쉬움(2x2)</b>이 좋아요.<br/>
+      하루에 한 번만 해도 충분해요.
+    </div>
+    <button style="margin-top:14px;" onclick="HarumindUI.closeModal()">닫기</button>
+  </div>
+</div>
 
-      // 2) 아니면 커스텀 이벤트(기존 game.js에서 받을 수도 있음)
-      window.dispatchEvent(new CustomEvent('HARUMIND_PEEK', { detail: { ms: 2000 } }));
-    });
-
-    // ✅ 새로 시작
-    const restartBtn = document.getElementById('restartBtn');
-    restartBtn.addEventListener('click', () => {
-      if (typeof window.newGame === 'function') return window.newGame();
-      if (typeof window.restart === 'function') return window.restart();
-      window.dispatchEvent(new Event('HARUMIND_RESTART'));
-    });
-
-    // ✅ 난이도(2단계) - 기존 설정 함수가 있으면 사용
-    const difficulty = document.getElementById('difficulty');
-    difficulty.addEventListener('change', () => {
-      const v = difficulty.value; // easy/hard
-      if (typeof window.setDifficulty === 'function') return window.setDifficulty(v);
-      window.dispatchEvent(new CustomEvent('HARUMIND_DIFFICULTY', { detail: { level: v } }));
-    });
-
-    // ✅ 효과음/큰글씨/방법보기
-    const soundToggle = document.getElementById('soundToggle');
-    const bigTextToggle = document.getElementById('bigTextToggle');
-    const helpBtn = document.getElementById('helpBtn');
-
-    soundToggle.addEventListener('click', () => {
-      if (typeof window.toggleSound === 'function') window.toggleSound();
-      window.dispatchEvent(new Event('HARUMIND_TOGGLE_SOUND'));
-    });
-
-    bigTextToggle.addEventListener('click', () => {
-      if (typeof window.toggleBigText === 'function') window.toggleBigText();
-      window.dispatchEvent(new Event('HARUMIND_TOGGLE_BIGTEXT'));
-    });
-
-    helpBtn.addEventListener('click', () => {
-      if (typeof window.openHelp === 'function') return window.openHelp();
-      if (typeof window.showHelp === 'function') return window.showHelp();
-      window.dispatchEvent(new Event('HARUMIND_HELP'));
-    });
-
-    // 상태 텍스트는 기존 코드가 localStorage 같은 곳에 저장한다면 거기에 맞춰 업데이트되게 확장 가능
-    function syncToggles(){
-      // 🌑 추측: 기존 storage.js가 sound/bigText 상태를 저장할 가능성이 높음
-      // 안전하게 기본만 유지. (원하면 실제 키에 맞춰 동기화해줄게요.)
-    }
-    syncToggles();
-  </script>
+<!-- 순서 중요: config → storage → ui → game -->
+<script src="./config.js"></script>
+<script src="./storage.js"></script>
+<script src="./ui.js"></script>
+<script src="./game.js"></script>
 </body>
 </html>
