@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>하루마음 - 하루 5분 두뇌놀이</title>
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --text:#e8ecff;
+      --muted:#b9c2ff;
+      --accent:#6ee7b7;
+      --shadow:0 10px 25px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
+      background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
+      color:var(--text);
+      display:flex;
+      justify-content:center;
+      padding:18px;
+    }
+    .wrap{
+      width:min(560px,100%);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .brand{
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:-.4px;
+    }
+    .tag{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:15px;
+    }
+    .hero{
+      font-size:22px;
+      font-weight:900;
+      line-height:1.35;
+      letter-spacing:-.3px;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:20px;
+      font-weight:900;
+      border-radius:999px;
+      border:2px solid rgba(110,231,183,.45);
+      background:rgba(110,231,183,.18);
+      color:var(--text);
+      padding:14px 22px;
+      text-decoration:none;
+      margin-top:12px;
+    }
+    .note{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="brand">하루마음</div>
+      <div class="tag">하루 5분, 천천히 해도 괜찮은 두뇌놀이</div>
+    </div>
+
+    <div class="card">
+      <div class="hero">
+        오늘도 부담 없이<br/>
+        짧게, 가볍게 해볼까요?
+      </div>
+
+      <a class="btn" href="./memory.html">
+        ▶ 같은 그림 찾기 시작
+      </a>
+
+      <div class="note" style="margin-top:12px;">
+        ✓ 로그인 없음 · ✓ 광고 없음 · ✓ 설치 없음<br/>
+        *본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.*
+      </div>
+    </div>
+
+    <div class="card note">
+      📌 추천: 홈화면에 아이콘을 만들어 두면<br/>
+      다음부터는 아이콘만 눌러 바로 시작할 수 있어요.
+    </div>
+  </div>
+</body>
+</html>
