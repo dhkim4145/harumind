@@ -137,7 +137,7 @@ button.primary{
   <div class="card">
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
-      <div class="ver">v1.2</div>
+      <div class="ver">v1.31</div>
     </div>
     <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
 
@@ -148,13 +148,21 @@ button.primary{
     </div>
 
     <div class="controls">
-      <select id="level">
+      <!-- 난이도 -->
+      <select id="level" title="난이도 선택">
         <option value="2x2">쉬움 (2x2)</option>
         <option value="3x2" selected>보통 (3x2)</option>
         <option value="4x3">어려움 (4x3)</option>
       </select>
+
+      <!-- 잠깐보기(선택하면 즉시 실행) -->
+      <select id="peekSec" title="잠깐보기 시간(선택하면 실행)">
+        <option value="2" selected>잠깐보기 2초</option>
+        <option value="3">잠깐보기 3초</option>
+        <option value="5">잠깐보기 5초</option>
+      </select>
+
       <button class="primary" id="newGame">새로 시작</button>
-      <button id="peek">잠깐 보기(2초)</button>
       <button id="howBtn">방법 보기</button>
     </div>
   </div>
@@ -195,14 +203,18 @@ button.primary{
 
 <script>
 const EMOJIS=["🍎","🍌","🍇","🍓","🍒","🍑","🍍","🍉","🐶","🐱","🐻","⭐","🌙","☀️","🎈","🚗"];
+
 const board=document.getElementById("board");
 const matchedEl=document.getElementById("matched");
 const scoreEl=document.getElementById("score");
 const msgEl=document.getElementById("msg");
 const hintEl=document.getElementById("hint");
 const todayKey=document.getElementById("todayKey");
+const levelSel=document.getElementById("level");
+const peekSel=document.getElementById("peekSec");
 
 let first=null, lock=false, matched=0, score=0, totalPairs=0;
+let peekTimer=null;
 
 function today(){
   return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul"}).format(new Date());
@@ -210,6 +222,9 @@ function today(){
 todayKey.textContent=today();
 
 function build(){
+  // 잠깐보기 진행 중이면 타이머 정리
+  if(peekTimer){ clearTimeout(peekTimer); peekTimer=null; }
+
   board.innerHTML="";
   matched=0; score=0;
   matchedEl.textContent=0; scoreEl.textContent=0;
@@ -218,7 +233,7 @@ function build(){
   msgEl.textContent="같은 그림 2개를 찾아보세요!";
   hintEl.textContent="팁: 너무 빨리 누르지 않아도 돼요.";
 
-  const level=document.getElementById("level").value;
+  const level=levelSel.value;
   const map={"2x2":[2,2],"3x2":[2,3],"4x3":[3,4]};
   const [r,c]=map[level];
   totalPairs=(r*c)/2;
@@ -279,17 +294,42 @@ function clickTile(t){
   }
 }
 
-document.getElementById("newGame").onclick=build;
-document.getElementById("peek").onclick=()=>{
+function doPeek(sec){
   if(lock) return;
   lock=true;
+
+  // 기존 타이머 있으면 정리
+  if(peekTimer){ clearTimeout(peekTimer); peekTimer=null; }
+
+  const ms=sec*1000;
+
   [...board.children].forEach(t=>t.dataset.state="up");
-  msgEl.textContent="잠깐 보고 기억해요 🙂";
-  setTimeout(()=>{
-    [...board.children].forEach(t=>!t.classList.contains("matched")&&(t.dataset.state="down"));
+  msgEl.textContent=`잠깐 보고 기억해요 🙂 (${sec}초)`;
+  hintEl.textContent="끝나면 다시 물음표로 돌아갑니다.";
+
+  peekTimer=setTimeout(()=>{
+    [...board.children].forEach(t=>!t.classList.contains("matched") && (t.dataset.state="down"));
     msgEl.textContent="이제 시작해볼까요?";
+    hintEl.textContent="팁: 너무 빨리 누르지 않아도 돼요.";
     lock=false;
-  },2000);
+    peekTimer=null;
+  },ms);
+}
+
+/*** 이벤트 ***/
+document.getElementById("newGame").onclick=build;
+
+// ✅ 난이도 변경 시 안내 문구 + 자동 새로시작
+levelSel.onchange=()=>{
+  msgEl.textContent="난이도를 바꿨어요 🙂 새로 시작할게요.";
+  hintEl.textContent="천천히 해도 괜찮아요.";
+  build();
+};
+
+// ✅ 잠깐보기: 드롭다운에서 초를 고르면 즉시 실행
+peekSel.onchange=()=>{
+  const sec=parseInt(peekSel.value,10) || 2;
+  doPeek(sec);
 };
 
 function openModal(){document.getElementById("modalBack").style.display="flex";}
@@ -300,3 +340,4 @@ build();
 </script>
 </body>
 </html>
+
