@@ -19,8 +19,8 @@
   const bigBtn = document.getElementById("bigBtn");
 
   // 상태(설정)
-  let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true); // default ON
-  let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false); // default OFF
+  let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
+  let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
 
   function setBigMode(on){
     bigOn = !!on;
@@ -35,7 +35,7 @@
     sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
   }
 
-  // 저작권 걱정 없는 비프톤
+  // 비프톤
   function playBeep(freq=880, ms=70, gain=0.03){
     if(!sfxOn) return;
     try{
@@ -77,6 +77,7 @@
     setTimeout(()=>r.remove(), 900);
   }
 
+  // ✅ 페이지 메시지 (HTML 허용)
   function setMessage(msg, hint){
     msgEl.innerHTML = msg || "";
     hintEl.textContent = hint || "";
@@ -94,10 +95,16 @@
   }
 
   // 방법 보기
-  function openModal(){ document.getElementById("modalBack").style.display = "flex"; }
-  function closeModal(){ document.getElementById("modalBack").style.display = "none"; }
+  function openModal(){
+    document.getElementById("modalBack").style.display = "flex";
+  }
+  function closeModal(){
+    document.getElementById("modalBack").style.display = "none";
+  }
 
-  // 완료 팝업(자동 닫힘 없음)
+  // =========================
+  // 완료 팝업
+  // =========================
   function showFinishPopup({title, sub, dateStr, onRestart}){
     const back = document.createElement("div");
     back.className = "finishBack";
@@ -110,7 +117,10 @@
 
     card.innerHTML = `
       <div class="big">${title}</div>
-      <div class="small">${sub}<br/><b style="color:#e8ecff">${extra}</b></div>
+      <div class="small">
+        ${sub}<br/>
+        <b style="color:#e8ecff">${extra}</b>
+      </div>
       <div class="actions">
         <button id="finishRestartBtn">새로 시작</button>
         <button id="finishCloseBtn">확인</button>
@@ -120,19 +130,30 @@
     document.body.appendChild(back);
     document.body.appendChild(card);
 
-    const cleanup = () => { back.remove(); card.remove(); };
+    const cleanup = () => {
+      back.remove();
+      card.remove();
+    };
 
+    // 새로 시작 → 리셋 (메시지 안 남김)
     card.querySelector("#finishRestartBtn").onclick = () => {
       cleanup();
       if(typeof onRestart === "function") onRestart();
     };
-    card.querySelector("#finishCloseBtn").onclick = () => cleanup();
 
-    // 배경 클릭 닫기 원하면 ↓ 활성화
+    // ✅ 확인 → 팝업 닫고, 페이지 메시지는 "다른 안내"
+    card.querySelector("#finishCloseBtn").onclick = () => {
+      cleanup();
+      setMessage("다시 하려면 ‘새로 시작’을 눌러주세요 🙂", "");
+    };
+
+    // 배경 클릭 닫기 (원하면)
     // back.onclick = cleanup;
   }
 
-  // 초기 세팅(오늘 키 표시 + 버튼 바인딩)
+  // =========================
+  // 초기 세팅
+  // =========================
   const dateStr = HarumindStorage.todayKey();
   todayKeyEl.textContent = dateStr;
   renderDaily(dateStr);
@@ -143,21 +164,17 @@
   bigBtn.onclick = () => setBigMode(!bigOn);
   sfxBtn.onclick = () => setSfx(!sfxOn);
 
+  // 외부 공개
   window.HarumindUI = {
     board,
     dateStr,
-    // message/stats
     setMessage,
     renderStats,
     renderDaily,
-    // effects
     playBeep,
     showReward,
-    // modal
     openModal,
     closeModal,
-    // finish
     showFinishPopup,
   };
 })();
-
