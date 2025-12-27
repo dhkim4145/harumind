@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>하루마음 - 같은 그림 찾기</title>
 
+<!-- Google Analytics 4 (필요 없으면 삭제 가능) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JX8PENN22H');
+</script>
+
 <style>
 :root{
   --bg:#0b1020;
@@ -19,6 +28,7 @@
   --fs-msg:18px;
   --fs-hint:14px;
   --fs-pill:14px;
+
   --tile-h:90px;
   --tile-fs:42px;
   --gap:12px;
@@ -64,6 +74,13 @@ body.bigText{
   padding:16px;
 }
 
+.titleRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
 .title{
   font-size:var(--fs-title);
   font-weight:900;
@@ -77,9 +94,10 @@ body.bigText{
 
 /* ===== 오늘 현황 ===== */
 .statsHeader{
+  margin-top:10px;
   display:flex;
   justify-content:flex-end;
-  margin-top:10px;
+  align-items:center;
 }
 
 .statsToggle{
@@ -99,14 +117,16 @@ body.bigText{
   display:inline-block;
   transition:transform .18s ease;
   opacity:.9;
-  transform:translateY(-1px);
 }
-#statsWrap.isOpen .chev{ transform:rotate(180deg) translateY(1px); }
+
+#statsWrap.isOpen .chev{
+  transform:rotate(180deg);
+}
 
 .stats{
   display:flex;
-  flex-wrap:wrap;
   gap:10px;
+  flex-wrap:wrap;
   margin-top:12px;
 }
 
@@ -118,40 +138,36 @@ body.bigText{
   font-size:var(--fs-pill);
 }
 
-/* 줄 바꿈(강제 다음줄) */
+/* 줄바꿈 강제 */
 .stats-break{
   flex-basis:100%;
   height:0;
 }
 
-/* 안내 문구 (간격 추가: 붙는 문제 해결) */
+/* 안내 문구 + 구분선(진하게) */
 .statsNote{
+  margin-top:10px;
   font-size:12px;
   color:var(--muted);
-  margin-top:10px;
-  margin-bottom:10px; /* ⬅ 구분선과 간격 */
-  line-height:1.5;
 }
-
-/* 구분선(조금 더 진하게) */
 .statsDivider{
-  margin:10px 0 10px;
+  margin-top:10px;
   border-top:2px solid rgba(255,255,255,.22);
 }
 
-/* 기본 닫힘 */
+/* 기본: 닫힘 */
 #statsWrap:not(.isOpen) .stats,
-#statsWrap:not(.isOpen) .statsDivider,
-#statsWrap:not(.isOpen) .statsNote{
+#statsWrap:not(.isOpen) .statsNote,
+#statsWrap:not(.isOpen) .statsDivider{
   display:none;
 }
 
 /* ===== 컨트롤 ===== */
 .controls{
   display:flex;
-  flex-wrap:wrap;
   gap:10px;
-  margin-top:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
 }
 
 button, select{
@@ -164,51 +180,34 @@ button, select{
   cursor:pointer;
 }
 
-/* 난이도 – 다른 버튼 톤과 맞춤 + 글씨 너무 진한 문제 방지 */
+/* 난이도: 다른 버튼 톤과 맞춤(너무 진하지 않게) */
 select#level{
   font-weight:600;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.18);
-  color:var(--text);
 }
 
-/* iOS/모바일 기본 스타일 튀는 거 완화 */
-select{
-  -webkit-appearance:none;
-  appearance:none;
-  padding-right:40px;
-}
-.selectWrap{
-  position:relative;
-  display:inline-flex;
-  align-items:center;
-}
-.selectWrap::after{
-  content:"▾";
-  position:absolute;
-  right:14px;
-  pointer-events:none;
-  color:#e8ecff;
-  opacity:.9;
-  font-size:16px;
-  transform:translateY(-1px);
-}
-
+/* primary 버튼 */
 button.primary{
   background:rgba(110,231,183,.18);
   border-color:rgba(110,231,183,.45);
 }
 
-/* 메시지 */
+/* 메시지(흔들림 방지: 높이 고정) */
+.messageCard{
+  min-height:92px;
+}
 #msg{
   font-size:var(--fs-msg);
   font-weight:900;
   white-space:pre-line;
+  min-height:28px;
 }
 #hint{
   font-size:var(--fs-hint);
   color:var(--muted);
   margin-top:4px;
+  min-height:22px;
 }
 
 /* 보드 */
@@ -216,6 +215,7 @@ button.primary{
   display:grid;
   gap:var(--gap);
 }
+
 .tile{
   height:var(--tile-h);
   border-radius:18px;
@@ -227,31 +227,113 @@ button.primary{
   font-size:var(--tile-fs);
   cursor:pointer;
   user-select:none;
+  position:relative;
 }
+
 .tile[data-state="down"]::after{content:"?";font-weight:900;}
 .tile[data-state="up"]::after{content:attr(data-emoji);}
+
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
-/* ===== 방법 보기(아래 카드 펼침) ===== */
-.howTitle{
+/* ===== 완료 팝업: 중앙 고정(안 밀리게) ===== */
+.finishBack{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:9998;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+
+.finishCard{
+  position:relative;
+  width:min(440px, 100%);
+  background:#1a2250;
+  border:1px solid rgba(110,231,183,.55);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:18px 20px;
+  text-align:center;
+  z-index:9999;
+}
+
+.finishCard .big{
+  font-size:22px;
+  font-weight:900;
+}
+
+.finishCard .small{
+  margin-top:10px;
+  font-size:14px;
+  color:var(--muted);
+  line-height:1.7;
+  white-space:pre-line;
+}
+
+.finishCard .actions{
+  margin-top:14px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.finishCard .actions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
+
+/* ===== 방법 보기 모달 ===== */
+#modalBack{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:9000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+
+#modalCard{
+  width:min(520px, 100%);
+  background:#141b3f;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:18px 18px 16px;
+}
+
+.modalTitle{
   font-weight:900;
   font-size:18px;
 }
-.howBody{
-  margin-top:8px;
-  line-height:1.7;
+
+.modalBody{
+  margin-top:10px;
+  line-height:1.8;
   color:var(--muted);
   font-size:14px;
 }
-.howStep{
+
+.modalStep{
   display:flex;
   gap:10px;
   margin:10px 0;
 }
-.howNum{
+
+.modalNum{
   width:26px;
   height:26px;
   border-radius:999px;
@@ -264,6 +346,23 @@ button.primary{
   color:var(--text);
   flex:0 0 auto;
 }
+
+.modalActions{
+  margin-top:14px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+.modalActions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  padding:10px 14px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -271,8 +370,12 @@ button.primary{
 <div class="wrap">
 
   <div class="card">
-    <div class="title">같은 그림 찾기</div>
-    <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+    <div class="titleRow">
+      <div>
+        <div class="title">같은 그림 찾기</div>
+        <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+      </div>
+    </div>
 
     <div id="statsWrap">
       <div class="statsHeader">
@@ -291,60 +394,67 @@ button.primary{
         <div class="pill">오늘 가장 높은 점수 <b id="todayBest">0</b>점</div>
       </div>
 
+      <!-- ✅ 문구는 구분선 위 -->
       <div class="statsNote">* 횟수·점수는 기록으로 남지 않아요.</div>
       <div class="statsDivider"></div>
     </div>
 
     <div class="controls">
-      <span class="selectWrap">
-        <select id="level" title="난이도 선택">
-          <option value="2x2">쉬움 (2x2)</option>
-          <option value="3x2" selected>보통 (3x2)</option>
-          <option value="4x3">어려움 (4x3)</option>
-        </select>
-      </span>
+      <select id="level" title="난이도 선택">
+        <option value="2x2">쉬움 (2x2)</option>
+        <option value="3x2" selected>보통 (3x2)</option>
+        <option value="4x3">어려움 (4x3)</option>
+      </select>
 
       <button class="primary" id="newGame">새로 시작</button>
-      <button id="peekBtn" type="button">👀 잠깐보기 (2초)</button>
+      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
       <button id="sfxBtn" type="button">🔔 효과음</button>
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
     </div>
 
-    <!-- game.js가 읽는 select 유지 -->
+    <!-- 게임 로직이 쓰는 select는 유지 -->
     <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
+
+    <!-- todayKey는 storage/ui에서 쓰는 경우가 있어 숨김으로 유지(안 보이게) -->
+    <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
-  <div class="card">
+  <div class="card messageCard">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
-  </div>
-
-  <!-- 방법 보기: 아래로 펼쳐지는 카드(기본 숨김) -->
-  <div class="card" id="howCard" style="display:none;">
-    <div class="howTitle">방법 보기</div>
-    <div class="howBody">
-      <div class="howStep"><div class="howNum">1</div><div>카드를 눌러서 그림을 확인해요.</div></div>
-      <div class="howStep"><div class="howNum">2</div><div>같은 그림 2개를 찾으면 맞아요.</div></div>
-      <div class="howStep"><div class="howNum">3</div><div>헷갈리면 <b>잠깐보기(2초)</b>를 눌러요.</div></div>
-      <div class="howStep"><div class="howNum">4</div><div>다시 하려면 <b>새로 시작</b>을 눌러요.</div></div>
-      <div style="margin-top:10px;color:var(--muted);font-size:12px;">
-        * 천천히 해도 괜찮아요 🙂
-      </div>
-    </div>
   </div>
 
   <div class="card">
     <div class="board" id="board"></div>
   </div>
 
-  <div class="card" style="font-size:12px;color:var(--muted);line-height:1.6;">
+  <div class="card" style="font-size:12px;color:var(--muted); line-height:1.6;">
     본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
     하루마음 · harumind.kr
   </div>
 
+</div>
+
+<!-- ✅ 방법 보기 모달 -->
+<div id="modalBack" role="dialog" aria-modal="true" aria-label="방법 보기">
+  <div id="modalCard">
+    <div class="modalTitle">방법 보기</div>
+    <div class="modalBody">
+      <div class="modalStep"><div class="modalNum">1</div><div>카드를 눌러서 그림을 확인해요.</div></div>
+      <div class="modalStep"><div class="modalNum">2</div><div>같은 그림 2개를 찾으면 맞아요.</div></div>
+      <div class="modalStep"><div class="modalNum">3</div><div>헷갈리면 <b>잠깐보기(2초)</b>를 눌러요.</div></div>
+      <div class="modalStep"><div class="modalNum">4</div><div>다시 하려면 <b>새로 시작</b>을 눌러요.</div></div>
+      <div style="margin-top:10px;color:var(--muted);font-size:12px;">
+        * 천천히 해도 괜찮아요 🙂 
+      </div>
+    </div>
+    <div class="modalActions">
+      <button id="modalCloseBtn" type="button">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- 순서 중요 -->
@@ -353,14 +463,13 @@ button.primary{
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
 
-<!-- 오늘 현황 토글: 오늘 현황 ↔ 닫기 + 화살표 -->
+<!-- 오늘 현황 토글 -->
 <script>
 (function(){
   const wrap = document.getElementById('statsWrap');
   const btn  = document.getElementById('statsToggle');
   if(!wrap || !btn) return;
 
-  // 기본 닫힘
   wrap.classList.remove('isOpen');
   btn.setAttribute('aria-expanded','false');
   btn.innerHTML = '오늘 현황 <span class="chev">∨</span>';
@@ -384,6 +493,7 @@ button.primary{
     peekBtn.disabled = true;
     peekSel.value = "2";
     peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+
     setTimeout(() => {
       peekSel.value = "";
       peekBtn.disabled = false;
@@ -392,24 +502,29 @@ button.primary{
 })();
 </script>
 
-<!-- 방법 보기: 아래 카드 펼침/접힘 + 버튼 텍스트 토글 -->
+<!-- 방법 보기 모달 열기/닫기 -->
 <script>
 (function(){
-  const howBtn  = document.getElementById('howBtn');
-  const howCard = document.getElementById('howCard');
-  if(!howBtn || !howCard) return;
+  const howBtn = document.getElementById('howBtn');
+  const back   = document.getElementById('modalBack');
+  const close  = document.getElementById('modalCloseBtn');
+  const card   = document.getElementById('modalCard');
+  if(!howBtn || !back || !close || !card) return;
 
-  function setBtn(open){
-    howBtn.textContent = open ? "방법 닫기" : "방법 보기";
-  }
+  const openModal = () => { back.style.display = "flex"; };
+  const closeModal = () => { back.style.display = "none"; };
 
-  setBtn(false);
+  howBtn.addEventListener('click', openModal);
+  close.addEventListener('click', closeModal);
 
-  howBtn.addEventListener('click', () => {
-    const open = howCard.style.display !== "none";
-    howCard.style.display = open ? "none" : "block";
-    setBtn(!open);
-    if(!open) howCard.scrollIntoView({ behavior:"smooth", block:"start" });
+  // 바깥 클릭 닫기
+  back.addEventListener('click', (e) => {
+    if(e.target === back) closeModal();
+  });
+
+  // ESC로 닫기
+  document.addEventListener('keydown', (e) => {
+    if(e.key === "Escape" && back.style.display === "flex") closeModal();
   });
 })();
 </script>
