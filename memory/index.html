@@ -180,7 +180,7 @@ button, select{
   cursor:pointer;
 }
 
-/* 난이도: 다른 버튼 톤과 맞춤(너무 진하지 않게) */
+/* 난이도: 다른 버튼 톤과 맞춤 */
 select#level{
   font-weight:600;
   background:rgba(255,255,255,.08);
@@ -208,6 +208,7 @@ button.primary{
   color:var(--muted);
   margin-top:4px;
   min-height:22px;
+  white-space:pre-line; /* ✅ 힌트도 \n 줄바꿈 보장 */
 }
 
 /* 보드 */
@@ -236,62 +237,6 @@ button.primary{
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
-}
-
-/* ===== 완료 팝업: 중앙 고정(안 밀리게) ===== */
-.finishBack{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  z-index:9998;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-}
-
-.finishCard{
-  position:relative;
-  width:min(440px, 100%);
-  background:#1a2250;
-  border:1px solid rgba(110,231,183,.55);
-  border-radius:22px;
-  box-shadow:0 18px 48px rgba(0,0,0,.55);
-  padding:18px 20px;
-  text-align:center;
-  z-index:9999;
-}
-
-.finishCard .big{
-  font-size:22px;
-  font-weight:900;
-}
-
-.finishCard .small{
-  margin-top:10px;
-  font-size:14px;
-  color:var(--muted);
-  line-height:1.7;
-  white-space:pre-line;
-}
-
-.finishCard .actions{
-  margin-top:14px;
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.finishCard .actions button{
-  font-size:16px;
-  border-radius:999px;
-  border:1px solid rgba(110,231,183,.45);
-  background:rgba(110,231,183,.18);
-  color:var(--text);
-  padding:10px 14px;
-  cursor:pointer;
 }
 
 /* ===== 방법 보기 모달 ===== */
@@ -394,8 +339,8 @@ button.primary{
         <div class="pill">오늘 가장 높은 점수 <b id="todayBest">0</b>점</div>
       </div>
 
-      <!-- ✅ 문구는 구분선 위 -->
-      <div class="statsNote">* 횟수·점수는 기록으로 남지 않아요.</div>
+      <!-- ✅ 문구 사실대로 수정 -->
+      <div class="statsNote">* 오늘 한 횟수·최고 점수는 이 기기에만 저장돼요.</div>
       <div class="statsDivider"></div>
     </div>
 
@@ -413,12 +358,12 @@ button.primary{
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
     </div>
 
-    <!-- 게임 로직이 쓰는 select는 유지 -->
+    <!-- game.js가 쓰는 select는 유지 -->
     <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
 
-    <!-- todayKey는 storage/ui에서 쓰는 경우가 있어 숨김으로 유지(안 보이게) -->
+    <!-- todayKey는 storage/ui에서 쓰는 경우가 있어 숨김으로 유지 -->
     <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
