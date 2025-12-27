@@ -68,10 +68,13 @@
 
     t.dataset.state = "up";
 
-    if(!first){
-      first = t;
-      UI.setMessage("하나 찾았어요. 같은 그림을 찾아볼까요?", UI.board.children.length ? UI.board.children.length : "");
-      return;
+  if(!first){
+  first = t;
+  UI.setMessage(
+    "하나 찾았어요. 같은 그림을 찾아볼까요?",
+    "천천히 같은 그림을 찾아보세요 🙂"
+  );
+  return;
     }
 
     lock = true;
@@ -186,3 +189,4 @@
   // 시작
   build();
 })();
+
