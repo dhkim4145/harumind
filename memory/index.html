@@ -23,7 +23,6 @@
   --shadow:0 10px 25px rgba(0,0,0,.35);
   --radius:18px;
 
-  /* 기본 크기(조절용) */
   --fs-base:16px;
   --fs-title:20px;
   --fs-msg:18px;
@@ -33,12 +32,9 @@
   --tile-fs:42px;
   --gap:12px;
 }
+
 *{box-sizing:border-box;}
-html,body{
-  width:100%;
-  max-width:100%;
-  overflow-x:hidden;
-}
+
 body{
   margin:0;
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
@@ -50,7 +46,7 @@ body{
   font-size:var(--fs-base);
 }
 
-/* ✅ 큰 글씨 모드 */
+/* 큰 글씨 모드 */
 body.bigText{
   --fs-base:18px;
   --fs-title:24px;
@@ -68,6 +64,7 @@ body.bigText{
   flex-direction:column;
   gap:14px;
 }
+
 .card{
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
   border:1px solid rgba(255,255,255,.08);
@@ -76,17 +73,31 @@ body.bigText{
   padding:16px;
 }
 
-/* 타이틀 + (오른쪽) 오늘현황 버튼 */
 .titleRow{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
 }
-.title{font-size:var(--fs-title);font-weight:900;}
-.sub{font-size:14px;color:var(--muted);margin-top:6px;}
 
-/* 오늘현황 토글 버튼 */
+.title{
+  font-size:var(--fs-title);
+  font-weight:900;
+}
+
+.sub{
+  font-size:14px;
+  color:var(--muted);
+  margin-top:6px;
+}
+
+/* 기록 영역 */
+.statsHeader{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
 .statsToggle{
   font-size:14px;
   border-radius:999px;
@@ -98,15 +109,15 @@ body.bigText{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  margin-left:auto;
-  white-space:nowrap;
 }
+
 .chev{
-  display:inline-block;
   transition:transform .18s ease;
-  opacity:.9;
 }
-#statsWrap.isOpen .chev{ transform:rotate(180deg); }
+
+#statsWrap.isOpen .chev{
+  transform:rotate(180deg);
+}
 
 .stats{
   display:flex;
@@ -114,6 +125,7 @@ body.bigText{
   flex-wrap:wrap;
   margin-top:10px;
 }
+
 .pill{
   background:rgba(255,255,255,.07);
   border:1px solid rgba(255,255,255,.12);
@@ -122,25 +134,19 @@ body.bigText{
   font-size:var(--fs-pill);
 }
 
-/* 접힌 상태 */
-#statsWrap:not(.isOpen) .stats{ display:none; }
-
-/* “저장 느낌” 없애는 안내 */
-.statsNote{
-  width:100%;
-  margin-top:8px;
-  font-size:12px;
-  color:rgba(185,194,255,.85);
-  line-height:1.4;
+#statsWrap:not(.isOpen) .stats{
+  display:none;
 }
 
+/* 컨트롤 */
 .controls{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   margin-top:12px;
 }
-button,select{
+
+button, select{
   font-size:16px;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.15);
@@ -149,24 +155,41 @@ button,select{
   padding:10px 14px;
   cursor:pointer;
 }
+
 button.primary{
   background:rgba(110,231,183,.18);
   border-color:rgba(110,231,183,.45);
 }
 
-/* ✅ 잠깐보기 드롭다운 숨김(기능용으로만 유지) */
-#peekSec{
-  position:absolute;
-  left:-9999px;
-  width:1px; height:1px;
-  opacity:0;
-  pointer-events:none;
+/* 난이도 선택 강조 */
+select#level{
+  background:rgba(255,255,255,.12);
+  border-color:rgba(110,231,183,.45);
 }
 
-#msg{font-size:var(--fs-msg);font-weight:900;}
-#hint{font-size:var(--fs-hint);color:var(--muted);margin-top:4px;}
+select#level:focus{
+  outline:none;
+  box-shadow:0 0 0 2px rgba(110,231,183,.25);
+}
 
-.board{display:grid;gap:var(--gap); width:100%; max-width:100%;}
+/* 메시지 */
+#msg{
+  font-size:var(--fs-msg);
+  font-weight:900;
+}
+
+#hint{
+  font-size:var(--fs-hint);
+  color:var(--muted);
+  margin-top:4px;
+}
+
+/* 보드 */
+.board{
+  display:grid;
+  gap:var(--gap);
+}
+
 .tile{
   height:var(--tile-h);
   border-radius:18px;
@@ -178,81 +201,29 @@ button.primary{
   font-size:var(--tile-fs);
   cursor:pointer;
   user-select:none;
-  position:relative;
 }
+
 .tile[data-state="down"]::after{content:"?";font-weight:900;}
 .tile[data-state="up"]::after{content:attr(data-emoji);}
+
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
-/* ✅ 2단계: 시작 직후 1~2초 “?” 깜빡임 */
-@keyframes qBlink{
-  0%,100%{opacity:1;transform:scale(1);}
-  50%{opacity:.35;transform:scale(.98);}
-}
-body.hintMode .tile[data-state="down"]::after{
-  animation:qBlink .9s ease-in-out infinite;
-}
-body.hintMode .tile[data-state="down"]{
-  box-shadow:0 0 0 2px rgba(255,255,255,.08) inset;
-}
-
-/* 방법 보기 팝업 */
-.modalBack{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.7);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-}
-.modal{
-  background:#1a2250;
-  border-radius:18px;
-  padding:20px;
-  width:min(520px, 92vw);
-  max-width:92vw;
-}
-.modalTitle{font-size:20px;font-weight:900;}
-.modalBody{
-  margin-top:12px;
-  font-size:18px;
-  line-height:1.85;
-  color:#eef2ff;
-}
-
-/* ✅ 맞췄을 때 보상 연출 */
-.reward{
-  position:fixed;
-  font-size:22px;
-  font-weight:900;
-  color:var(--accent);
-  pointer-events:none;
-  animation: rewardPop 0.9s ease-out forwards;
-  text-shadow:0 2px 8px rgba(0,0,0,.45);
-  z-index:70;
-}
-@keyframes rewardPop{
-  0%{opacity:0;transform:translate(-50%,10px) scale(0.6);}
-  30%{opacity:1;transform:translate(-50%,0) scale(1.15);}
-  100%{opacity:0;transform:translate(-50%,-18px) scale(1);}
-}
-
-/* ✅ 완료 팝업 (자동 닫힘 없음) */
+/* 완료 팝업 */
 .finishBack{
-  position:fixed; inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.45);
   z-index:90;
-  opacity:0;
-  animation: dimIn 0.35s ease-out forwards;
 }
+
 .finishCard{
   position:fixed;
-  left:50%; top:26%;
+  left:50%;
+  top:26%;
   transform:translateX(-50%);
-  z-index:100;
   width:min(440px, calc(100% - 36px));
   background:#1a2250;
   border:1px solid rgba(110,231,183,.55);
@@ -260,38 +231,26 @@ body.hintMode .tile[data-state="down"]{
   box-shadow:0 18px 48px rgba(0,0,0,.55);
   padding:18px 20px;
   text-align:center;
-  opacity:0;
-  animation: cardIn 0.38s ease-out forwards;
 }
-.finishCard .big{font-size:22px;font-weight:900;}
+
+.finishCard .big{
+  font-size:22px;
+  font-weight:900;
+}
+
 .finishCard .small{
   margin-top:10px;
   font-size:14px;
   color:var(--muted);
   line-height:1.7;
-  white-space: pre-line; /* ✅ \n 줄바꿈 반영 */
-  word-break: keep-all;
+  white-space:pre-line;
 }
+
 .finishCard .actions{
   margin-top:14px;
   display:flex;
   justify-content:center;
   gap:10px;
-  flex-wrap:wrap;
-}
-.finishCard .actions button{
-  font-size:16px;
-  border-radius:999px;
-  border:1px solid rgba(110,231,183,.45);
-  background:rgba(110,231,183,.18);
-  color:var(--text);
-  padding:10px 14px;
-  cursor:pointer;
-}
-@keyframes dimIn{from{opacity:0;}to{opacity:1;}}
-@keyframes cardIn{
-  0%{opacity:0; transform:translateX(-50%) translateY(14px) scale(.96);}
-  100%{opacity:1; transform:translateX(-50%) translateY(0) scale(1);}
 }
 </style>
 </head>
@@ -302,173 +261,62 @@ body.hintMode .tile[data-state="down"]{
   <div class="card">
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
-
-      <!-- ✅ 오른쪽: 오늘 현황(기록 느낌 최소화) -->
-      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-        오늘 현황 <span class="chev">∨</span>
-      </button>
     </div>
-
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <!-- ✅ 통계(기본 접기) -->
     <div id="statsWrap">
+      <div class="statsHeader">
+        <button class="statsToggle" id="statsToggle">
+          기록 보기 <span class="chev">∨</span>
+        </button>
+      </div>
       <div class="stats">
         <div class="pill">오늘 날짜 <b id="todayKey"></b></div>
         <div class="pill">맞춘 개수 <b id="matched">0</b></div>
         <div class="pill">칭찬점수 <b id="score">0</b></div>
         <div class="pill">오늘 플레이 <b id="todayClear">0</b>회</div>
         <div class="pill">오늘 최고 점수 <b id="todayBest">0</b>점</div>
-
-        <div class="statsNote">
-          * 이 화면은 내 기기에서만 잠깐 표시돼요.<br/>
-          따로 저장되거나 전송되지 않습니다.
-        </div>
       </div>
     </div>
 
-    <!-- ✅ 버튼 순서 정리: 행동 → 도움 → 설명 → 설정 -->
     <div class="controls">
-      <select id="level" title="난이도 선택">
+      <select id="level">
         <option value="2x2">쉬움 (2x2)</option>
         <option value="3x2" selected>보통 (3x2)</option>
         <option value="4x3">어려움 (4x3)</option>
       </select>
 
       <button class="primary" id="newGame">새로 시작</button>
-      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
+      <button id="peekBtn">👀 잠깐보기 (2초)</button>
       <button id="howBtn">방법 보기</button>
-
-      <button id="sfxBtn" title="효과음 켜기/끄기">🔔 효과음: 켜기</button>
-      <button id="bigBtn" title="글자/버튼 크게">🔎 큰 글씨: 끄기</button>
+      <button id="sfxBtn">🔔 효과음</button>
+      <button id="bigBtn">🔎 큰 글씨</button>
     </div>
 
-    <!-- ✅ ui.js가 쓰는 select는 유지하되, 화면에서는 숨김 -->
-    <select id="peekSec" aria-hidden="true" tabindex="-1">
-      <option value="" selected>_</option>
+    <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
   </div>
 
   <div class="card">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
-    <div id="hint">팁: 너무 빨리 누르지 않아도 돼요.</div>
+    <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
   </div>
 
   <div class="card">
     <div class="board" id="board"></div>
   </div>
 
-  <div class="card" style="font-size:12px;color:var(--muted); line-height:1.5;">
+  <div class="card" style="font-size:12px;color:var(--muted); line-height:1.6;">
     본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
     하루마음 · harumind.kr
   </div>
 
 </div>
 
-<div class="modalBack" id="modalBack">
-  <div class="modal">
-    <div class="modalTitle">게임 방법</div>
-    <div class="modalBody">
-      1) 물음표(?) 카드를 눌러 그림을 확인해요.<br/>
-      2) 같은 그림 2개를 찾으면 성공이에요.<br/>
-      3) 틀려도 괜찮아요 😊 다시 해보면 됩니다.<br/><br/>
-      처음엔 <b>쉬움(2x2)</b>이 좋아요.<br/>
-      하루에 한 번만 해도 충분해요.
-    </div>
-    <button style="margin-top:14px;" onclick="HarumindUI.closeModal()">닫기</button>
-  </div>
-</div>
-
-<!-- 순서 중요: config → storage → ui → game -->
 <script src="./config.js"></script>
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
-
-<!-- ✅ 1단계+2단계+잠깐보기 버튼화: index.html만으로 동작 -->
-<script>
-(function(){
-  const msgEl = document.getElementById('msg');
-  const hintEl = document.getElementById('hint');
-  const newGameBtn = document.getElementById('newGame');
-
-  let firstClickDone = false;
-  let hintTimer = null;
-
-  function startHint(){
-    firstClickDone = false;
-
-    document.body.classList.add('hintMode');
-    if (hintTimer) clearTimeout(hintTimer);
-    hintTimer = setTimeout(() => {
-      document.body.classList.remove('hintMode');
-    }, 1600);
-
-    if (msgEl) msgEl.textContent = "카드를 눌러서 시작해요 🙂";
-    if (hintEl) hintEl.textContent = "처음엔 천천히 눌러보면 돼요.";
-  }
-
-  // ✅ 처음 로드 시 1회
-  startHint();
-
-  // ✅ “새로 시작” 눌렀을 때도 다시 1회
-  if (newGameBtn) {
-    newGameBtn.addEventListener('click', () => {
-      setTimeout(startHint, 120);
-    });
-  }
-
-  // ✅ 카드 첫 클릭 1회 안내
-  document.addEventListener('click', (e) => {
-    const tile = e.target.closest && e.target.closest('.tile');
-    if (!tile) return;
-
-    document.body.classList.remove('hintMode');
-
-    if (!firstClickDone) {
-      firstClickDone = true;
-      if (msgEl) msgEl.textContent = "👍 잘했어요! 같은 그림을 한 번 더 찾아보세요.";
-      if (hintEl) hintEl.textContent = "팁: 두 장이 같으면 계속 맞춰집니다.";
-      setTimeout(() => {
-        if (hintEl) hintEl.textContent = "팁: 너무 빨리 누르지 않아도 돼요.";
-      }, 5000);
-    }
-  }, { passive:true });
-
-  // ✅ 오늘 현황(접기/펼치기)
-  const wrap = document.getElementById('statsWrap');
-  const btn = document.getElementById('statsToggle');
-  const btnLabel = () => btn ? btn.childNodes[0] : null; // 텍스트 노드
-  if (wrap && btn) {
-    btn.addEventListener('click', () => {
-      const open = wrap.classList.toggle('isOpen');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-
-      // 텍스트(앞부분)만 바꿈: "오늘 현황" ↔ "닫기"
-      const node = btnLabel();
-      if (node) node.textContent = open ? '닫기 ' : '오늘 현황 ';
-    });
-  }
-
-  // ✅ 잠깐보기 버튼 → 기존 select(change)를 강제로 실행
-  const peekBtn = document.getElementById('peekBtn');
-  const peekSel = document.getElementById('peekSec');
-
-  if (peekBtn && peekSel) {
-    peekBtn.addEventListener('click', () => {
-      peekBtn.disabled = true;
-
-      peekSel.value = "2";
-      peekSel.dispatchEvent(new Event('change', { bubbles: true }));
-
-      setTimeout(() => {
-        peekSel.value = "";
-        peekBtn.disabled = false;
-      }, 2200);
-    });
-  }
-})();
-</script>
 </body>
 </html>
