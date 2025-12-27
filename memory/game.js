@@ -181,9 +181,7 @@
     peekSel.value = "";
   };
 
-  // ✅ 방법보기 버튼 다시 연결 (팝업 방식)
-  if(howBtn) howBtn.onclick = UI.openModal;
-
   // 시작
   build();
 })();
+
