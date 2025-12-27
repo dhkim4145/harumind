@@ -184,9 +184,10 @@
     peekSel.value = ""; // 같은 값 재선택 가능
   };
 
-  howBtn.onclick = UI.openModal;
+  // howBtn.onclick = UI.openModal;
 
   // 시작
   build();
 })();
+
 
