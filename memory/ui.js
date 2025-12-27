@@ -11,9 +11,10 @@
   const msgEl = document.getElementById("msg");
   const hintEl = document.getElementById("hint");
 
-  const todayKeyEl = document.getElementById("todayKey");
-  const todayClearEl = document.getElementById("todayClear");
-  const todayBestEl = document.getElementById("todayBest");
+  // (있을 수도/없을 수도 있는 요소들)  ← ✅ 방어코드 적용 대상
+  const todayKeyEl = document.getElementById("todayKey");     // 날짜 표시용 (없어도 OK)
+  const todayClearEl = document.getElementById("todayClear"); // 오늘 한 횟수 (없어도 OK)
+  const todayBestEl = document.getElementById("todayBest");   // 오늘 최고 점수 (없어도 OK)
 
   const sfxBtn = document.getElementById("sfxBtn");
   const bigBtn = document.getElementById("bigBtn");
@@ -26,13 +27,13 @@
     bigOn = !!on;
     HarumindStorage.setBool(C.KEYS.BIG, bigOn);
     document.body.classList.toggle("bigText", bigOn);
-    bigBtn.textContent = bigOn ? "🔎 큰 글씨: 켜짐" : "🔎 큰 글씨: 끄기";
+    if(bigBtn) bigBtn.textContent = bigOn ? "🔎 큰 글씨: 켜짐" : "🔎 큰 글씨: 끄기";
   }
 
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
+    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
   }
 
   // 비프톤
@@ -77,29 +78,31 @@
     setTimeout(()=>r.remove(), 900);
   }
 
-  // ✅ 페이지 메시지 (HTML 허용)
+  // ✅ 페이지 메시지 (HTML 허용: <br/> 가능)
   function setMessage(msg, hint){
-    msgEl.innerHTML = msg || "";
-    hintEl.textContent = hint || "";
+    if(msgEl) msgEl.innerHTML = msg || "";
+    if(hintEl) hintEl.textContent = hint || "";
   }
 
   function renderStats({matched, score}){
-    matchedEl.textContent = matched;
-    scoreEl.textContent = score;
+    if(matchedEl) matchedEl.textContent = matched;
+    if(scoreEl) scoreEl.textContent = score;
   }
 
   function renderDaily(dateStr){
     const d = HarumindStorage.loadDaily(dateStr);
-    todayClearEl.textContent = d.clears;
-    todayBestEl.textContent = d.best;
+    if(todayClearEl) todayClearEl.textContent = d.clears;
+    if(todayBestEl)  todayBestEl.textContent  = d.best;
   }
 
   // 방법 보기
   function openModal(){
-    document.getElementById("modalBack").style.display = "flex";
+    const m = document.getElementById("modalBack");
+    if(m) m.style.display = "flex";
   }
   function closeModal(){
-    document.getElementById("modalBack").style.display = "none";
+    const m = document.getElementById("modalBack");
+    if(m) m.style.display = "none";
   }
 
   // =========================
@@ -141,7 +144,7 @@
       if(typeof onRestart === "function") onRestart();
     };
 
-    // ✅ 확인 → 팝업 닫고, 페이지 메시지는 "다른 안내"
+    // 확인 → 팝업 닫고, 페이지 메시지는 다른 안내
     card.querySelector("#finishCloseBtn").onclick = () => {
       cleanup();
       setMessage("다시 하려면 ‘새로 시작’을 눌러주세요 🙂", "");
@@ -155,14 +158,17 @@
   // 초기 세팅
   // =========================
   const dateStr = HarumindStorage.todayKey();
-  todayKeyEl.textContent = dateStr;
+
+  // ✅ 날짜 표시 요소가 있으면만 넣기 (없어도 게임 정상)
+  if(todayKeyEl) todayKeyEl.textContent = dateStr;
+
   renderDaily(dateStr);
 
   setBigMode(bigOn);
   setSfx(sfxOn);
 
-  bigBtn.onclick = () => setBigMode(!bigOn);
-  sfxBtn.onclick = () => setSfx(!sfxOn);
+  if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
+  if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
 
   // 외부 공개
   window.HarumindUI = {
