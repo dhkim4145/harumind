@@ -78,7 +78,7 @@
   }
 
   function setMessage(msg, hint){
-    msgEl.textContent = msg || "";
+    msgEl.innerHTML = msg || "";
     hintEl.textContent = hint || "";
   }
 
@@ -160,3 +160,4 @@
     showFinishPopup,
   };
 })();
+
