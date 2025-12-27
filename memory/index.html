@@ -113,7 +113,7 @@ body.bigText{
   height:0;
 }
 
-/* 구분선 */
+/* 구분선(더 진하게) */
 .statsDivider{
   margin:14px 0 10px;
   border-top:2px solid rgba(255,255,255,.22);
@@ -149,7 +149,7 @@ button, select{
   cursor:pointer;
 }
 
-/* 난이도 – 다른 버튼과 톤 맞춤 */
+/* 난이도 – 다른 버튼 톤과 맞춤 */
 select#level{
   font-weight:600;
   background:rgba(255,255,255,.08);
@@ -196,6 +196,36 @@ button.primary{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
+
+/* ===== 방법 보기(아래 카드 펼침) ===== */
+.howTitle{
+  font-weight:900;
+  font-size:18px;
+}
+.howBody{
+  margin-top:8px;
+  line-height:1.7;
+  color:var(--muted);
+  font-size:14px;
+}
+.howStep{
+  display:flex;
+  gap:10px;
+  margin:10px 0;
+}
+.howNum{
+  width:26px;
+  height:26px;
+  border-radius:999px;
+  background:rgba(110,231,183,.18);
+  border:1px solid rgba(110,231,183,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  color:var(--text);
+  flex:0 0 auto;
+}
 </style>
 </head>
 
@@ -208,7 +238,7 @@ button.primary{
 
     <div id="statsWrap">
       <div class="statsHeader">
-        <button class="statsToggle" id="statsToggle">오늘 현황</button>
+        <button class="statsToggle" id="statsToggle" type="button">오늘 현황</button>
       </div>
 
       <div class="stats">
@@ -233,10 +263,10 @@ button.primary{
       </select>
 
       <button class="primary" id="newGame">새로 시작</button>
-      <button id="peekBtn">👀 잠깐보기 (2초)</button>
-      <button id="howBtn">방법 보기</button>
-      <button id="sfxBtn">🔔 효과음</button>
-      <button id="bigBtn">🔎 큰 글씨</button>
+      <button id="peekBtn" type="button">👀 잠깐보기 (2초)</button>
+      <button id="howBtn" type="button">방법 보기</button>
+      <button id="sfxBtn" type="button">🔔 효과음</button>
+      <button id="bigBtn" type="button">🔎 큰 글씨</button>
     </div>
 
     <select id="peekSec" style="display:none">
@@ -247,6 +277,20 @@ button.primary{
   <div class="card">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
+  </div>
+
+  <!-- ✅ 방법 보기: 아래로 펼쳐지는 카드 (기본 숨김) -->
+  <div class="card" id="howCard" style="display:none;">
+    <div class="howTitle">방법 보기</div>
+    <div class="howBody">
+      <div class="howStep"><div class="howNum">1</div><div>카드를 눌러서 그림을 확인해요.</div></div>
+      <div class="howStep"><div class="howNum">2</div><div>같은 그림 2개를 찾으면 맞아요.</div></div>
+      <div class="howStep"><div class="howNum">3</div><div>헷갈리면 <b>잠깐보기(2초)</b>를 눌러요.</div></div>
+      <div class="howStep"><div class="howNum">4</div><div>다시 하려면 <b>새로 시작</b>을 눌러요.</div></div>
+      <div style="margin-top:10px;color:var(--muted);font-size:12px;">
+        * 천천히 해도 괜찮아요 🙂
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -260,30 +304,54 @@ button.primary{
 
 </div>
 
+<!-- 순서 중요 -->
 <script src="./config.js"></script>
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
 
+<!-- 오늘 현황 토글 -->
 <script>
 (function(){
   const wrap = document.getElementById('statsWrap');
   const btn  = document.getElementById('statsToggle');
+  if(!wrap || !btn) return;
   wrap.classList.remove('isOpen');
   btn.onclick = () => wrap.classList.toggle('isOpen');
 })();
 </script>
 
+<!-- 잠깐보기 버튼 → 숨겨진 select(change) 트리거 -->
 <script>
 (function(){
   const peekBtn = document.getElementById('peekBtn');
   const peekSel = document.getElementById('peekSec');
-  peekBtn.onclick = () => {
+  if(!peekBtn || !peekSel) return;
+
+  peekBtn.addEventListener('click', () => {
     peekBtn.disabled = true;
     peekSel.value = "2";
-    peekSel.dispatchEvent(new Event('change',{bubbles:true}));
-    setTimeout(()=>peekBtn.disabled=false,2200);
-  };
+    peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+    setTimeout(() => {
+      peekSel.value = "";
+      peekBtn.disabled = false;
+    }, 2200);
+  });
+})();
+</script>
+
+<!-- ✅ 방법보기: 아래 카드 펼침/접힘 -->
+<script>
+(function(){
+  const howBtn  = document.getElementById('howBtn');
+  const howCard = document.getElementById('howCard');
+  if(!howBtn || !howCard) return;
+
+  howBtn.addEventListener('click', () => {
+    const open = howCard.style.display !== "none";
+    howCard.style.display = open ? "none" : "block";
+    if(!open) howCard.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
 })();
 </script>
 
