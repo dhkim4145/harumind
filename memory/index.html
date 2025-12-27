@@ -183,20 +183,18 @@ button, select{
   cursor:pointer;
 }
 
-/* 난이도: 다른 버튼 톤과 맞춤 */
 select#level{
   font-weight:600;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.18);
 }
 
-/* primary 버튼 */
 button.primary{
   background:rgba(110,231,183,.18);
   border-color:rgba(110,231,183,.45);
 }
 
-/* 메시지(흔들림 방지: 높이 고정) */
+/* 메시지 */
 .messageCard{
   min-height:92px;
 }
@@ -242,7 +240,7 @@ button.primary{
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
-/* ✅ 리워드(+10) 숫자: 화면 기준 fixed + 애니메이션 */
+/* ✅ 리워드(+10) 숫자 */
 .reward{
   position:fixed;
   z-index:9999;
@@ -483,12 +481,10 @@ button.primary{
   howBtn.addEventListener('click', openModal);
   close.addEventListener('click', closeModal);
 
-  // 바깥 클릭 닫기
   back.addEventListener('click', (e) => {
     if(e.target === back) closeModal();
   });
 
-  // ESC로 닫기
   document.addEventListener('keydown', (e) => {
     if(e.key === "Escape" && back.style.display === "flex") closeModal();
   });
