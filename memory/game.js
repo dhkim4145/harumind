@@ -64,17 +64,18 @@
   }
 
   function clickTile(t){
-    if(lock || t.dataset.state === "up") return;
+    // ✅ matched 타일까지 눌리는 것 방지(안정성)
+    if(lock || t.dataset.state === "up" || t.classList.contains("matched")) return;
 
     t.dataset.state = "up";
 
-  if(!first){
-  first = t;
-  UI.setMessage(
-    "하나 찾았어요. 같은 그림을 찾아볼까요?",
-    "천천히 같은 그림을 찾아보세요 🙂"
-  );
-  return;
+    if(!first){
+      first = t;
+      UI.setMessage(
+        "하나 찾았어요. 같은 그림을 찾아볼까요?",
+        "천천히 같은 그림을 찾아보세요 🙂"
+      );
+      return;
     }
 
     lock = true;
@@ -98,17 +99,16 @@
         UI.setMessage("아주 좋아요!", "천천히 해도 잘 하고 있어요 🙂");
       }
 
-      // 연속이면 음을 살짝 올림
       UI.playBeep(820 + Math.min(streak,6)*35, 55, 0.015);
 
       first = null;
       lock = false;
 
       if(matched === totalPairs){
-        // ✅ 완료 문구 (줄바꿈 적용)
+        // ✅ 완료 문구: <br/> 쓰지 말고 \n 사용
         UI.setMessage(
           "완료! 정말 잘하셨어요 🎉",
-          "오늘은 이 카드로 놀아보세요 🙂<br/>내일은 또 다른 카드가 나와요."
+          "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요."
         );
 
         // 오늘 기록 저장 (로컬)
@@ -118,7 +118,6 @@
         HarumindStorage.saveDaily(UI.dateStr, d);
         UI.renderDaily(UI.dateStr);
 
-        // ✅ 완료 팝업 문구도 동일 톤으로 통일
         UI.showFinishPopup({
           title: "오늘의 게임 완료! 🎉",
           sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
@@ -130,7 +129,6 @@
       }
 
     }else{
-      // 틀리면 콤보 리셋
       streak = 0;
 
       UI.setMessage("괜찮아요 🙂 다시 해보면 됩니다.", "한 번 더 찾아볼까요?");
@@ -148,7 +146,6 @@
   function doPeek(sec){
     if(lock) return;
 
-    // 카드 1장 열어둔 상태면 꼬임 방지
     if(first){
       first.dataset.state = "down";
       first = null;
@@ -181,13 +178,12 @@
   peekSel.onchange = () => {
     const sec = parseInt(peekSel.value, 10) || 2;
     doPeek(sec);
-    peekSel.value = ""; // 같은 값 재선택 가능
+    peekSel.value = "";
   };
 
-  // howBtn.onclick = UI.openModal;
+  // ✅ 방법보기 버튼 다시 연결 (팝업 방식)
+  if(howBtn) howBtn.onclick = UI.openModal;
 
   // 시작
   build();
 })();
-
-
