@@ -89,6 +89,7 @@ body.bigText{
   margin-top:10px;
   display:flex;
   justify-content:flex-end;
+  align-items:center;
 }
 
 .statsToggle{
@@ -99,7 +100,17 @@ body.bigText{
   color:var(--text);
   padding:8px 12px;
   cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
 }
+
+.chev{
+  display:inline-block;
+  transition:transform .18s ease;
+  opacity:.9;
+}
+#statsWrap.isOpen .chev{ transform:rotate(180deg); }
 
 .stats{
   display:flex;
@@ -116,7 +127,24 @@ body.bigText{
   font-size:var(--fs-pill);
 }
 
+/* 기본: 닫힘 */
 #statsWrap:not(.isOpen) .stats{ display:none; }
+#statsWrap:not(.isOpen) .statsNote{ display:none; }
+
+/* ✅ 안내 문구 */
+.statsNote{
+  margin-top:8px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* ✅ 구분선 */
+.divider{
+  height:1px;
+  background:rgba(255,255,255,.10);
+  margin:12px 0 10px;
+}
 
 /* ===== 컨트롤 ===== */
 .controls{
@@ -141,7 +169,7 @@ button.primary{
   border-color:rgba(110,231,183,.45);
 }
 
-/* 난이도: 버튼 톤과 동일 */
+/* 난이도: 다른 버튼 톤과 동일 */
 select#level{
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.15);
@@ -153,15 +181,19 @@ select#level{
   padding-right:40px;
 }
 
+/* 셀렉트 화살표 */
 .selectWrap{
   position:relative;
   display:inline-flex;
+  align-items:center;
 }
 .selectWrap::after{
   content:"▾";
   position:absolute;
   right:14px;
   pointer-events:none;
+  color:#e8ecff;
+  opacity:.95;
 }
 
 /* 메시지 */
@@ -181,7 +213,6 @@ select#level{
   display:grid;
   gap:var(--gap);
 }
-
 .tile{
   height:var(--tile-h);
   border-radius:18px;
@@ -195,10 +226,8 @@ select#level{
   user-select:none;
   position:relative;
 }
-
 .tile[data-state="down"]::after{content:"?";font-weight:900;}
 .tile[data-state="up"]::after{content:attr(data-emoji);}
-
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
@@ -213,9 +242,12 @@ select#level{
     <div class="title">같은 그림 찾기</div>
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <div id="statsWrap">
+    <!-- 오늘 현황 -->
+    <div id="statsWrap" class="isOpen">
       <div class="statsHeader">
-        <button class="statsToggle" id="statsToggle">오늘 현황</button>
+        <button class="statsToggle" id="statsToggle" type="button" aria-expanded="true">
+          오늘 현황 <span class="chev">∨</span>
+        </button>
       </div>
 
       <div class="stats">
@@ -223,13 +255,21 @@ select#level{
         <div class="pill">칭찬 점수 <b id="score">0</b></div>
         <div class="pill">오늘 한 횟수 <b id="todayClear">0</b>회</div>
         <div class="pill">오늘 가장 높은 점수 <b id="todayBest">0</b>점</div>
-        <div class="pill">오늘 날짜 <b id="todayKey"></b></div>
+        <!-- ✅ 오늘 날짜 제거 -->
+      </div>
+
+      <!-- ✅ “내 기기에서만…” 문구 추가 -->
+      <div class="statsNote">
+        * 이 내용은 내 기기에서만 잠깐 표시돼요.
       </div>
     </div>
 
+    <!-- ✅ 구분선 -->
+    <div class="divider"></div>
+
     <div class="controls">
       <span class="selectWrap">
-        <select id="level">
+        <select id="level" title="난이도 선택">
           <option value="2x2">쉬움 (2x2)</option>
           <option value="3x2" selected>보통 (3x2)</option>
           <option value="4x3">어려움 (4x3)</option>
@@ -237,12 +277,13 @@ select#level{
       </span>
 
       <button class="primary" id="newGame">새로 시작</button>
-      <button id="peekBtn">👀 잠깐보기 (2초)</button>
-      <button id="howBtn">방법 보기</button>
-      <button id="sfxBtn">🔔 효과음</button>
-      <button id="bigBtn">🔎 큰 글씨</button>
+      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
+      <button id="howBtn" type="button">방법 보기</button>
+      <button id="sfxBtn" type="button">🔔 효과음</button>
+      <button id="bigBtn" type="button">🔎 큰 글씨</button>
     </div>
 
+    <!-- 게임 로직이 쓰는 select는 유지 -->
     <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
@@ -257,23 +298,56 @@ select#level{
     <div class="board" id="board"></div>
   </div>
 
-  <div class="card" style="font-size:12px;color:var(--muted);">
+  <div class="card" style="font-size:12px;color:var(--muted); line-height:1.6;">
     본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
     하루마음 · harumind.kr
   </div>
 
 </div>
 
+<!-- 순서 중요 -->
 <script src="./config.js"></script>
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
 
+<!-- 오늘 현황 토글 -->
 <script>
 (function(){
   const wrap = document.getElementById('statsWrap');
   const btn  = document.getElementById('statsToggle');
-  btn.onclick = () => wrap.classList.toggle('isOpen');
+  if(!wrap || !btn) return;
+
+  // 기본: 열림(원하면 닫힘으로 바꿔도 됨)
+  btn.addEventListener('click', () => {
+    const open = wrap.classList.toggle('isOpen');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.innerHTML = (open ? '닫기 ' : '오늘 현황 ') + '<span class="chev">∨</span>';
+  });
+
+  // 열림 상태 텍스트 정리
+  btn.innerHTML = '닫기 <span class="chev">∨</span>';
+})();
+</script>
+
+<!-- 잠깐보기 버튼 → 숨겨진 select(change) 트리거 -->
+<script>
+(function(){
+  const peekBtn = document.getElementById('peekBtn');
+  const peekSel = document.getElementById('peekSec');
+  if(!peekBtn || !peekSel) return;
+
+  peekBtn.addEventListener('click', () => {
+    peekBtn.disabled = true;
+
+    peekSel.value = "2";
+    peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+
+    setTimeout(() => {
+      peekSel.value = "";
+      peekBtn.disabled = false;
+    }, 2200);
+  });
 })();
 </script>
 
