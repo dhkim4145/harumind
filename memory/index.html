@@ -34,6 +34,11 @@
   --gap:12px;
 }
 *{box-sizing:border-box;}
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
 body{
   margin:0;
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
@@ -70,6 +75,8 @@ body.bigText{
   box-shadow:var(--shadow);
   padding:16px;
 }
+
+/* 타이틀 + (오른쪽) 오늘현황 버튼 */
 .titleRow{
   display:flex;
   justify-content:space-between;
@@ -79,14 +86,7 @@ body.bigText{
 .title{font-size:var(--fs-title);font-weight:900;}
 .sub{font-size:14px;color:var(--muted);margin-top:6px;}
 
-/* ✅ 1단계: 기록(통계) 접기 UI */
-.statsHeader{
-  margin-top:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
+/* 오늘현황 토글 버튼 */
 .statsToggle{
   font-size:14px;
   border-radius:999px;
@@ -98,6 +98,8 @@ body.bigText{
   display:inline-flex;
   align-items:center;
   gap:8px;
+  margin-left:auto;
+  white-space:nowrap;
 }
 .chev{
   display:inline-block;
@@ -107,7 +109,9 @@ body.bigText{
 #statsWrap.isOpen .chev{ transform:rotate(180deg); }
 
 .stats{
-  display:flex;gap:10px;flex-wrap:wrap;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
   margin-top:10px;
 }
 .pill{
@@ -120,6 +124,15 @@ body.bigText{
 
 /* 접힌 상태 */
 #statsWrap:not(.isOpen) .stats{ display:none; }
+
+/* “저장 느낌” 없애는 안내 */
+.statsNote{
+  width:100%;
+  margin-top:8px;
+  font-size:12px;
+  color:rgba(185,194,255,.85);
+  line-height:1.4;
+}
 
 .controls{
   display:flex;
@@ -153,7 +166,7 @@ button.primary{
 #msg{font-size:var(--fs-msg);font-weight:900;}
 #hint{font-size:var(--fs-hint);color:var(--muted);margin-top:4px;}
 
-.board{display:grid;gap:var(--gap);}
+.board{display:grid;gap:var(--gap); width:100%; max-width:100%;}
 .tile{
   height:var(--tile-h);
   border-radius:18px;
@@ -199,7 +212,8 @@ body.hintMode .tile[data-state="down"]{
   background:#1a2250;
   border-radius:18px;
   padding:20px;
-  max-width:520px;
+  width:min(520px, 92vw);
+  max-width:92vw;
 }
 .modalTitle{font-size:20px;font-weight:900;}
 .modalBody{
@@ -256,6 +270,7 @@ body.hintMode .tile[data-state="down"]{
   color:var(--muted);
   line-height:1.6;
   white-space: pre-line; /* ✅ \n 줄바꿈 반영 */
+  word-break: keep-all;
 }
 .finishCard .actions{
   margin-top:14px;
@@ -287,25 +302,28 @@ body.hintMode .tile[data-state="down"]{
   <div class="card">
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
+
+      <!-- ✅ 오른쪽: 오늘 현황(기록 느낌 최소화) -->
+      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
+        오늘 현황 <span class="chev">∨</span>
+      </button>
     </div>
 
-    <!-- ✅ 1단계: 한 줄로 더 단순화 -->
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <!-- ✅ 기록/통계는 기본 접기 -->
+    <!-- ✅ 통계(기본 접기) -->
     <div id="statsWrap">
-      <div class="statsHeader">
-        <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-          기록 보기 <span class="chev">∨</span>
-        </button>
-      </div>
-
       <div class="stats">
-        <div class="pill">오늘의 게임 <b id="todayKey"></b></div>
+        <div class="pill">오늘 날짜 <b id="todayKey"></b></div>
         <div class="pill">맞춘 개수 <b id="matched">0</b></div>
         <div class="pill">칭찬점수 <b id="score">0</b></div>
-        <div class="pill">오늘 완료 <b id="todayClear">0</b>회</div>
-        <div class="pill">오늘 최고 <b id="todayBest">0</b>점</div>
+        <div class="pill">오늘 플레이 <b id="todayClear">0</b>회</div>
+        <div class="pill">오늘 최고 점수 <b id="todayBest">0</b>점</div>
+
+        <div class="statsNote">
+          * 이 화면은 내 기기에서만 잠깐 표시돼요.<br/>
+          따로 저장되거나 전송되지 않습니다.
+        </div>
       </div>
     </div>
 
@@ -419,14 +437,18 @@ body.hintMode .tile[data-state="down"]{
     }
   }, { passive:true });
 
-  // ✅ 기록 접기/펼치기
+  // ✅ 오늘 현황(접기/펼치기)
   const wrap = document.getElementById('statsWrap');
   const btn = document.getElementById('statsToggle');
+  const btnLabel = () => btn ? btn.childNodes[0] : null; // 텍스트 노드
   if (wrap && btn) {
     btn.addEventListener('click', () => {
       const open = wrap.classList.toggle('isOpen');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.firstChild.textContent = open ? '기록 닫기 ' : '기록 보기 ';
+
+      // 텍스트(앞부분)만 바꿈: "오늘 현황" ↔ "닫기"
+      const node = btnLabel();
+      if (node) node.textContent = open ? '닫기 ' : '오늘 현황 ';
     });
   }
 
