@@ -61,7 +61,6 @@
     }catch(e){}
   }
 
-  // 카드 점수 연출
   function showReward(tile, text){
     const r = document.createElement("div");
     r.className = "reward";
@@ -101,7 +100,7 @@
   }
 
   // =========================
-  // 🎉 완료 연출 (중앙 근처 + 4초)
+  // 🎉 완료 연출 (2단계 / 중앙 근처 / 4초)
   // =========================
 
   function ensureFxStyle(){
@@ -125,7 +124,7 @@
       .hmToast{
         position:fixed;
         left:50%;
-        top:58%;
+        top:52%;
         transform:translateX(-50%);
         background:rgba(18,24,45,.92);
         color:#e8ecff;
@@ -139,9 +138,9 @@
       .hmOut{ animation: hmOut .22s ease-in forwards }
       @keyframes hmOut{ to{opacity:0; transform:translate(-50%,10px)} }
 
-      .hmTitle{ font-size:18px; font-weight:800; margin-bottom:6px }
-      .hmSub{ font-size:14px; margin-bottom:12px }
+      .hmTitle{ font-size:18px; font-weight:800; margin-bottom:10px }
       .hmRow{ display:flex; justify-content:space-between; align-items:center; gap:12px }
+      .hmSub{ font-size:14px }
       .hmBtn{
         border:none; border-radius:999px; padding:10px 14px;
         background:rgba(110,231,183,.18); color:#fff; font-weight:700;
@@ -188,9 +187,8 @@
     toast.className = "hmToast";
     toast.innerHTML = `
       <div class="hmTitle">완료! 정말 잘하셨어요 🎉</div>
-      <div class="hmSub">오늘은 여기까지 🙂</div>
       <div class="hmRow">
-        <div class="hmSub" style="margin:0">다시 하려면 ‘새로 시작’</div>
+        <div class="hmSub">다시 하려면 ‘새로 시작’</div>
         <button class="hmBtn">새로 시작</button>
       </div>
     `;
