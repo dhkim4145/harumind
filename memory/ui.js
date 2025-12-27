@@ -1,5 +1,5 @@
 // /memory/ui.js
-// 화면 업데이트 + 팝업 + 효과음 + 보상 연출
+// 화면 업데이트 + 효과음 + 리워드(+10) + 완료 토스트(4초/폭죽)
 
 (function(){
   const C = window.HARUMIND_CONFIG;
@@ -11,18 +11,100 @@
   const msgEl = document.getElementById("msg");
   const hintEl = document.getElementById("hint");
 
-  // (있을 수도/없을 수도 있는 요소들)
-  const todayKeyEl = document.getElementById("todayKey");
+  const todayKeyEl   = document.getElementById("todayKey");
   const todayClearEl = document.getElementById("todayClear");
-  const todayBestEl = document.getElementById("todayBest");
+  const todayBestEl  = document.getElementById("todayBest");
 
   const sfxBtn = document.getElementById("sfxBtn");
   const bigBtn = document.getElementById("bigBtn");
 
-  // 상태(설정)
   let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
 
+  // ===== 스타일(토스트/폭죽) 주입 =====
+  function ensureStyle(){
+    if(document.getElementById("hm-ui-style")) return;
+    const s = document.createElement("style");
+    s.id = "hm-ui-style";
+    s.textContent = `
+      .hmToastBack{
+        position:fixed; inset:0;
+        background:transparent;
+        z-index:9997;
+        pointer-events:none;
+      }
+      .hmToast{
+        position:fixed;
+        left:50%;
+        top:58%; /* ✅ 중앙보다 살짝 아래 */
+        transform:translate(-50%, -50%);
+        width:min(520px, calc(100% - 32px));
+        background:#1a2250;
+        border:1px solid rgba(110,231,183,.55);
+        border-radius:22px;
+        box-shadow:0 18px 48px rgba(0,0,0,.55);
+        padding:16px 18px 14px;
+        text-align:center;
+        z-index:9998;
+        pointer-events:none;
+        animation: hmToastIn .22s ease-out forwards;
+      }
+      @keyframes hmToastIn{
+        from{ opacity:0; transform:translate(-50%, -44%) scale(.98); }
+        to  { opacity:1; transform:translate(-50%, -50%) scale(1); }
+      }
+      .hmTitle{
+        font-size:22px;
+        font-weight:900;
+        color:#e8ecff;
+      }
+      .hmHintLine{
+        margin-top:10px;
+        font-size:14px;
+        color:rgba(185,194,255,.95);
+        font-weight:800;
+      }
+      .hmMini{
+        margin-top:8px;
+        font-size:13px;
+        color:rgba(185,194,255,.95);
+        line-height:1.6;
+        white-space:pre-line;
+      }
+
+      .hmConfetti{
+        position:fixed;
+        left:50%;
+        top:58%;
+        transform:translate(-50%, -50%);
+        width:min(520px, calc(100% - 32px));
+        height:180px;
+        z-index:9999;
+        pointer-events:none;
+        overflow:visible;
+      }
+      .hmConfetti i{
+        position:absolute;
+        top:20px;
+        left:50%;
+        width:8px;
+        height:14px;
+        border-radius:3px;
+        opacity:.95;
+        transform:translateX(-50%) rotate(0deg);
+        animation: hmPop 900ms ease-out forwards;
+        will-change: transform, opacity;
+      }
+      @keyframes hmPop{
+        0%   { opacity:0; transform: translate(-50%, 10px) rotate(0deg) scale(.8); }
+        10%  { opacity:1; }
+        100% { opacity:0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  // ===== 설정 =====
   function setBigMode(on){
     bigOn = !!on;
     HarumindStorage.setBool(C.KEYS.BIG, bigOn);
@@ -36,7 +118,7 @@
     if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
   }
 
-  // 비프톤
+  // ===== 비프음 =====
   function playBeep(freq=880, ms=70, gain=0.03){
     if(!sfxOn) return;
     try{
@@ -65,19 +147,16 @@
     }catch(e){}
   }
 
-  // ✅ +10 리워드(화면 기준 fixed + 화면 밖 방지)
+  // ===== +10 리워드 =====
   function showReward(tile, text){
     const r = document.createElement("div");
     r.className = "reward";
     r.textContent = text;
 
     const rect = tile.getBoundingClientRect();
-
-    // 타일 중앙(화면 기준)
     let x = rect.left + rect.width / 2;
     let y = rect.top  + rect.height / 2;
 
-    // 화면 밖으로 나가면 스크롤/흔들림이 생길 수 있어 제한
     const pad = 12;
     x = Math.max(pad, Math.min(window.innerWidth  - pad, x));
     y = Math.max(pad, Math.min(window.innerHeight - pad, y));
@@ -89,7 +168,7 @@
     setTimeout(()=>r.remove(), 900);
   }
 
-  // ✅ 페이지 메시지 (msg는 pre-line이라 \n 줄바꿈 가능)
+  // ===== 메시지/통계 =====
   function setMessage(msg, hint){
     if(msgEl) msgEl.textContent = msg || "";
     if(hintEl) hintEl.textContent = hint || "";
@@ -106,7 +185,7 @@
     if(todayBestEl)  todayBestEl.textContent  = d.best;
   }
 
-  // 방법 보기(모달) — index.html에서 처리하므로, 여기서는 함수만 남김(호환용)
+  // ===== 모달(호환용) =====
   function openModal(){
     const m = document.getElementById("modalBack");
     if(m) m.style.display = "flex";
@@ -116,21 +195,86 @@
     if(m) m.style.display = "none";
   }
 
-  // =========================
-  // 초기 세팅
-  // =========================
+  // ===== 완료 토스트(4초) =====
+  let finishTimer = null;
+
+  function launchConfetti(){
+    const box = document.createElement("div");
+    box.className = "hmConfetti";
+
+    for(let i=0;i<26;i++){
+      const p = document.createElement("i");
+      p.style.setProperty("--dx", (Math.random()*460 - 230).toFixed(0) + "px");
+      p.style.setProperty("--dy", (Math.random()*-180 - 90).toFixed(0) + "px");
+      p.style.setProperty("--rot", (Math.random()*720 - 360).toFixed(0) + "deg");
+
+      const colors = ["#6ee7b7","#93c5fd","#fca5a5","#fde68a","#c4b5fd","#f9a8d4"];
+      p.style.background = colors[Math.floor(Math.random()*colors.length)];
+
+      p.style.left = (50 + (Math.random()*40 - 20)) + "%";
+      p.style.top  = (30 + (Math.random()*20 - 10)) + "px";
+
+      const w = 6 + Math.random()*6;
+      const h = 10 + Math.random()*10;
+      p.style.width = w + "px";
+      p.style.height = h + "px";
+
+      box.appendChild(p);
+    }
+
+    document.body.appendChild(box);
+    setTimeout(()=>box.remove(), 950);
+  }
+
+  // ✅ game.js가 호출하는 이름 유지
+  function showFinishPopup({title, dateStr}){
+    ensureStyle();
+
+    // 기존 제거 + 타이머 정리
+    document.querySelector(".hmToastBack")?.remove();
+    document.querySelector(".hmToast")?.remove();
+    if(finishTimer){ clearTimeout(finishTimer); finishTimer = null; }
+
+    const d = HarumindStorage.loadDaily(dateStr);
+    const extra = `오늘 완료: ${d.clears}회 · 오늘 최고: ${d.best}점`;
+
+    const back = document.createElement("div");
+    back.className = "hmToastBack";
+
+    const toast = document.createElement("div");
+    toast.className = "hmToast";
+    toast.innerHTML = `
+      <div class="hmTitle">${title || "완료! 🎉"}</div>
+      <div class="hmHintLine">다시 하려면 ‘새로 시작’</div>
+      <div class="hmMini"><b style="color:#e8ecff">${extra}</b></div>
+    `;
+
+    document.body.appendChild(back);
+    document.body.appendChild(toast);
+
+    // 폭죽 + 효과음(짧게 2번)
+    launchConfetti();
+    playBeep(988, 90, 0.035);
+    setTimeout(()=>playBeep(1174, 80, 0.028), 120);
+
+    finishTimer = setTimeout(()=>{
+      back.remove();
+      toast.remove();
+      finishTimer = null;
+    }, 4000);
+  }
+
+  // ===== 초기 세팅 =====
   const dateStr = HarumindStorage.todayKey();
   if(todayKeyEl) todayKeyEl.textContent = dateStr;
 
   renderDaily(dateStr);
-
   setBigMode(bigOn);
   setSfx(sfxOn);
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
 
-  // 외부 공개
   window.HarumindUI = {
     board,
     dateStr,
@@ -141,5 +285,6 @@
     showReward,
     openModal,
     closeModal,
+    showFinishPopup,
   };
 })();
