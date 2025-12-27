@@ -13,7 +13,7 @@
   gtag('js', new Date());
   gtag('config', 'G-JX8PENN22H');
 </script>
-  
+
 <style>
 :root{
   --bg:#0b1020;
@@ -23,7 +23,6 @@
   --shadow:0 10px 25px rgba(0,0,0,.35);
   --radius:18px;
 
-  /* 기본 크기(조절용) */
   --fs-base:16px;
   --fs-title:20px;
   --fs-msg:18px;
@@ -74,13 +73,41 @@ body.bigText{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
 }
 .title{font-size:var(--fs-title);font-weight:900;}
-.ver{font-size:12px;color:var(--muted);}
-.sub{font-size:14px;color:var(--muted);margin-top:4px;}
+.sub{font-size:14px;color:var(--muted);margin-top:6px;}
+
+/* ✅ 1단계: 기록(통계) 접기 UI */
+.statsHeader{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.statsToggle{
+  font-size:14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  padding:8px 12px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.chev{
+  display:inline-block;
+  transition:transform .18s ease;
+  opacity:.9;
+}
+#statsWrap.isOpen .chev{ transform:rotate(180deg); }
 
 .stats{
-  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin-top:10px;
 }
 .pill{
   background:rgba(255,255,255,.07);
@@ -88,6 +115,11 @@ body.bigText{
   border-radius:999px;
   padding:6px 12px;
   font-size:var(--fs-pill);
+}
+
+/* 접힌 상태 */
+#statsWrap:not(.isOpen) .stats{
+  display:none;
 }
 
 .controls{
@@ -129,6 +161,18 @@ button.primary{
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+}
+
+/* ✅ 2단계: 시작 직후 1~2초 “?” 깜빡임 (초보자에게 ‘눌러보세요’ 신호) */
+@keyframes qBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .35; transform: scale(.98); }
+}
+body.hintMode .tile[data-state="down"]::after{
+  animation:qBlink .9s ease-in-out infinite;
+}
+body.hintMode .tile[data-state="down"]{
+  box-shadow:0 0 0 2px rgba(255,255,255,.08) inset;
 }
 
 /* 방법 보기 팝업 */
@@ -234,14 +278,26 @@ button.primary{
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
     </div>
-    <div class="sub">같은 그림 2개를 찾아보세요. 천천히 해도 괜찮아요.</div>
 
-    <div class="stats">
-      <div class="pill">오늘의 게임 <b id="todayKey"></b></div>
-      <div class="pill">맞춘 개수 <b id="matched">0</b></div>
-      <div class="pill">칭찬점수 <b id="score">0</b></div>
-      <div class="pill">오늘 완료 <b id="todayClear">0</b>회</div>
-      <div class="pill">오늘 최고 <b id="todayBest">0</b>점</div>
+    <!-- ✅ 1단계: “지금 뭐 하면 되지?” 한 줄로 더 단순화 -->
+    <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+
+    <!-- ✅ 기록/통계는 접어두고(기본 닫힘), 필요할 때만 펼치기 -->
+    <div id="statsWrap">
+      <div class="statsHeader">
+        <div style="color:var(--muted);font-size:13px;">기록은 필요할 때만 보면 돼요</div>
+        <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
+          기록 보기 <span class="chev">∨</span>
+        </button>
+      </div>
+
+      <div class="stats">
+        <div class="pill">오늘의 게임 <b id="todayKey"></b></div>
+        <div class="pill">맞춘 개수 <b id="matched">0</b></div>
+        <div class="pill">칭찬점수 <b id="score">0</b></div>
+        <div class="pill">오늘 완료 <b id="todayClear">0</b>회</div>
+        <div class="pill">오늘 최고 <b id="todayBest">0</b>점</div>
+      </div>
     </div>
 
     <div class="controls">
@@ -266,7 +322,7 @@ button.primary{
   </div>
 
   <div class="card">
-    <div id="msg">같은 그림 2개를 찾아보세요!</div>
+    <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">팁: 너무 빨리 누르지 않아도 돼요.</div>
   </div>
 
@@ -300,5 +356,54 @@ button.primary{
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
+
+<!-- ✅ 1단계+2단계: index.html만으로 동작하는 보조 스크립트 -->
+<script>
+(function(){
+  // 2단계: 시작 직후 “?” 깜빡임 1.6초 (또는 첫 클릭 시 즉시 해제)
+  document.body.classList.add('hintMode');
+
+  let firstClickDone = false;
+  const msgEl = document.getElementById('msg');
+  const hintEl = document.getElementById('hint');
+
+  const stopHintMode = () => {
+    if (document.body.classList.contains('hintMode')) {
+      document.body.classList.remove('hintMode');
+    }
+  };
+  setTimeout(stopHintMode, 1600);
+
+  // 2단계: 첫 클릭 1회 안내(“내가 제대로 하고 있구나” 확신)
+  document.addEventListener('click', (e) => {
+    const tile = e.target.closest && e.target.closest('.tile');
+    if (!tile) return;
+
+    stopHintMode();
+
+    if (!firstClickDone) {
+      firstClickDone = true;
+      if (msgEl) msgEl.textContent = "👍 잘했어요! 같은 그림을 한 번 더 찾아보세요.";
+      if (hintEl) hintEl.textContent = "팁: 두 장이 같으면 계속 진행돼요.";
+      // 5초 뒤 힌트 문구만 원래 톤으로 복귀(메시지는 게임이 덮어쓸 수 있음)
+      setTimeout(() => {
+        if (hintEl) hintEl.textContent = "팁: 너무 빨리 누르지 않아도 돼요.";
+      }, 5000);
+    }
+  }, { passive:true });
+
+  // 1단계: 기록 접기/펼치기
+  const wrap = document.getElementById('statsWrap');
+  const btn = document.getElementById('statsToggle');
+  if (wrap && btn) {
+    // 기본: 닫힘 (isOpen 없음)
+    btn.addEventListener('click', () => {
+      const open = wrap.classList.toggle('isOpen');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.firstChild.textContent = open ? '기록 닫기 ' : '기록 보기 ';
+    });
+  }
+})();
+</script>
 </body>
 </html>
