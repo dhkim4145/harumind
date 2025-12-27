@@ -36,6 +36,9 @@
 
 *{box-sizing:border-box;}
 
+/* ✅ 클릭 시 화면 흔들림(가로 스크롤) 방지 */
+html, body { overflow-x:hidden; }
+
 body{
   margin:0;
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
@@ -208,7 +211,7 @@ button.primary{
   color:var(--muted);
   margin-top:4px;
   min-height:22px;
-  white-space:pre-line; /* ✅ 힌트도 \n 줄바꿈 보장 */
+  white-space:pre-line;
 }
 
 /* 보드 */
@@ -237,6 +240,25 @@ button.primary{
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+}
+
+/* ✅ 리워드(+10) 숫자: 화면 기준 fixed + 애니메이션 */
+.reward{
+  position:fixed;
+  z-index:9999;
+  transform: translate(-50%, -50%);
+  pointer-events:none;
+  font-weight:900;
+  font-size:18px;
+  color:var(--accent);
+  text-shadow:0 6px 18px rgba(0,0,0,.55);
+  will-change: transform, opacity;
+  animation: rewardFloat .9s ease forwards;
+}
+@keyframes rewardFloat{
+  0%   { opacity:0; transform: translate(-50%, -35%) scale(.95); }
+  15%  { opacity:1; }
+  100% { opacity:0; transform: translate(-50%, -95%) scale(1.05); }
 }
 
 /* ===== 방법 보기 모달 ===== */
@@ -339,7 +361,6 @@ button.primary{
         <div class="pill">오늘 가장 높은 점수 <b id="todayBest">0</b>점</div>
       </div>
 
-      <!-- ✅ 문구 사실대로 수정 -->
       <div class="statsNote">* 오늘 한 횟수·최고 점수는 이 기기에만 저장돼요.</div>
       <div class="statsDivider"></div>
     </div>
