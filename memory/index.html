@@ -94,7 +94,7 @@ body.bigText{
 .statsHeader{
   margin-top:10px;
   display:flex;
-  justify-content:flex-end; /* ✅ 오른쪽 */
+  justify-content:flex-end;
   align-items:center;
 }
 
@@ -139,7 +139,7 @@ body.bigText{
 /* 기본: 닫힘 */
 #statsWrap:not(.isOpen) .stats{ display:none; }
 
-/* ✅ “저장/기록 느낌” 줄이기: 작은 안내(원하면 삭제 가능) */
+/* 작은 안내 */
 .statsNote{
   margin-top:8px;
   font-size:12px;
@@ -171,24 +171,23 @@ button.primary{
   border-color:rgba(110,231,183,.45);
 }
 
-/* ✅ 난이도 선택(보통/쉬움/어려움) 더 진하게 */
+/* ✅ 난이도 선택: 다른 버튼 톤에 맞춤(덜 진하게) */
 select#level{
-  background: rgba(255,255,255,.18);                 /* 더 진한 배경 */
-  border: 1px solid rgba(110,231,183,.70);           /* 더 진한 테두리 */
-  color: #f3f6ff;                                    /* 글자 더 선명 */
-  font-weight: 800;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.15) inset;
+  background: rgba(255,255,255,.08);     /* button,select 기본과 동일 */
+  border: 1px solid rgba(255,255,255,.15);/* 기본과 동일 */
+  color: var(--text);                     /* 기본과 동일 */
+  font-weight: 600;                       /* 800 → 600 (살짝만 강조) */
+  box-shadow: none;                       /* 강조 제거 */
   -webkit-appearance:none;
   appearance:none;
-  padding-right: 40px;                               /* 화살표 공간 */
-  position:relative;
+  padding-right: 40px;
 }
 select#level:focus{
   outline:none;
-  box-shadow:0 0 0 2px rgba(110,231,183,.30);
+  box-shadow:0 0 0 2px rgba(255,255,255,.12);
 }
 
-/* 셀렉트 화살표(크롬/모바일에서 더 선명) */
+/* 셀렉트 화살표 */
 .selectWrap{
   position:relative;
   display:inline-flex;
@@ -209,7 +208,7 @@ select#level:focus{
 #msg{
   font-size:var(--fs-msg);
   font-weight:900;
-  white-space: pre-line;   /* ⭐ 이 줄 추가 */
+  white-space: pre-line;
 }
 
 #hint{
@@ -279,7 +278,7 @@ select#level:focus{
   font-size:14px;
   color:var(--muted);
   line-height:1.7;
-  white-space:pre-line; /* ✅ \n 줄바꿈 반영 */
+  white-space:pre-line;
 }
 
 .finishCard .actions{
@@ -310,7 +309,6 @@ select#level:focus{
     </div>
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <!-- 오늘 현황(기록 느낌 최소화: 라벨만 변경) -->
     <div id="statsWrap">
       <div class="statsHeader">
         <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
@@ -326,7 +324,6 @@ select#level:focus{
         <div class="pill">오늘 최고 점수 <b id="todayBest">0</b>점</div>
       </div>
 
-      <!-- 저장/기록 단어 없이 느낌만 정리 -->
       <div class="statsNote">
         * 이 화면은 내 기기에서만 잠깐 표시돼요.
       </div>
@@ -348,7 +345,6 @@ select#level:focus{
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
     </div>
 
-    <!-- 게임 로직이 쓰는 select는 유지 -->
     <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
@@ -363,7 +359,6 @@ select#level:focus{
     <div class="board" id="board"></div>
   </div>
 
-  <!-- 하단 문구는 1회만(중복 방지) -->
   <div class="card" style="font-size:12px;color:var(--muted); line-height:1.6;">
     본 서비스는 의료 행위가 아니며, 인지 자극을 위한 놀이입니다.<br/>
     하루마음 · harumind.kr
@@ -377,14 +372,13 @@ select#level:focus{
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
 
-<!-- 오늘 현황 토글(닫기/오늘 현황) -->
+<!-- 오늘 현황 토글 -->
 <script>
 (function(){
   const wrap = document.getElementById('statsWrap');
   const btn  = document.getElementById('statsToggle');
   if(!wrap || !btn) return;
 
-  // 기본 닫힘
   wrap.classList.remove('isOpen');
   btn.setAttribute('aria-expanded','false');
   btn.innerHTML = '오늘 현황 <span class="chev">∨</span>';
@@ -404,7 +398,6 @@ select#level:focus{
   const peekSel = document.getElementById('peekSec');
   if(!peekBtn || !peekSel) return;
 
-  // game.js가 peekSec.onchange를 쓰는 구조라, change 이벤트만 발생시키면 됨
   peekBtn.addEventListener('click', () => {
     peekBtn.disabled = true;
 
