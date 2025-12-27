@@ -102,18 +102,23 @@
       lock = false;
 
       if(matched === totalPairs){
-        UI.setMessage("완료! 정말 잘하셨어요 🎉", "오늘도 수고하셨어요. 내일 또 해볼까요?");
+        // ✅ 완료 문구 (줄바꿈 적용)
+        UI.setMessage(
+          "완료! 정말 잘하셨어요 🎉",
+          "오늘은 이 카드로 놀아보세요 🙂<br/>내일은 또 다른 카드가 나와요."
+        );
 
-        // 오늘 기록 저장
+        // 오늘 기록 저장 (로컬)
         const d = HarumindStorage.loadDaily(UI.dateStr);
         d.clears += 1;
         d.best = Math.max(d.best, score);
         HarumindStorage.saveDaily(UI.dateStr, d);
         UI.renderDaily(UI.dateStr);
 
+        // ✅ 완료 팝업 문구도 동일 톤으로 통일
         UI.showFinishPopup({
           title: "오늘의 게임 완료! 🎉",
-          sub: "정말 잘하셨어요. 내일도 5분만 해볼까요?",
+          sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
           dateStr: UI.dateStr,
           onRestart: build
         });
