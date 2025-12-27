@@ -23,6 +23,7 @@
   --shadow:0 10px 25px rgba(0,0,0,.35);
   --radius:18px;
 
+  /* 기본 크기(조절용) */
   --fs-base:16px;
   --fs-title:20px;
   --fs-msg:18px;
@@ -118,12 +119,13 @@ body.bigText{
 }
 
 /* 접힌 상태 */
-#statsWrap:not(.isOpen) .stats{
-  display:none;
-}
+#statsWrap:not(.isOpen) .stats{ display:none; }
 
 .controls{
-  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
 }
 button,select{
   font-size:16px;
@@ -137,6 +139,15 @@ button,select{
 button.primary{
   background:rgba(110,231,183,.18);
   border-color:rgba(110,231,183,.45);
+}
+
+/* ✅ 잠깐보기 드롭다운 숨김(기능용으로만 유지) */
+#peekSec{
+  position:absolute;
+  left:-9999px;
+  width:1px; height:1px;
+  opacity:0;
+  pointer-events:none;
 }
 
 #msg{font-size:var(--fs-msg);font-weight:900;}
@@ -163,10 +174,10 @@ button.primary{
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
-/* ✅ 2단계: 시작 직후 1~2초 “?” 깜빡임 (초보자에게 ‘눌러보세요’ 신호) */
-@keyframes qBlink {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: .35; transform: scale(.98); }
+/* ✅ 2단계: 시작 직후 1~2초 “?” 깜빡임 */
+@keyframes qBlink{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.35;transform:scale(.98);}
 }
 body.hintMode .tile[data-state="down"]::after{
   animation:qBlink .9s ease-in-out infinite;
@@ -210,9 +221,9 @@ body.hintMode .tile[data-state="down"]{
   z-index:70;
 }
 @keyframes rewardPop{
-  0%   { opacity:0; transform:translate(-50%, 10px) scale(0.6); }
-  30%  { opacity:1; transform:translate(-50%, 0) scale(1.15); }
-  100% { opacity:0; transform:translate(-50%, -18px) scale(1); }
+  0%{opacity:0;transform:translate(-50%,10px) scale(0.6);}
+  30%{opacity:1;transform:translate(-50%,0) scale(1.15);}
+  100%{opacity:0;transform:translate(-50%,-18px) scale(1);}
 }
 
 /* ✅ 완료 팝업 (자동 닫힘 없음) */
@@ -228,7 +239,6 @@ body.hintMode .tile[data-state="down"]{
   left:50%; top:26%;
   transform:translateX(-50%);
   z-index:100;
-
   width:min(440px, calc(100% - 36px));
   background:#1a2250;
   border:1px solid rgba(110,231,183,.55);
@@ -236,7 +246,6 @@ body.hintMode .tile[data-state="down"]{
   box-shadow:0 18px 48px rgba(0,0,0,.55);
   padding:18px 20px;
   text-align:center;
-
   opacity:0;
   animation: cardIn 0.38s ease-out forwards;
 }
@@ -279,10 +288,10 @@ body.hintMode .tile[data-state="down"]{
       <div class="title">같은 그림 찾기</div>
     </div>
 
-    <!-- ✅ 1단계: “지금 뭐 하면 되지?” 한 줄로 더 단순화 -->
+    <!-- ✅ 1단계: 한 줄로 더 단순화 -->
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <!-- ✅ 기록/통계는 접어두고(기본 닫힘), 필요할 때만 펼치기 -->
+    <!-- ✅ 기록/통계는 기본 접기 -->
     <div id="statsWrap">
       <div class="statsHeader">
         <div style="color:var(--muted);font-size:13px;">기록은 필요할 때만 보면 돼요</div>
@@ -300,6 +309,7 @@ body.hintMode .tile[data-state="down"]{
       </div>
     </div>
 
+    <!-- ✅ 버튼 순서 정리: 행동 → 도움 → 설명 → 설정 -->
     <div class="controls">
       <select id="level" title="난이도 선택">
         <option value="2x2">쉬움 (2x2)</option>
@@ -307,18 +317,19 @@ body.hintMode .tile[data-state="down"]{
         <option value="4x3">어려움 (4x3)</option>
       </select>
 
-      <select id="peekSec" title="잠깐보기 시간(선택하면 실행)">
-        <option value="" selected disabled>잠깐보기 (선택)</option>
-        <option value="2">잠깐보기 2초</option>
-        <option value="3">잠깐보기 3초</option>
-        <option value="5">잠깐보기 5초</option>
-      </select>
-
       <button class="primary" id="newGame">새로 시작</button>
+      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn">방법 보기</button>
+
       <button id="sfxBtn" title="효과음 켜기/끄기">🔔 효과음: 켜기</button>
       <button id="bigBtn" title="글자/버튼 크게">🔎 큰 글씨: 끄기</button>
     </div>
+
+    <!-- ✅ ui.js가 쓰는 select는 유지하되, 화면에서는 숨김 -->
+    <select id="peekSec" aria-hidden="true" tabindex="-1">
+      <option value="" selected>_</option>
+      <option value="2">2</option>
+    </select>
   </div>
 
   <div class="card">
@@ -357,50 +368,82 @@ body.hintMode .tile[data-state="down"]{
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
 
-<!-- ✅ 1단계+2단계: index.html만으로 동작하는 보조 스크립트 -->
+<!-- ✅ 1단계+2단계+잠깐보기 버튼화: index.html만으로 동작 -->
 <script>
 (function(){
-  // 2단계: 시작 직후 “?” 깜빡임 1.6초 (또는 첫 클릭 시 즉시 해제)
-  document.body.classList.add('hintMode');
-
-  let firstClickDone = false;
   const msgEl = document.getElementById('msg');
   const hintEl = document.getElementById('hint');
+  const newGameBtn = document.getElementById('newGame');
 
-  const stopHintMode = () => {
-    if (document.body.classList.contains('hintMode')) {
+  let firstClickDone = false;
+  let hintTimer = null;
+
+  function startHint(){
+    firstClickDone = false;
+
+    document.body.classList.add('hintMode');
+    if (hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
       document.body.classList.remove('hintMode');
-    }
-  };
-  setTimeout(stopHintMode, 1600);
+    }, 1600);
 
-  // 2단계: 첫 클릭 1회 안내(“내가 제대로 하고 있구나” 확신)
+    if (msgEl) msgEl.textContent = "카드를 눌러서 시작해요 🙂";
+    if (hintEl) hintEl.textContent = "처음엔 천천히 눌러보면 돼요.";
+  }
+
+  // ✅ 처음 로드 시 1회
+  startHint();
+
+  // ✅ “새로 시작” 눌렀을 때도 다시 1회
+  if (newGameBtn) {
+    newGameBtn.addEventListener('click', () => {
+      setTimeout(startHint, 120);
+    });
+  }
+
+  // ✅ 카드 첫 클릭 1회 안내
   document.addEventListener('click', (e) => {
     const tile = e.target.closest && e.target.closest('.tile');
     if (!tile) return;
 
-    stopHintMode();
+    document.body.classList.remove('hintMode');
 
     if (!firstClickDone) {
       firstClickDone = true;
       if (msgEl) msgEl.textContent = "👍 잘했어요! 같은 그림을 한 번 더 찾아보세요.";
-      if (hintEl) hintEl.textContent = "팁: 두 장이 같으면 계속 진행돼요.";
-      // 5초 뒤 힌트 문구만 원래 톤으로 복귀(메시지는 게임이 덮어쓸 수 있음)
+      if (hintEl) hintEl.textContent = "팁: 두 장이 같으면 계속 맞춰집니다.";
       setTimeout(() => {
         if (hintEl) hintEl.textContent = "팁: 너무 빨리 누르지 않아도 돼요.";
       }, 5000);
     }
   }, { passive:true });
 
-  // 1단계: 기록 접기/펼치기
+  // ✅ 기록 접기/펼치기
   const wrap = document.getElementById('statsWrap');
   const btn = document.getElementById('statsToggle');
   if (wrap && btn) {
-    // 기본: 닫힘 (isOpen 없음)
     btn.addEventListener('click', () => {
       const open = wrap.classList.toggle('isOpen');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       btn.firstChild.textContent = open ? '기록 닫기 ' : '기록 보기 ';
+    });
+  }
+
+  // ✅ 잠깐보기 버튼 → 기존 select(change)를 강제로 실행
+  const peekBtn = document.getElementById('peekBtn');
+  const peekSel = document.getElementById('peekSec');
+
+  if (peekBtn && peekSel) {
+    peekBtn.addEventListener('click', () => {
+      peekBtn.disabled = true;
+
+      peekSel.value = "2";
+      peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+
+      setTimeout(() => {
+        peekSel.value = "";
+        peekBtn.disabled = false;
+      }, 2200);
     });
   }
 })();
