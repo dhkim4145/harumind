@@ -11,7 +11,7 @@
   const msgEl = document.getElementById("msg");
   const hintEl = document.getElementById("hint");
 
-  // (있을 수도/없을 수도 있는 요소들)  ← ✅ 방어코드 적용 대상
+  // (있을 수도/없을 수도 있는 요소들)  ← 방어코드 적용 대상
   const todayKeyEl = document.getElementById("todayKey");     // 날짜 표시용 (없어도 OK)
   const todayClearEl = document.getElementById("todayClear"); // 오늘 한 횟수 (없어도 OK)
   const todayBestEl = document.getElementById("todayBest");   // 오늘 최고 점수 (없어도 OK)
@@ -95,7 +95,7 @@
     if(todayBestEl)  todayBestEl.textContent  = d.best;
   }
 
-  // 방법 보기
+  // 방법 보기 (팝업)
   function openModal(){
     const m = document.getElementById("modalBack");
     if(m) m.style.display = "flex";
@@ -106,7 +106,7 @@
   }
 
   // =========================
-  // 완료 팝업
+  // 완료 팝업 (밀림 방지: 스크롤 잠금 포함)
   // =========================
   function showFinishPopup({title, sub, dateStr, onRestart}){
     const back = document.createElement("div");
@@ -114,6 +114,10 @@
 
     const card = document.createElement("div");
     card.className = "finishCard";
+
+    // ✅ 팝업 뜰 때 뒤 화면 스크롤 잠금 (밀림 방지)
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const d = HarumindStorage.loadDaily(dateStr);
     const extra = `오늘 완료: ${d.clears}회 · 오늘 최고: ${d.best}점`;
@@ -136,6 +140,8 @@
     const cleanup = () => {
       back.remove();
       card.remove();
+      // ✅ 스크롤 원복
+      document.body.style.overflow = prevOverflow;
     };
 
     // 새로 시작 → 리셋 (메시지 안 남김)
@@ -159,7 +165,7 @@
   // =========================
   const dateStr = HarumindStorage.todayKey();
 
-  // ✅ 날짜 표시 요소가 있으면만 넣기 (없어도 게임 정상)
+  // 날짜 표시 요소가 있으면만 넣기 (없어도 게임 정상)
   if(todayKeyEl) todayKeyEl.textContent = dateStr;
 
   renderDaily(dateStr);
