@@ -1,5 +1,5 @@
 // /memory/ui.js
-// 화면 업데이트 + 효과음 + 리워드(+10) + 완료 토스트(4초/폭죽)
+// 화면 업데이트 + 효과음 + 리워드(+10) + 완료 토스트(4초/폭죽/클릭 닫기)
 
 (function(){
   const C = window.HARUMIND_CONFIG;
@@ -31,7 +31,7 @@
         position:fixed; inset:0;
         background:transparent;
         z-index:9997;
-        pointer-events:none;
+        pointer-events:auto; /* ✅ 클릭 감지 */
       }
       .hmToast{
         position:fixed;
@@ -46,7 +46,8 @@
         padding:16px 18px 14px;
         text-align:center;
         z-index:9998;
-        pointer-events:none;
+        pointer-events:auto; /* ✅ 클릭 감지 */
+        cursor:pointer;      /* ✅ “눌러서 닫기” 느낌 */
         animation: hmToastIn .22s ease-out forwards;
       }
       @keyframes hmToastIn{
@@ -195,7 +196,7 @@
     if(m) m.style.display = "none";
   }
 
-  // ===== 완료 토스트(4초) =====
+  // ===== 완료 토스트(4초 + 클릭 닫기) =====
   let finishTimer = null;
 
   function launchConfetti(){
@@ -257,11 +258,23 @@
     playBeep(988, 90, 0.035);
     setTimeout(()=>playBeep(1174, 80, 0.028), 120);
 
-    finishTimer = setTimeout(()=>{
+    // ✅ 닫기(클릭 or 4초)
+    const closeNow = () => {
       back.remove();
       toast.remove();
-      finishTimer = null;
-    }, 4000);
+      if(finishTimer){
+        clearTimeout(finishTimer);
+        finishTimer = null;
+      }
+      // 이벤트 정리(안전)
+      back.removeEventListener("click", closeNow);
+      toast.removeEventListener("click", closeNow);
+    };
+
+    back.addEventListener("click", closeNow);
+    toast.addEventListener("click", closeNow);
+
+    finishTimer = setTimeout(closeNow, 4000);
   }
 
   // ===== 초기 세팅 =====
