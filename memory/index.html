@@ -412,7 +412,7 @@ button.primary{
       <button id="sfxBtn" type="button">🔔 효과음</button>
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
 
-      <!-- ✅ [추가] 배경음악 버튼 -->
+      <!-- ✅ 배경음악 버튼 -->
       <button id="bgmBtn" type="button">🎵 배경음악 켜기</button>
     </div>
 
@@ -460,8 +460,17 @@ button.primary{
   </div>
 </div>
 
-<!-- ✅ [추가] 배경음악 오디오 태그 (버튼 클릭 시에만 재생됨) -->
-<audio id="bgm" src="assets/audio/bgm.mp3" loop preload="none"></audio>
+<!-- ✅ 배경음악 오디오 태그 -->
+<!-- 핵심 변경점:
+     1) 절대경로로 src 지정 (경로 꼬임 방지)
+     2) preload="auto" (눌렀을 때 바로 재생 확률 ↑)
+     3) playsinline (모바일 안정성 ↑)
+-->
+<audio id="bgm"
+       src="https://harumind.kr/memory/assets/audio/bgm.mp3"
+       loop
+       preload="auto"
+       playsinline></audio>
 
 <!-- 순서 중요 -->
 <script src="./config.js"></script>
@@ -533,40 +542,64 @@ button.primary{
 })();
 </script>
 
-<!-- ✅ [추가] 배경음악(BGM) ON/OFF -->
+<!-- ✅ 배경음악(BGM) ON/OFF (업그레이드 버전) -->
 <script>
 (function(){
   const bgm = document.getElementById('bgm');
   const btn = document.getElementById('bgmBtn');
   if(!bgm || !btn) return;
 
-  // 기본: 꺼짐(브라우저 자동재생 정책 대응)
   let on = false;
 
-  // 볼륨: 너무 크면 거부감 생김 (0.10~0.18 추천)
-  bgm.volume = 0.15;
+  // 테스트용(확실히 들리게). 나중에 0.15로 내려도 됨.
+  bgm.volume = 0.35;
+  bgm.muted = false;
 
-  function setLabel(){
-    btn.textContent = on ? '🔇 배경음악 끄기' : '🎵 배경음악 켜기';
+  function setLabel(state){
+    if(state === 'loading') btn.textContent = '⏳ 로딩중...';
+    else btn.textContent = on ? '🔇 배경음악 끄기' : '🎵 배경음악 켜기';
   }
   setLabel();
 
-  btn.addEventListener('click', async () => {
+  async function startPlay(){
+    setLabel('loading');
     try{
-      if(!on){
-        await bgm.play();  // 사용자 클릭으로만 재생
-        on = true;
-      }else{
-        bgm.pause();
-        on = false;
-      }
+      // 모바일에서 로드 상태가 애매하면 play가 조용히 실패하는 경우가 있어 load() 강제
+      bgm.load();
+
+      // canplay까지 기다렸다가 재생 (체감 안정성 ↑)
+      await new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error('timeout')), 6000);
+        bgm.addEventListener('canplay', () => { clearTimeout(t); resolve(); }, { once:true });
+        bgm.addEventListener('error', () => { clearTimeout(t); reject(new Error('audio error')); }, { once:true });
+      });
+
+      bgm.currentTime = 0;
+
+      const p = bgm.play();
+      if(p && typeof p.then === 'function') await p;
+
+      on = true;
       setLabel();
     }catch(e){
-      alert('배경음악 재생이 차단됐어요. 화면을 한 번 터치한 뒤 다시 눌러주세요.');
+      on = false;
+      setLabel();
+      console.log('BGM play error:', e);
+      alert('배경음악 재생이 막혔거나 파일 로딩에 실패했어요.\n(휴대폰 무음/블루투스/브라우저 정책/네트워크 확인)');
+    }
+  }
+
+  btn.addEventListener('click', async () => {
+    if(!on){
+      await startPlay();
+    }else{
+      bgm.pause();
+      on = false;
+      setLabel();
     }
   });
 
-  // 탭 전환/백그라운드 시 자동 정지(선택)
+  // 탭 전환/백그라운드 시 자동 정지
   document.addEventListener('visibilitychange', () => {
     if(document.hidden && on){
       bgm.pause();
