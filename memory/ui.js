@@ -129,8 +129,8 @@ function setBigMode(on){
 
   if(bigBtn){
     bigBtn.textContent = bigOn
-      ? "🔎 큰 글씨: 켜짐"
-      : "🔎 큰 글씨: 꺼짐";
+      ? "🔠 큰 글씨"
+      : "🔡 작은 글씨";
 
     bigBtn.classList.toggle("bigOn", bigOn);
     bigBtn.classList.toggle("bigOff", !bigOn);
@@ -519,6 +519,7 @@ function setBigMode(on){
     showFinishPopup,
   };
 })();
+
 
 
 
