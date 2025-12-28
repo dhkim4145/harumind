@@ -122,12 +122,17 @@
   }
 
   // ===== 설정 =====
-  function setBigMode(on){
-    bigOn = !!on;
-    HarumindStorage.setBool(C.KEYS.BIG, bigOn);
-    document.body.classList.toggle("bigText", bigOn);
-    if(bigBtn) bigBtn.textContent = bigOn ? "🔎 큰 글씨: 켜짐" : "🔎➖ 큰 글씨: 꺼짐";
+function setBigMode(on){
+  bigOn = !!on;
+  HarumindStorage.setBool(C.KEYS.BIG, bigOn);
+  document.body.classList.toggle("bigText", bigOn);
+
+  if(bigBtn){
+    bigBtn.textContent = "🔎 큰 글씨";
+    bigBtn.classList.toggle("bigIcon", bigOn);
+    bigBtn.classList.toggle("smallIcon", !bigOn);
   }
+}
 
   function setSfx(on){
     sfxOn = !!on;
@@ -511,4 +516,5 @@
     showFinishPopup,
   };
 })();
+
 
