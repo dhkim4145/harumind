@@ -413,7 +413,7 @@ button.primary{
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
 
       <!-- ✅ 배경음악 버튼 -->
-      <button id="bgmBtn" type="button">🎵 배경음악 켜기</button>
+      <button id="bgmBtn" type="button">🎵 배경음악</button>
     </div>
 
     <!-- game.js가 쓰는 select는 유지 -->
@@ -460,12 +460,7 @@ button.primary{
   </div>
 </div>
 
-<!-- ✅ 배경음악 오디오 태그 -->
-<!-- 핵심 변경점:
-     1) 절대경로로 src 지정 (경로 꼬임 방지)
-     2) preload="auto" (눌렀을 때 바로 재생 확률 ↑)
-     3) playsinline (모바일 안정성 ↑)
--->
+<!-- ✅ 배경음악 오디오 태그 (로직은 ui.js로 이동) -->
 <audio id="bgm"
        src="https://harumind.kr/memory/assets/audio/bgm.mp3"
        loop
@@ -477,138 +472,6 @@ button.primary{
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
 <script src="./game.js"></script>
-
-<!-- 오늘 현황 토글 -->
-<script>
-(function(){
-  const wrap = document.getElementById('statsWrap');
-  const btn  = document.getElementById('statsToggle');
-  if(!wrap || !btn) return;
-
-  wrap.classList.remove('isOpen');
-  btn.setAttribute('aria-expanded','false');
-  btn.innerHTML = '오늘 현황 <span class="chev">∨</span>';
-
-  btn.addEventListener('click', () => {
-    const open = wrap.classList.toggle('isOpen');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    btn.innerHTML = (open ? '닫기 ' : '오늘 현황 ') + '<span class="chev">∨</span>';
-  });
-})();
-</script>
-
-<!-- 잠깐보기 버튼 → 숨겨진 select(change) 트리거 -->
-<script>
-(function(){
-  const peekBtn = document.getElementById('peekBtn');
-  const peekSel = document.getElementById('peekSec');
-  if(!peekBtn || !peekSel) return;
-
-  peekBtn.addEventListener('click', () => {
-    peekBtn.disabled = true;
-    peekSel.value = "2";
-    peekSel.dispatchEvent(new Event('change', { bubbles: true }));
-
-    setTimeout(() => {
-      peekSel.value = "";
-      peekBtn.disabled = false;
-    }, 2200);
-  });
-})();
-</script>
-
-<!-- 방법 보기 모달 열기/닫기 -->
-<script>
-(function(){
-  const howBtn = document.getElementById('howBtn');
-  const back   = document.getElementById('modalBack');
-  const close  = document.getElementById('modalCloseBtn');
-  const card   = document.getElementById('modalCard');
-  if(!howBtn || !back || !close || !card) return;
-
-  const openModal = () => { back.style.display = "flex"; };
-  const closeModal = () => { back.style.display = "none"; };
-
-  howBtn.addEventListener('click', openModal);
-  close.addEventListener('click', closeModal);
-
-  back.addEventListener('click', (e) => {
-    if(e.target === back) closeModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if(e.key === "Escape" && back.style.display === "flex") closeModal();
-  });
-})();
-</script>
-
-<!-- ✅ 배경음악(BGM) ON/OFF (업그레이드 버전) -->
-<script>
-(function(){
-  const bgm = document.getElementById('bgm');
-  const btn = document.getElementById('bgmBtn');
-  if(!bgm || !btn) return;
-
-  let on = false;
-
-  // 테스트용(확실히 들리게). 나중에 0.15로 내려도 됨.
-  bgm.volume = 0.35;
-  bgm.muted = false;
-
-  function setLabel(state){
-    if(state === 'loading') btn.textContent = '⏳ 로딩중...';
-    else btn.textContent = on ? '🎵 배경음악 켜짐' : '🔇 배경음악 꺼짐';
-  }
-  setLabel();
-
-  async function startPlay(){
-    setLabel('loading');
-    try{
-      // 모바일에서 로드 상태가 애매하면 play가 조용히 실패하는 경우가 있어 load() 강제
-      bgm.load();
-
-      // canplay까지 기다렸다가 재생 (체감 안정성 ↑)
-      await new Promise((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error('timeout')), 6000);
-        bgm.addEventListener('canplay', () => { clearTimeout(t); resolve(); }, { once:true });
-        bgm.addEventListener('error', () => { clearTimeout(t); reject(new Error('audio error')); }, { once:true });
-      });
-
-      // bgm.currentTime = 0;
-
-      const p = bgm.play();
-      if(p && typeof p.then === 'function') await p;
-
-      on = true;
-      setLabel();
-    }catch(e){
-      on = false;
-      setLabel();
-      console.log('BGM play error:', e);
-      alert('배경음악 재생이 막혔거나 파일 로딩에 실패했어요.\n(휴대폰 무음/블루투스/브라우저 정책/네트워크 확인)');
-    }
-  }
-
-  btn.addEventListener('click', async () => {
-    if(!on){
-      await startPlay();
-    }else{
-      bgm.pause();
-      on = false;
-      setLabel();
-    }
-  });
-
-  // 탭 전환/백그라운드 시 자동 정지
-  document.addEventListener('visibilitychange', () => {
-    if(document.hidden && on){
-      bgm.pause();
-      on = false;
-      setLabel();
-    }
-  });
-})();
-</script>
 
 </body>
 </html>
