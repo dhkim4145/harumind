@@ -116,7 +116,7 @@
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔔 효과음: 끄기" : "🔕 효과음: 켜기";
+    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔔 효과음: 켜짐" : "🔕 효과음: 꺼짐";
   }
 
   // ===== 비프음 =====
@@ -301,3 +301,4 @@
     showFinishPopup,
   };
 })();
+
