@@ -126,7 +126,7 @@
     bigOn = !!on;
     HarumindStorage.setBool(C.KEYS.BIG, bigOn);
     document.body.classList.toggle("bigText", bigOn);
-    if(bigBtn) bigBtn.textContent = bigOn ? "🔎 큰 글씨: 켜짐" : "🔎 큰 글씨: 끄기";
+    if(bigBtn) bigBtn.textContent = bigOn ? "🔎 큰 글씨: 켜짐" : "🔎➖ 큰 글씨: 꺼짐";
   }
 
   function setSfx(on){
@@ -511,3 +511,4 @@
     showFinishPopup,
   };
 })();
+
