@@ -574,7 +574,7 @@ button.primary{
         bgm.addEventListener('error', () => { clearTimeout(t); reject(new Error('audio error')); }, { once:true });
       });
 
-      bgm.currentTime = 0;
+      // bgm.currentTime = 0;
 
       const p = bgm.play();
       if(p && typeof p.then === 'function') await p;
