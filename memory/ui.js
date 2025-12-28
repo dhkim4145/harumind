@@ -1,5 +1,6 @@
 // /memory/ui.js
 // 화면 업데이트 + 효과음 + 리워드(+10) + 완료 토스트(4초/폭죽/클릭 닫기)
+// + (추가) 오늘현황 토글, 잠깐보기(2초) 버튼, 방법보기 모달, 배경음악(BGM) 이어듣기/상태저장
 
 (function(){
   const C = window.HARUMIND_CONFIG;
@@ -15,8 +16,23 @@
   const todayClearEl = document.getElementById("todayClear");
   const todayBestEl  = document.getElementById("todayBest");
 
-  const sfxBtn = document.getElementById("sfxBtn");
-  const bigBtn = document.getElementById("bigBtn");
+  const sfxBtn  = document.getElementById("sfxBtn");
+  const bigBtn  = document.getElementById("bigBtn");
+
+  // index.html에 있는 UI 버튼들
+  const statsWrap   = document.getElementById("statsWrap");
+  const statsToggle = document.getElementById("statsToggle");
+
+  const peekBtn = document.getElementById("peekBtn");
+  const peekSel = document.getElementById("peekSec");
+
+  const howBtn   = document.getElementById("howBtn");
+  const modalBack = document.getElementById("modalBack");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+  const modalCard = document.getElementById("modalCard");
+
+  const bgm = document.getElementById("bgm");
+  const bgmBtn = document.getElementById("bgmBtn");
 
   let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
@@ -31,12 +47,12 @@
         position:fixed; inset:0;
         background:transparent;
         z-index:9997;
-        pointer-events:auto; /* ✅ 클릭 감지 */
+        pointer-events:auto;
       }
       .hmToast{
         position:fixed;
         left:50%;
-        top:58%; /* ✅ 중앙보다 살짝 아래 */
+        top:58%;
         transform:translate(-50%, -50%);
         width:min(520px, calc(100% - 32px));
         background:#1a2250;
@@ -46,8 +62,8 @@
         padding:16px 18px 14px;
         text-align:center;
         z-index:9998;
-        pointer-events:auto; /* ✅ 클릭 감지 */
-        cursor:pointer;      /* ✅ “눌러서 닫기” 느낌 */
+        pointer-events:auto;
+        cursor:pointer;
         animation: hmToastIn .22s ease-out forwards;
       }
       @keyframes hmToastIn{
@@ -188,12 +204,10 @@
 
   // ===== 모달(호환용) =====
   function openModal(){
-    const m = document.getElementById("modalBack");
-    if(m) m.style.display = "flex";
+    if(modalBack) modalBack.style.display = "flex";
   }
   function closeModal(){
-    const m = document.getElementById("modalBack");
-    if(m) m.style.display = "none";
+    if(modalBack) modalBack.style.display = "none";
   }
 
   // ===== 완료 토스트(4초 + 클릭 닫기) =====
@@ -266,7 +280,6 @@
         clearTimeout(finishTimer);
         finishTimer = null;
       }
-      // 이벤트 정리(안전)
       back.removeEventListener("click", closeNow);
       toast.removeEventListener("click", closeNow);
     };
@@ -275,6 +288,197 @@
     toast.addEventListener("click", closeNow);
 
     finishTimer = setTimeout(closeNow, 4000);
+  }
+
+  // =========================================================
+  // 추가 UI: 오늘현황 토글 / 잠깐보기 / 방법보기 / 배경음악(BGM)
+  // =========================================================
+
+  function initStatsToggle(){
+    if(!statsWrap || !statsToggle) return;
+
+    statsWrap.classList.remove('isOpen');
+    statsToggle.setAttribute('aria-expanded','false');
+    statsToggle.innerHTML = '오늘 현황 <span class="chev">∨</span>';
+
+    statsToggle.addEventListener('click', () => {
+      const open = statsWrap.classList.toggle('isOpen');
+      statsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      statsToggle.innerHTML = (open ? '닫기 ' : '오늘 현황 ') + '<span class="chev">∨</span>';
+    });
+  }
+
+  function initPeekButton(){
+    if(!peekBtn || !peekSel) return;
+
+    peekBtn.addEventListener('click', () => {
+      peekBtn.disabled = true;
+
+      peekSel.value = "2";
+      peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+
+      setTimeout(() => {
+        peekSel.value = "";
+        peekBtn.disabled = false;
+      }, 2200);
+    });
+  }
+
+  function initHowModal(){
+    if(!howBtn || !modalBack || !modalCloseBtn || !modalCard) return;
+
+    const open = () => { modalBack.style.display = "flex"; };
+    const close = () => { modalBack.style.display = "none"; };
+
+    howBtn.addEventListener('click', open);
+    modalCloseBtn.addEventListener('click', close);
+
+    modalBack.addEventListener('click', (e) => {
+      if(e.target === modalBack) close();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(e.key === "Escape" && modalBack.style.display === "flex") close();
+    });
+  }
+
+  // ---- BGM 이어듣기 핵심 ----
+  const BGM_KEY_ON   = "HARUMIND_BGM_ON";
+  const BGM_KEY_TIME = "HARUMIND_BGM_TIME";
+
+  function initBgm(){
+    if(!bgm || !bgmBtn) return;
+
+    // 기본 볼륨(원하면 조절)
+    bgm.volume = 0.35;
+    bgm.muted = false;
+
+    // 상태 복원
+    let on = false;
+    let loadedOnce = false;
+
+    try{
+      on = (localStorage.getItem(BGM_KEY_ON) === "1");
+    }catch(e){}
+
+    // 마지막 재생 위치 복원 (가능한 경우)
+    function restoreTimeIfAny(){
+      try{
+        const t = parseFloat(localStorage.getItem(BGM_KEY_TIME) || "0");
+        if(Number.isFinite(t) && t > 0){
+          // 메타데이터 로드 후 seek이 안전하므로, 가능하면 loadedmetadata 후 적용
+          if(bgm.readyState >= 1){
+            bgm.currentTime = Math.max(0, t);
+          }else{
+            bgm.addEventListener("loadedmetadata", () => {
+              try{ bgm.currentTime = Math.max(0, t); }catch(e){}
+            }, { once:true });
+          }
+        }
+      }catch(e){}
+    }
+
+    function setLabel(){
+      bgmBtn.textContent = on ? "🎵 배경음악 켜짐" : "🔇 배경음악 꺼짐";
+    }
+
+    function saveOn(){
+      try{ localStorage.setItem(BGM_KEY_ON, on ? "1" : "0"); }catch(e){}
+    }
+
+    // 재생 위치를 주기적으로 저장 (이어듣기)
+    let timeSaveTimer = null;
+    function startTimeSaver(){
+      stopTimeSaver();
+      timeSaveTimer = setInterval(() => {
+        if(!on) return;
+        if(!bgm || bgm.paused) return;
+        try{ localStorage.setItem(BGM_KEY_TIME, String(bgm.currentTime || 0)); }catch(e){}
+      }, 1000);
+    }
+    function stopTimeSaver(){
+      if(timeSaveTimer){ clearInterval(timeSaveTimer); timeSaveTimer = null; }
+    }
+
+    // iOS/모바일: 최초 재생 전에 load() 1회는 도움이 되지만,
+    // "다시 켤 때마다 load()"를 하면 currentTime이 날아가서 이어듣기가 깨짐.
+    async function safePlay(){
+      // 최초 1회만 load() 시도
+      if(!loadedOnce){
+        try{ bgm.load(); }catch(e){}
+        loadedOnce = true;
+      }
+
+      // 재생 직전 위치 복원
+      restoreTimeIfAny();
+
+      // play 시도
+      const p = bgm.play();
+      if(p && typeof p.then === "function"){
+        await p;
+      }
+    }
+
+    function stop(){
+      // pause는 currentTime 유지됨 (이어듣기 OK)
+      try{
+        // 끄는 순간도 저장해두면 더 안정적
+        localStorage.setItem(BGM_KEY_TIME, String(bgm.currentTime || 0));
+      }catch(e){}
+      bgm.pause();
+      stopTimeSaver();
+    }
+
+    // 버튼 토글
+    bgmBtn.addEventListener("click", async () => {
+      if(!on){
+        on = true;
+        saveOn();
+        setLabel();
+        try{
+          await safePlay();
+          startTimeSaver();
+        }catch(e){
+          // 재생이 막힌 케이스(브라우저 정책/무음모드 등)
+          on = false;
+          saveOn();
+          setLabel();
+          console.log("BGM play error:", e);
+          alert("배경음악 재생이 막혔거나 로딩에 실패했어요.\n(휴대폰 무음/블루투스/브라우저 정책/네트워크 확인)");
+        }
+      }else{
+        on = false;
+        saveOn();
+        setLabel();
+        stop();
+      }
+    });
+
+    // 화면 숨김 시: 자동 정지하되 위치 저장 → 다시 켜면 이어듣기
+    document.addEventListener("visibilitychange", () => {
+      if(document.hidden && on){
+        stop();
+        // on 상태는 유지(원하면 자동 OFF로 바꿔도 되는데, 지금은 “이어듣기” 우선)
+        // 즉, 다시 돌아와서 사용자가 버튼 한 번 누르면 이어서 재생됨
+      }
+    });
+
+    // 오디오 에러 발생 시 안전장치
+    bgm.addEventListener("error", () => {
+      if(on){
+        on = false;
+        saveOn();
+        setLabel();
+        stopTimeSaver();
+      }
+    });
+
+    // 처음 라벨 표시
+    setLabel();
+
+    // “자동재생”은 대부분 막히므로, on이 저장되어 있어도 바로 재생은 시도하지 않음.
+    // 대신 위치만 복원해두고, 사용자가 버튼 누르면 즉시 이어서 재생되게 함.
+    restoreTimeIfAny();
   }
 
   // ===== 초기 세팅 =====
@@ -287,6 +491,12 @@
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
+
+  // 추가 UI 초기화
+  initStatsToggle();
+  initPeekButton();
+  initHowModal();
+  initBgm();
 
   window.HarumindUI = {
     board,
@@ -301,4 +511,3 @@
     showFinishPopup,
   };
 })();
-
