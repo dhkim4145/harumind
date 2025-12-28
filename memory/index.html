@@ -411,6 +411,9 @@ button.primary{
       <button id="howBtn" type="button">방법 보기</button>
       <button id="sfxBtn" type="button">🔔 효과음</button>
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
+
+      <!-- ✅ [추가] 배경음악 버튼 -->
+      <button id="bgmBtn" type="button">🎵 배경음악 켜기</button>
     </div>
 
     <!-- game.js가 쓰는 select는 유지 -->
@@ -456,6 +459,9 @@ button.primary{
     </div>
   </div>
 </div>
+
+<!-- ✅ [추가] 배경음악 오디오 태그 (버튼 클릭 시에만 재생됨) -->
+<audio id="bgm" src="assets/audio/bgm.mp3" loop preload="none"></audio>
 
 <!-- 순서 중요 -->
 <script src="./config.js"></script>
@@ -523,6 +529,50 @@ button.primary{
 
   document.addEventListener('keydown', (e) => {
     if(e.key === "Escape" && back.style.display === "flex") closeModal();
+  });
+})();
+</script>
+
+<!-- ✅ [추가] 배경음악(BGM) ON/OFF -->
+<script>
+(function(){
+  const bgm = document.getElementById('bgm');
+  const btn = document.getElementById('bgmBtn');
+  if(!bgm || !btn) return;
+
+  // 기본: 꺼짐(브라우저 자동재생 정책 대응)
+  let on = false;
+
+  // 볼륨: 너무 크면 거부감 생김 (0.10~0.18 추천)
+  bgm.volume = 0.15;
+
+  function setLabel(){
+    btn.textContent = on ? '🔇 배경음악 끄기' : '🎵 배경음악 켜기';
+  }
+  setLabel();
+
+  btn.addEventListener('click', async () => {
+    try{
+      if(!on){
+        await bgm.play();  // 사용자 클릭으로만 재생
+        on = true;
+      }else{
+        bgm.pause();
+        on = false;
+      }
+      setLabel();
+    }catch(e){
+      alert('배경음악 재생이 차단됐어요. 화면을 한 번 터치한 뒤 다시 눌러주세요.');
+    }
+  });
+
+  // 탭 전환/백그라운드 시 자동 정지(선택)
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden && on){
+      bgm.pause();
+      on = false;
+      setLabel();
+    }
   });
 })();
 </script>
