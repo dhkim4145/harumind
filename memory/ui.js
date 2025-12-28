@@ -128,9 +128,12 @@ function setBigMode(on){
   document.body.classList.toggle("bigText", bigOn);
 
   if(bigBtn){
-    bigBtn.textContent = "🔎 큰 글씨";
-    bigBtn.classList.toggle("bigIcon", bigOn);
-    bigBtn.classList.toggle("smallIcon", !bigOn);
+    bigBtn.textContent = bigOn
+      ? "🔎 큰 글씨: 켜짐"
+      : "🔎 큰 글씨: 꺼짐";
+
+    bigBtn.classList.toggle("bigOn", bigOn);
+    bigBtn.classList.toggle("bigOff", !bigOn);
   }
 }
 
@@ -516,5 +519,6 @@ function setBigMode(on){
     showFinishPopup,
   };
 })();
+
 
 
