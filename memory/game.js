@@ -56,6 +56,7 @@
   // ✅ 원형 링 타이머(새로시작 전용)
   // - "메시지 박스(messageCard)" 안에 넣고
   // - 작고 덜 튀게
+  // - 링 안에 숫자(4→3→2→1) 표시
   // =========================
   function ensureRingStyle(){
     if(document.getElementById("hm-ring-style")) return;
@@ -94,23 +95,42 @@
         border: 1px solid rgba(255,255,255,.08);
       }
 
+      /* ✅ 링 안 숫자 */
+      .hmRingNum{
+        position:absolute;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-weight: 900;
+        font-size: 14px;
+        color: rgba(232,236,255,.95);
+        line-height: 1;
+        letter-spacing: .2px;
+        user-select: none;
+        z-index: 2;
+      }
+
       /* 모바일에서는 조금 더 작게 */
       @media (max-width:520px){
         .hmRing{ width: 48px; height: 48px; }
         .hmRing::after{ inset:6px; }
+        .hmRingNum{ font-size: 13px; }
       }
     `;
     document.head.appendChild(s);
   }
 
-  function showPeekRing(){
+  function showPeekRing(initSec){
     ensureRingStyle();
     if(peekRing) return;
 
     const wrap = document.createElement("div");
     wrap.className = "hmRingWrap";
     wrap.innerHTML = `
-      <div class="hmRing" style="--p: 0;"></div>
+      <div class="hmRing" style="--p: 0;">
+        <div class="hmRingNum">${initSec || ""}</div>
+      </div>
     `;
 
     // ✅ 메시지 카드 안에 링 넣기 (카드 가림 0%)
@@ -129,6 +149,12 @@
     if(!peekRing) return;
     const ring = peekRing.querySelector(".hmRing");
     if(ring) ring.style.setProperty("--p", String(Math.max(0, Math.min(1, p01))));
+  }
+
+  function setPeekRingNumber(n){
+    if(!peekRing) return;
+    const num = peekRing.querySelector(".hmRingNum");
+    if(num) num.textContent = String(n);
   }
 
   function hidePeekRing(){
@@ -252,6 +278,7 @@
 
   // ✅ doPeek(sec, showRing=false)
   // showRing=true일 때만 원형 링 표시(새로시작 전용)
+  // + 링 안에 숫자(4→3→2→1) 표시
   function doPeek(sec, showRing=false){
     // ✅ 미리보기 중/클릭 잠금 중이면 요청 무시 (꼬임 방지)
     if(lock) return;
@@ -267,15 +294,25 @@
     [...UI.board.children].forEach(t => t.dataset.state = "up");
 
     if(showRing){
-      showPeekRing();
+      showPeekRing(sec);
       UI.setMessage("잠깐 보고 기억해요 🙂", "원형 링이 끝나면 시작해요.");
 
       const start = performance.now();
       const dur = sec * 1000;
+      let lastShown = sec;
 
       const tick = (now) => {
-        const t = Math.min(1, (now - start) / dur);
+        const elapsed = now - start;
+        const t = Math.min(1, elapsed / dur);
         setPeekRingProgress(t); // 0 → 1 차오름
+
+        // ✅ 남은 초(4→3→2→1)
+        const remain = Math.max(1, Math.ceil((dur - elapsed) / 1000));
+        if(remain !== lastShown){
+          lastShown = remain;
+          setPeekRingNumber(remain);
+        }
+
         if(t < 1) peekRingRAF = requestAnimationFrame(tick);
       };
       peekRingRAF = requestAnimationFrame(tick);
