@@ -209,11 +209,12 @@ button.primary{
   border-color:rgba(110,231,183,.45);
 }
 
-/* ✅ 오늘 현황(오늘 기록) 버튼: 오른쪽 정렬 + 클릭 방해 방지 */
+/* ✅ 오늘 현황 버튼/영역: 이제 '게임 후(메시지 카드)'에 배치 */
+.statsArea{
+  margin-top:12px;
+}
 #statsToggle{
-  margin-left:auto;     /* 스페이서(span) 쓰지 않음 */
-  position:relative;
-  z-index:5;            /* 혹시 겹쳐도 클릭 우선 */
+  width:fit-content;
 }
 
 /* (ui.js가 statsWrap에 isOpen 붙여서 회전시키는 스타일) */
@@ -399,7 +400,7 @@ button.primary{
       <button id="bgmBtn" type="button">🎵 배경음악</button>
     </div>
 
-    <!-- 컨트롤 + 오늘 현황 버튼(오른쪽) -->
+    <!-- 컨트롤 (조작 버튼만 남김) -->
     <div class="controls">
       <select id="level" title="난이도 선택">
         <option value="2x2">쉬움 (2x2)</option>
@@ -410,24 +411,6 @@ button.primary{
       <button class="primary" id="newGame">새로 시작</button>
       <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
-
-      <!-- ✅ ui.js가 이 버튼을 잡아서 statsWrap 토글함 -->
-      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-        오늘 현황 <span class="chev">∨</span>
-      </button>
-    </div>
-
-    <!-- 오늘 현황 본문(접기/펼치기 대상) -->
-    <div id="statsWrap">
-      <div class="stats">
-        <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
-        <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
-        <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
-        <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
-      </div>
-
-      <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
-      <div class="statsDivider"></div>
     </div>
 
     <select id="peekSec" style="display:none">
@@ -437,9 +420,30 @@ button.primary{
     <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
+  <!-- ✅ 게임 후 영역(메시지 카드)로 '오늘 현황' 이동 -->
   <div class="card messageCard">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
+
+    <div class="statsArea">
+      <!-- ✅ ui.js가 이 버튼을 잡아서 statsWrap 토글함 (ID 유지) -->
+      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
+        오늘 현황 <span class="chev">∨</span>
+      </button>
+
+      <!-- 오늘 현황 본문(접기/펼치기 대상) (ID 유지) -->
+      <div id="statsWrap">
+        <div class="stats">
+          <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
+          <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
+          <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
+          <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
+        </div>
+
+        <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
+        <div class="statsDivider"></div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
