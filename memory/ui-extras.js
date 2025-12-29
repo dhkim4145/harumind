@@ -248,3 +248,23 @@
   initBgm();
 })();
 
+// ===============================
+// ❓ 방법 보기 버튼 (모달 열기)
+// ===============================
+(function(){
+  const howBtn = document.getElementById("howBtn");
+  const modalBack = document.getElementById("modalBack");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+  if(howBtn && modalBack){
+    howBtn.addEventListener("click", function(){
+      modalBack.classList.add("isOpen");
+    });
+  }
+
+  if(modalCloseBtn && modalBack){
+    modalCloseBtn.addEventListener("click", function(){
+      modalBack.classList.remove("isOpen");
+    });
+  }
+})();
