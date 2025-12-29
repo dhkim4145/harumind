@@ -362,7 +362,9 @@ button.primary{
    ========================= */
 body.peeking #board{
   transform: scale(1.03);
+  transform-origin: center top; /* ✅ 추가 */
   transition: transform .18s ease;
+  will-change: transform;       /* ✅ 추가 */
 }
 
 body.peeking .card:not(.messageCard){
@@ -421,3 +423,4 @@ body.peeking .card:not(.messageCard){
   opacity: .9;
   font-weight: 900;
 }
+
