@@ -54,57 +54,50 @@
 
   // =========================
   // ✅ 원형 링 타이머(새로시작 전용)
+  // - "메시지 박스(messageCard)" 안에 넣고
+  // - 작고 덜 튀게
   // =========================
   function ensureRingStyle(){
     if(document.getElementById("hm-ring-style")) return;
     const s = document.createElement("style");
     s.id = "hm-ring-style";
     s.textContent = `
-      /* ✅ 보드 위쪽에 링을 붙여서 카드가 절대 안 가리게 */
+      /* ✅ 메시지 박스 안에서 가운데 정렬 */
       .hmRingWrap{
-        position: absolute;
-        left: 50%;
-        top: 154px;                 /* 필요하면 -48 ~ -60 사이로 조절 */
-        transform: translateX(-50%);
-        z-index: 5;
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         pointer-events: none;
       }
+
+      /* ✅ 카드보다 작고, 덜 화려한 링 */
       .hmRing{
-        width: 96px;
-        height: 96px;
+        width: 52px;
+        height: 52px;
         border-radius: 999px;
         background: conic-gradient(
-          var(--accent, #6ee7b7) calc(var(--p, 0) * 1turn),
-          rgba(255,255,255,.14) 0
+          rgba(110,231,183,.55) calc(var(--p, 0) * 1turn),
+          rgba(255,255,255,.08) 0
         );
-        display: grid;
-        place-items: center;
-        box-shadow: 0 14px 30px rgba(0,0,0,.45);
-        border: 1px solid rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.10);
+        box-shadow: 0 4px 10px rgba(0,0,0,.22);
+        position: relative;
+        opacity: .95;
       }
       .hmRing::after{
         content:"";
-        width: 74px;
-        height: 74px;
+        position:absolute;
+        inset:6px;
         border-radius: 999px;
         background: rgba(11,16,32,.92);
-        border: 1px solid rgba(255,255,255,.10);
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
-        grid-area: 1 / 1;
+        border: 1px solid rgba(255,255,255,.08);
       }
-      .hmRingText{
-        grid-area: 1 / 1;
-        font-weight: 900;
-        font-size: 13px;
-        color: rgba(232,236,255,.96);
-        text-align: center;
-        line-height: 1.15;
-        padding: 0 8px;
-        user-select: none;
-      }
+
+      /* 모바일에서는 조금 더 작게 */
       @media (max-width:520px){
-        .hmRing{ width: 92px; height: 92px; }
-        .hmRing::after{ width: 72px; height: 72px; }
+        .hmRing{ width: 48px; height: 48px; }
+        .hmRing::after{ inset:6px; }
       }
     `;
     document.head.appendChild(s);
@@ -117,14 +110,17 @@
     const wrap = document.createElement("div");
     wrap.className = "hmRingWrap";
     wrap.innerHTML = `
-      <div class="hmRing" style="--p: 0;">
-        <div class="hmRingText">기억<br/>준비</div>
-      </div>
+      <div class="hmRing" style="--p: 0;"></div>
     `;
 
-    // ✅ body가 아니라 "보드 카드"에 붙임 (카드 가림 방지 핵심)
-    // UI.board.parentElement = index.html의 <div class="card"> ... <div id="board"> ... </div>
-    UI.board.parentElement.appendChild(wrap);
+    // ✅ 메시지 카드 안에 링 넣기 (카드 가림 0%)
+    const msgCard = document.querySelector(".messageCard");
+    if(msgCard){
+      msgCard.appendChild(wrap);
+    }else{
+      // 혹시 구조가 바뀌었을 때의 안전장치
+      document.body.appendChild(wrap);
+    }
 
     peekRing = wrap;
   }
@@ -325,9 +321,3 @@
   // ✅ 첫 진입도 “새로시작과 동일”하게 링 ON (원하면 false로 바꾸면 됨)
   build(getStartPeekSeconds(levelSel.value), true);
 })();
-
-
-
-
-
-
