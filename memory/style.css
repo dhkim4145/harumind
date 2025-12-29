@@ -81,7 +81,7 @@ body.bigText{
 
 /* ✅ 설정 버튼: PC(웹)에서는 아예 안 보이게 */
 #settingsBtn{
-  display:none; /* 기본: 숨김(=PC 포함) */
+  display:none;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.16);
   background:rgba(255,255,255,.06);
@@ -169,23 +169,12 @@ button.primary{
   border-color:rgba(110,231,183,.45);
 }
 
-/* ✅ 오늘 현황 버튼/영역: 이제 '게임 후(메시지 카드)'에 배치 */
+/* ✅ 메시지 카드 아래에 '맞춘 개수 / 지금 점수'만 */
 .statsArea{
   margin-top:12px;
 }
-#statsToggle{
-  width:fit-content;
-}
 
-/* (ui.js가 statsWrap에 isOpen 붙여서 회전시키는 스타일) */
-.chev{
-  display:inline-block;
-  transition:transform .18s ease;
-  opacity:.9;
-}
-#statsWrap.isOpen .chev{ transform:rotate(180deg); }
-
-/* ===== 오늘 현황 영역 (ui.js 토글 대상) ===== */
+/* ===== 상태(맞춘 개수 / 지금 점수) ===== */
 .stats{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -194,38 +183,22 @@ button.primary{
 }
 
 .pill{
-background:rgba(255,255,255,.07);
+  background:rgba(255,255,255,.07);
   border:1px solid rgba(255,255,255,.12);
   border-radius:999px;
   padding:6px 12px;
   font-size:var(--fs-pill);
   display:flex;
   align-items:center;
-  justify-content:center;   /* ✅ 중앙 고정 */
+  justify-content:center;
   gap:10px;
   min-width:0;
-  position:relative;        /* ✅ b 위치 고정용 */  
+  position:relative;
 }
 .pill b{
   position:absolute;
   left:14px;
   white-space:nowrap;
-}
-
-.statsNote{
-  margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
-}
-.statsDivider{
-  margin-top:10px;
-  border-top:2px solid rgba(255,255,255,.22);
-}
-
-#statsWrap:not(.isOpen) .stats,
-#statsWrap:not(.isOpen) .statsNote,
-#statsWrap:not(.isOpen) .statsDivider{
-  display:none;
 }
 
 /* =========================
@@ -252,14 +225,14 @@ background:rgba(255,255,255,.07);
     rgba(110,231,183,0.55),
     rgba(110,231,183,0.0)
   );
-  opacity:0;    /* ✅ 평소엔 안 보임 */
+  opacity:0;
   z-index:0;
 }
 
 /* ✅ 값이 바뀔 때 ui.js가 .spin을 잠깐 붙여서 1회 회전 */
 .pill.live.spin::before{
   opacity:1;
-  animation: liveSpinOnce 1.4s linear; /* ✅ 1~2초 범위: 1.4s~2.0s로 바꿔도 됨 */
+  animation: liveSpinOnce 1.4s linear;
 }
 
 .pill.live > *{
@@ -383,4 +356,3 @@ background:rgba(255,255,255,.07);
   padding:10px 14px;
   cursor:pointer;
 }
-
