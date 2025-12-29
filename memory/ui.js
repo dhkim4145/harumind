@@ -122,20 +122,20 @@
   }
 
   // ===== 설정 =====
-function setBigMode(on){
-  bigOn = !!on;
-  HarumindStorage.setBool(C.KEYS.BIG, bigOn);
-  document.body.classList.toggle("bigText", bigOn);
+  function setBigMode(on){
+    bigOn = !!on;
+    HarumindStorage.setBool(C.KEYS.BIG, bigOn);
+    document.body.classList.toggle("bigText", bigOn);
 
-  if(bigBtn){
-    bigBtn.textContent = bigOn
-      ? "🔠 큰 글씨"
-      : "🔡 작은 글씨";
+    if(bigBtn){
+      bigBtn.textContent = bigOn
+        ? "🔠 큰 글씨"
+        : "🔡 작은 글씨";
 
-    bigBtn.classList.toggle("bigOn", bigOn);
-    bigBtn.classList.toggle("bigOff", !bigOn);
+      bigBtn.classList.toggle("bigOn", bigOn);
+      bigBtn.classList.toggle("bigOff", !bigOn);
+    }
   }
-}
 
   function setSfx(on){
     sfxOn = !!on;
@@ -302,17 +302,27 @@ function setBigMode(on){
   // 추가 UI: 오늘현황 토글 / 잠깐보기 / 방법보기 / 배경음악(BGM)
   // =========================================================
 
+  // ✅ FIX: "오늘 현황 보기 ▾ / 닫기 ▴" 라벨을 ui.js에서 직접 관리
   function initStatsToggle(){
     if(!statsWrap || !statsToggle) return;
 
+    // 기본: 닫힘 상태로 시작
     statsWrap.classList.remove('isOpen');
-    statsToggle.setAttribute('aria-expanded','false');
-    statsToggle.innerHTML = '오늘 현황 <span class="chev">∨</span>';
+
+    function syncLabel(){
+      const open = statsWrap.classList.contains('isOpen');
+      statsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      statsToggle.innerHTML = open
+        ? '오늘 현황 닫기 <span class="chev">▴</span>'
+        : '오늘 현황 보기 <span class="chev">▾</span>';
+    }
+
+    // 최초 1회
+    syncLabel();
 
     statsToggle.addEventListener('click', () => {
-      const open = statsWrap.classList.toggle('isOpen');
-      statsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      statsToggle.innerHTML = (open ? '닫기 ' : '오늘 현황 ') + '<span class="chev">∨</span>';
+      statsWrap.classList.toggle('isOpen');
+      syncLabel();
     });
   }
 
@@ -462,7 +472,7 @@ function setBigMode(on){
       }
     });
 
-    // 화면 숨김 시: 자동 정지하되 위치 저장 → 다시 켜면 이어듣기
+    // 화면 숨김 시: 자동 정지하되 위치 저장 → 다시 켤면 이어듣기
     document.addEventListener("visibilitychange", () => {
       if(document.hidden && on){
         stop();
@@ -519,8 +529,3 @@ function setBigMode(on){
     showFinishPopup,
   };
 })();
-
-
-
-
-
