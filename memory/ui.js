@@ -259,7 +259,7 @@ function setBigMode(on){
     if(finishTimer){ clearTimeout(finishTimer); finishTimer = null; }
 
     const d = HarumindStorage.loadDaily(dateStr);
-    const extra = `오늘 완료: ${d.clears}회 · 오늘 최고: ${d.best}점`;
+    const extra = `오늘 횟수: ${d.clears}회 · 오늘 최고: ${d.best}점`;
 
     const back = document.createElement("div");
     back.className = "hmToastBack";
@@ -519,6 +519,7 @@ function setBigMode(on){
     showFinishPopup,
   };
 })();
+
 
 
 
