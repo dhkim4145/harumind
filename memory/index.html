@@ -62,8 +62,6 @@
 }
 
 *{box-sizing:border-box;}
-
-/* ✅ 클릭 시 화면 흔들림(가로 스크롤) 방지 */
 html, body { overflow-x:hidden; }
 
 body{
@@ -77,7 +75,6 @@ body{
   font-size:var(--fs-base);
 }
 
-/* 큰 글씨 모드 */
 body.bigText{
   --fs-base:18px;
   --fs-title:24px;
@@ -122,14 +119,14 @@ body.bigText{
   margin-top:6px;
 }
 
-/* ✅ (수정1) 우상단 설정 버튼 영역 */
+/* ✅ 우상단 설정 버튼 */
 .titleActions{
   display:flex;
   align-items:center;
   gap:10px;
 }
 
-/* 기본(PC): 숨김, 모바일에서만 보이게 */
+/* 기본(PC): 숨김, 모바일에서만 표시 */
 #settingsBtn{
   display:none;
   border-radius:999px;
@@ -167,12 +164,8 @@ body.bigText{
   transition:transform .18s ease;
   opacity:.9;
 }
+#statsWrap.isOpen .chev{ transform:rotate(180deg); }
 
-#statsWrap.isOpen .chev{
-  transform:rotate(180deg);
-}
-
-/* ✅ (수정2) 오늘 현황 2열 그리드로 정리 */
 .stats{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -186,7 +179,6 @@ body.bigText{
   border-radius:999px;
   padding:6px 12px;
   font-size:var(--fs-pill);
-
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -195,10 +187,8 @@ body.bigText{
 }
 .pill b{ white-space:nowrap; }
 
-/* 기존 줄바꿈 요소는 영향 없게 처리 */
 .stats-break{ display:none; }
 
-/* 안내 문구 + 구분선(진하게) */
 .statsNote{
   margin-top:10px;
   font-size:12px;
@@ -209,7 +199,6 @@ body.bigText{
   border-top:2px solid rgba(255,255,255,.22);
 }
 
-/* 기본: 닫힘 */
 #statsWrap:not(.isOpen) .stats,
 #statsWrap:not(.isOpen) .statsNote,
 #statsWrap:not(.isOpen) .statsDivider{
@@ -245,7 +234,6 @@ select#level option{
   color:#1f2937;
   background:#ffffff;
 }
-
 select#level option:checked{
   background:#e6f4ee;
   color:#0f172a;
@@ -258,9 +246,7 @@ button.primary{
 }
 
 /* 메시지 */
-.messageCard{
-  min-height:92px;
-}
+.messageCard{ min-height:92px; }
 #msg{
   font-size:var(--fs-msg);
   font-weight:900;
@@ -276,10 +262,7 @@ button.primary{
 }
 
 /* 보드 */
-.board{
-  display:grid;
-  gap:var(--gap);
-}
+.board{ display:grid; gap:var(--gap); }
 
 .tile{
   height:var(--tile-h);
@@ -303,7 +286,7 @@ button.primary{
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
-/* ✅ 리워드(+10) 숫자 */
+/* 리워드 */
 .reward{
   position:fixed;
   z-index:9999;
@@ -322,7 +305,7 @@ button.primary{
   100% { opacity:0; transform: translate(-50%, -95%) scale(1.05); }
 }
 
-/* ===== 방법 보기 모달 ===== */
+/* 모달 */
 #modalBack{
   position:fixed;
   inset:0;
@@ -333,7 +316,6 @@ button.primary{
   justify-content:center;
   padding:18px;
 }
-
 #modalCard{
   width:min(520px, 100%);
   background:#141b3f;
@@ -342,46 +324,29 @@ button.primary{
   box-shadow:0 18px 48px rgba(0,0,0,.55);
   padding:18px 18px 16px;
 }
-
-.modalTitle{
-  font-weight:900;
-  font-size:18px;
-}
-
+.modalTitle{ font-weight:900; font-size:18px; }
 .modalBody{
   margin-top:10px;
   line-height:1.8;
   color:var(--muted);
   font-size:14px;
 }
-
-.modalStep{
-  display:flex;
-  gap:10px;
-  margin:10px 0;
-}
-
+.modalStep{ display:flex; gap:10px; margin:10px 0; }
 .modalNum{
-  width:26px;
-  height:26px;
+  width:26px; height:26px;
   border-radius:999px;
   background:rgba(110,231,183,.18);
   border:1px solid rgba(110,231,183,.45);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:800;
-  color:var(--text);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:var(--text);
   flex:0 0 auto;
 }
-
 .modalActions{
   margin-top:14px;
   display:flex;
   justify-content:flex-end;
   gap:10px;
 }
-
 .modalActions button{
   font-size:16px;
   border-radius:999px;
@@ -393,25 +358,59 @@ button.primary{
 }
 
 /* ===========================
-   ✅ 모바일에서만 우상단 ⚙️로 옵션 3개 묶기
-   - PC: 옵션 버튼 그대로 노출
-   - 모바일: 옵션은 숨김, 우상단 ⚙️ 누르면 열림
+   ✅ 모바일에서 "설정 패널 느낌" 만들기
+   - 모바일: 우상단 ⚙️ 표시
+   - 설정이 열리면: '설정' 라벨 + 구분선 + 살짝 카드 느낌
    =========================== */
 
 #settingsGroup{ display: contents; }   /* PC 기본 */
 
-/* 모바일(가로폭 작은 화면)에서만 적용 */
-@media (max-width:520px){
-  #settingsBtn{ display:inline-flex; } /* 모바일 우상단 ⚙️ 표시 */
+#settingsHeader{
+  display:none; /* PC 기본 숨김 */
+  width:100%;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:4px;
+}
+#settingsHeader .label{
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:.2px;
+  color:rgba(232,236,255,.92);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+#settingsHeader .line{
+  height:1px;
+  flex:1 1 auto;
+  background:rgba(255,255,255,.14);
+}
 
+/* 모바일만 적용 */
+@media (max-width:520px){
+  #settingsBtn{ display:inline-flex; }
+
+  /* 헤더 표시 */
+  #settingsHeader{
+    display:flex;
+  }
+
+  /* 그룹은 패널처럼 */
   #settingsGroup{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
     width:100%;
+    padding:10px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.04);
   }
 
-  /* 기본 닫힘 */
+  /* 닫힘일 때: 헤더/패널 둘 다 안 보이게 */
+  #settingsHeader.isClosed{ display:none; }
   #settingsGroup.isClosed{ display:none; }
 }
 </style>
@@ -427,7 +426,7 @@ button.primary{
         <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
       </div>
 
-      <!-- ✅ (수정1) 우상단 설정 버튼(모바일에서만 보임) -->
+      <!-- 모바일 우상단 설정 -->
       <div class="titleActions">
         <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">⚙️</button>
       </div>
@@ -440,7 +439,6 @@ button.primary{
         </button>
       </div>
 
-      <!-- ✅ (수정2) 2열 그리드 -->
       <div class="stats">
         <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
         <div class="pill"><span>칭찬 점수</span> <b id="score">0</b></div>
@@ -463,7 +461,13 @@ button.primary{
       <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
 
-      <!-- ✅ 옵션(PC는 계속 보임 / 모바일은 ⚙️로 열림) -->
+      <!-- ✅ 모바일에서 "설정" 느낌 나는 헤더 -->
+      <div id="settingsHeader">
+        <div class="label">⚙️ 설정</div>
+        <div class="line"></div>
+      </div>
+
+      <!-- 옵션들 -->
       <span id="settingsGroup">
         <button id="sfxBtn" type="button">🔔 효과음</button>
         <button id="bigBtn" type="button">🔎 큰 글씨</button>
@@ -471,12 +475,10 @@ button.primary{
       </span>
     </div>
 
-    <!-- game.js가 쓰는 select는 유지 -->
     <select id="peekSec" style="display:none">
       <option value="2">2</option>
     </select>
 
-    <!-- todayKey는 storage/ui에서 쓰는 경우가 있어 숨김으로 유지 -->
     <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
@@ -496,7 +498,6 @@ button.primary{
 
 </div>
 
-<!-- ✅ 방법 보기 모달 -->
 <div id="modalBack" role="dialog" aria-modal="true" aria-label="방법 보기">
   <div id="modalCard">
     <div class="modalTitle">방법 보기</div>
@@ -515,40 +516,51 @@ button.primary{
   </div>
 </div>
 
-<!-- ✅ 배경음악 오디오 태그 (로직은 ui.js로 이동) -->
 <audio id="bgm"
        src="https://harumind.kr/memory/assets/audio/bgm.mp3"
        loop
        preload="auto"
        playsinline></audio>
 
-<!-- ✅ 모바일 설정 토글 스크립트 (ui.js/game.js와 충돌 없음) -->
 <script>
 (function(){
   const settingsBtn = document.getElementById("settingsBtn");
   const group = document.getElementById("settingsGroup");
+  const header = document.getElementById("settingsHeader");
   if(!settingsBtn || !group) return;
 
   const mq = window.matchMedia("(max-width:520px)");
 
+  function closeOnMobile(){
+    group.classList.add("isClosed");
+    if(header) header.classList.add("isClosed");
+    settingsBtn.setAttribute("aria-expanded", "false");
+    settingsBtn.setAttribute("aria-label", "설정 열기");
+  }
+  function openOnMobile(){
+    group.classList.remove("isClosed");
+    if(header) header.classList.remove("isClosed");
+    settingsBtn.setAttribute("aria-expanded", "true");
+    settingsBtn.setAttribute("aria-label", "설정 닫기");
+  }
+
   function syncForViewport(){
     if(mq.matches){
       // 모바일: 기본 닫힘
-      group.classList.add("isClosed");
-      settingsBtn.setAttribute("aria-expanded", "false");
-      settingsBtn.setAttribute("aria-label", "설정 열기");
+      closeOnMobile();
     }else{
       // PC: 항상 열림(설정버튼은 CSS로 숨김)
       group.classList.remove("isClosed");
+      if(header) header.classList.add("isClosed"); // PC에서는 헤더 숨김 유지
       settingsBtn.setAttribute("aria-expanded", "false");
       settingsBtn.setAttribute("aria-label", "설정");
     }
   }
 
   settingsBtn.addEventListener("click", function(){
-    const closed = group.classList.toggle("isClosed");
-    settingsBtn.setAttribute("aria-expanded", String(!closed));
-    settingsBtn.setAttribute("aria-label", closed ? "설정 열기" : "설정 닫기");
+    const isClosed = group.classList.contains("isClosed");
+    if(isClosed) openOnMobile();
+    else closeOnMobile();
   });
 
   if(mq.addEventListener){
@@ -561,7 +573,6 @@ button.primary{
 })();
 </script>
 
-<!-- 순서 중요 -->
 <script src="./config.js"></script>
 <script src="./storage.js"></script>
 <script src="./ui.js"></script>
