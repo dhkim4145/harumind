@@ -31,10 +31,7 @@
     document.body.classList.toggle("bigText", bigOn);
 
     if(bigBtn){
-      bigBtn.textContent = bigOn
-        ? "🔠 큰 글씨"
-        : "🔡 작은 글씨";
-
+      bigBtn.textContent = bigOn ? "🔠 큰 글씨" : "🔡 작은 글씨";
       bigBtn.classList.toggle("bigOn", bigOn);
       bigBtn.classList.toggle("bigOff", !bigOn);
     }
@@ -75,7 +72,7 @@
     }catch(e){}
   }
 
-  // ===== +10 리워드 =====
+  // ===== +점수 리워드 =====
   function showReward(tile, text){
     const r = document.createElement("div");
     r.className = "reward";
@@ -111,7 +108,7 @@
     void pill.offsetWidth; // reflow
     pill.classList.add("spin");
 
-    setTimeout(() => pill.classList.remove("spin"), 1600);
+    setTimeout(() => pill.classList.remove("spin"), 1200); // ✅ 체감 길면 여기 900~1200 추천
   }
 
   function renderStats({matched, score}){
@@ -139,7 +136,7 @@
     if(todayBestEl)  todayBestEl.textContent  = d.best;
   }
 
-  // ===== 모달(호환용: game.js가 호출할 수도 있음) =====
+  // ===== 모달 =====
   function openModal(){
     const modalBack = document.getElementById("modalBack");
     if(modalBack) modalBack.style.display = "flex";
@@ -160,7 +157,7 @@
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
 
-  // ✅ 다른 파일들이 접근할 수 있도록 "공유 상태"를 window에 올려둠
+  // ✅ 다른 파일들이 접근할 수 있도록 "공유 상태"
   window.HarumindUIState = {
     C,
     board,
@@ -177,8 +174,7 @@
     closeModal,
   };
 
-  // 실제로 game.js가 쓰는 인터페이스는 최종적으로 여기서 export
-  // (toast/extras 파일이 showFinishPopup 등을 추가로 붙임)
+  // 기본 export
   window.HarumindUI = {
     board,
     dateStr,
@@ -189,52 +185,50 @@
     showReward,
     openModal,
     closeModal,
-    // showFinishPopup은 ui-toast.js에서 붙임
   };
 })();
 
-// ===== 완료 상태 UI =====
+
+// ===== 완료 상태 UI (작은 바 형태로, 카드 크기 안 커지게) =====
 (function(){
-  const msgEl  = document.getElementById("msg");
-  const hintEl = document.getElementById("hint");
+  function getMsgCard(){
+    return document.querySelector(".messageCard");
+  }
 
-  let finishBtn = null;
+  function ensureBar(){
+    const host = getMsgCard();
+    if(!host) return null;
 
+    let bar = document.getElementById("hmFinishBar");
+    if(!bar){
+      bar = document.createElement("div");
+      bar.id = "hmFinishBar";
+      bar.className = "hmFinishBar";
+      host.appendChild(bar);
+    }
+    return bar;
+  }
+
+  // ✅ game.js가 호출: UI.setFinishState(...)
   HarumindUI.setFinishState = function({ title, message, buttonText, hint, onRestart }){
-    if(!msgEl || !hintEl) return;
+    const bar = ensureBar();
+    if(!bar) return;
 
-    msgEl.innerHTML = `
-      <div style="font-weight:900;">${title}</div>
-      <div style="margin-top:4px;">${message}</div>
-      <button id="finishRestartBtn"
-        style="
-          margin-top:12px;
-          padding:10px 16px;
-          border-radius:999px;
-          border:1px solid rgba(110,231,183,.45);
-          background:rgba(110,231,183,.18);
-          color:inherit;
-          font-size:16px;
-          cursor:pointer;
-        ">
-        ${buttonText}
-      </button>
-    `;
-
-    hintEl.innerHTML = `
-      <div style="margin-top:6px;font-size:12px;opacity:.7;">
-        ${hint}
+    // bar만 갱신 (msg/hint는 그대로 두어서 카드가 안 커짐)
+    bar.innerHTML = `
+      <div class="hmFinishText">
+        <div class="hmFinishTitle">${title || "🎉 오늘의 게임 완료!"}</div>
+        <div class="hmFinishSub">${hint || "난이도는 위에서 바꿀 수 있어요"}</div>
       </div>
+      <button class="hmFinishBtn" type="button">${buttonText || "🔁 다시 해볼까요?"}</button>
     `;
 
-    finishBtn = document.getElementById("finishRestartBtn");
-    if(finishBtn) finishBtn.onclick = onRestart;
+    const btn = bar.querySelector(".hmFinishBtn");
+    if(btn) btn.onclick = () => onRestart && onRestart();
   };
 
   HarumindUI.clearFinishState = function(){
-    if(finishBtn){
-      finishBtn.remove();
-      finishBtn = null;
-    }
+    const bar = document.getElementById("hmFinishBar");
+    if(bar) bar.remove();
   };
 })();
