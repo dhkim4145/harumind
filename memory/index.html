@@ -367,6 +367,33 @@ button.primary{
   padding:10px 14px;
   cursor:pointer;
 }
+
+/* ===========================
+   ✅ 모바일 전용 "설정" 묶기
+   - 모바일: 설정 버튼만 보이고(기본 닫힘), 옵션은 펼쳐서 사용
+   - PC: 설정 버튼 숨김, 옵션 버튼들은 그대로 노출
+   =========================== */
+
+#settingsBtn{ display:none; }          /* PC 기본: 숨김 */
+#settingsGroup{ display: contents; }   /* PC 기본: 버튼들이 컨트롤 라인에 자연스럽게 섞이게 */
+
+/* 모바일(가로폭 작은 화면)에서만 적용 */
+@media (max-width:520px){
+  #settingsBtn{ display:inline-flex; }
+
+  /* 모바일에서 옵션 그룹은 "한 덩어리"로 취급 */
+  #settingsGroup{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    width:100%;
+  }
+
+  /* 기본 닫힘 */
+  #settingsGroup.isClosed{
+    display:none;
+  }
+}
 </style>
 </head>
 
@@ -412,11 +439,16 @@ button.primary{
       <button class="primary" id="newGame">새로 시작</button>
       <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
-      <button id="sfxBtn" type="button">🔔 효과음</button>
-      <button id="bigBtn" type="button">🔎 큰 글씨</button>
 
-      <!-- ✅ 배경음악 버튼 -->
-      <button id="bgmBtn" type="button">🎵 배경음악</button>
+      <!-- ✅ 모바일에서만 보이는 "설정" 버튼 -->
+      <button id="settingsBtn" type="button" aria-expanded="false">⚙️ 설정</button>
+
+      <!-- ✅ 설정에 묶일 옵션들(모바일에서는 설정 눌러야 보임) -->
+      <span id="settingsGroup">
+        <button id="sfxBtn" type="button">🔔 효과음</button>
+        <button id="bigBtn" type="button">🔎 큰 글씨</button>
+        <button id="bgmBtn" type="button">🎵 배경음악</button>
+      </span>
     </div>
 
     <!-- game.js가 쓰는 select는 유지 -->
@@ -469,6 +501,45 @@ button.primary{
        loop
        preload="auto"
        playsinline></audio>
+
+<!-- ✅ 모바일 설정 토글 스크립트 (ui.js/game.js와 충돌 없음) -->
+<script>
+(function(){
+  const settingsBtn = document.getElementById("settingsBtn");
+  const group = document.getElementById("settingsGroup");
+  if(!settingsBtn || !group) return;
+
+  const mq = window.matchMedia("(max-width:520px)");
+
+  function syncForViewport(){
+    if(mq.matches){
+      // 모바일: 기본 닫힘
+      group.classList.add("isClosed");
+      settingsBtn.setAttribute("aria-expanded", "false");
+      settingsBtn.textContent = "⚙️ 설정";
+    }else{
+      // PC: 항상 열림(설정버튼은 CSS로 숨김)
+      group.classList.remove("isClosed");
+      settingsBtn.setAttribute("aria-expanded", "false");
+      settingsBtn.textContent = "⚙️ 설정";
+    }
+  }
+
+  settingsBtn.addEventListener("click", function(){
+    const closed = group.classList.toggle("isClosed");
+    settingsBtn.setAttribute("aria-expanded", String(!closed));
+    settingsBtn.textContent = closed ? "⚙️ 설정" : "⚙️ 설정 닫기";
+  });
+
+  if(mq.addEventListener){
+    mq.addEventListener("change", syncForViewport);
+  }else if(mq.addListener){
+    mq.addListener(syncForViewport);
+  }
+
+  syncForViewport();
+})();
+</script>
 
 <!-- 순서 중요 -->
 <script src="./config.js"></script>
