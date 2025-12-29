@@ -425,6 +425,5 @@ body.peeking .card:not(.messageCard){
 }
 
 body.peeking .tile{
-  filter: brightness(1.05) saturate(0.95);
+  filter: brightness(1.05) saturate(0.95) blur(0.6px);
 }
-
