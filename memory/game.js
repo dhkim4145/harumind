@@ -60,19 +60,23 @@
     const s = document.createElement("style");
     s.id = "hm-ring-style";
     s.textContent = `
+      /* ✅ 보드 위쪽에 링을 붙여서 카드가 절대 안 가리게 */
       .hmRingWrap{
-        position: fixed;
+        position: absolute;
         left: 50%;
-        top: 56%;
-        transform: translate(-50%, -50%);
-        z-index: 8999;
+        top: -54px;                 /* 필요하면 -48 ~ -60 사이로 조절 */
+        transform: translateX(-50%);
+        z-index: 5;
         pointer-events: none;
       }
       .hmRing{
         width: 96px;
         height: 96px;
         border-radius: 999px;
-        background: conic-gradient(var(--accent, #6ee7b7) calc(var(--p, 0) * 1turn), rgba(255,255,255,.14) 0);
+        background: conic-gradient(
+          var(--accent, #6ee7b7) calc(var(--p, 0) * 1turn),
+          rgba(255,255,255,.14) 0
+        );
         display: grid;
         place-items: center;
         box-shadow: 0 14px 30px rgba(0,0,0,.45);
@@ -117,7 +121,11 @@
         <div class="hmRingText">기억<br/>준비</div>
       </div>
     `;
-    document.body.appendChild(wrap);
+
+    // ✅ body가 아니라 "보드 카드"에 붙임 (카드 가림 방지 핵심)
+    // UI.board.parentElement = index.html의 <div class="card"> ... <div id="board"> ... </div>
+    UI.board.parentElement.appendChild(wrap);
+
     peekRing = wrap;
   }
 
