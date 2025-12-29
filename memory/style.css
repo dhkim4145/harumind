@@ -356,3 +356,68 @@ button.primary{
   padding:10px 14px;
   cursor:pointer;
 }
+
+/* =========================
+   PEEK MODE (힌트시간 느낌)
+   ========================= */
+body.peeking #board{
+  transform: scale(1.03);
+  transition: transform .18s ease;
+}
+
+body.peeking .card:not(.messageCard){
+  opacity: .88;
+  transition: opacity .18s ease;
+}
+
+/* 상단 오버레이 배너 */
+.hmPeekBanner{
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 99999;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.35);
+  color: var(--text);
+
+  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -.2px;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.hmPeekBanner.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hmPeekBadge{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(110,231,183,.18);
+  border: 1px solid rgba(110,231,183,.45);
+}
+
+.hmPeekCount{
+  opacity: .9;
+  font-weight: 900;
+}
