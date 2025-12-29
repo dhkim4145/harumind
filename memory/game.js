@@ -18,7 +18,11 @@
   let score = 0;
   let totalPairs = 0;
   let peekTimer = null;
-  let peekTickTimer = null; // ✅ 새로시작 카운트다운용 interval
+
+  // ✅ 원형 링 상태
+  let peekRing = null;
+  let peekRingRAF = null;
+
   let streak = 0;
 
   function seededCards(level){
@@ -40,7 +44,7 @@
 
   function clearPeekTimer(){
     if(peekTimer){ clearTimeout(peekTimer); peekTimer = null; }
-    if(peekTickTimer){ clearInterval(peekTickTimer); peekTickTimer = null; }
+    hidePeekRing();
   }
 
   // ✅ 새로 시작 미리보기 시간: 쉬움/보통 3초, 어려움(4x3) 4초
@@ -48,10 +52,96 @@
     return (level === "4x3") ? 4 : 3;
   }
 
-  // ✅ build(autoPeekSec, countdown=false)
+  // =========================
+  // ✅ 원형 링 타이머(새로시작 전용)
+  // =========================
+  function ensureRingStyle(){
+    if(document.getElementById("hm-ring-style")) return;
+    const s = document.createElement("style");
+    s.id = "hm-ring-style";
+    s.textContent = `
+      .hmRingWrap{
+        position: fixed;
+        left: 50%;
+        top: 56%;
+        transform: translate(-50%, -50%);
+        z-index: 8999;
+        pointer-events: none;
+      }
+      .hmRing{
+        width: 96px;
+        height: 96px;
+        border-radius: 999px;
+        background: conic-gradient(var(--accent, #6ee7b7) calc(var(--p, 0) * 1turn), rgba(255,255,255,.14) 0);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 14px 30px rgba(0,0,0,.45);
+        border: 1px solid rgba(255,255,255,.14);
+      }
+      .hmRing::after{
+        content:"";
+        width: 74px;
+        height: 74px;
+        border-radius: 999px;
+        background: rgba(11,16,32,.92);
+        border: 1px solid rgba(255,255,255,.10);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+        grid-area: 1 / 1;
+      }
+      .hmRingText{
+        grid-area: 1 / 1;
+        font-weight: 900;
+        font-size: 13px;
+        color: rgba(232,236,255,.96);
+        text-align: center;
+        line-height: 1.15;
+        padding: 0 8px;
+        user-select: none;
+      }
+      @media (max-width:520px){
+        .hmRing{ width: 92px; height: 92px; }
+        .hmRing::after{ width: 72px; height: 72px; }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function showPeekRing(){
+    ensureRingStyle();
+    if(peekRing) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "hmRingWrap";
+    wrap.innerHTML = `
+      <div class="hmRing" style="--p: 0;">
+        <div class="hmRingText">기억<br/>준비</div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+    peekRing = wrap;
+  }
+
+  function setPeekRingProgress(p01){
+    if(!peekRing) return;
+    const ring = peekRing.querySelector(".hmRing");
+    if(ring) ring.style.setProperty("--p", String(Math.max(0, Math.min(1, p01))));
+  }
+
+  function hidePeekRing(){
+    if(peekRing){
+      peekRing.remove();
+      peekRing = null;
+    }
+    if(peekRingRAF){
+      cancelAnimationFrame(peekRingRAF);
+      peekRingRAF = null;
+    }
+  }
+
+  // ✅ build(autoPeekSec, showRing=false)
   // autoPeekSec가 숫자면 build 직후 자동 미리보기 실행
-  // countdown=true일 때만 카운트다운(초 감소)을 보여줌 (새로시작 전용)
-  function build(autoPeekSec, countdown=false){
+  // showRing=true일 때만 원형 링(새로시작 전용)
+  function build(autoPeekSec, showRing=false){
     clearPeekTimer();
     UI.board.innerHTML = "";
     first = null; lock = false;
@@ -74,7 +164,7 @@
 
     // ✅ 자동 미리보기
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
-      doPeek(autoPeekSec, countdown);
+      doPeek(autoPeekSec, showRing);
     }
   }
 
@@ -136,7 +226,7 @@
           title: "오늘의 게임 완료! 🎉",
           sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
           dateStr: UI.dateStr,
-          // ✅ 완료 팝업에서 재시작도 "새로시작"이므로 카운트다운 ON
+          // ✅ 완료 팝업에서 재시작도 "새로시작"으로 취급 → 링 ON
           onRestart: () => build(getStartPeekSeconds(levelSel.value), true)
         });
       }
@@ -156,9 +246,9 @@
     }
   }
 
-  // ✅ doPeek(sec, countdown=false)
-  // countdown=true일 때만 (4→3→2→1)처럼 초가 줄어드는 타이머 표시
-  function doPeek(sec, countdown=false){
+  // ✅ doPeek(sec, showRing=false)
+  // showRing=true일 때만 원형 링 표시(새로시작 전용)
+  function doPeek(sec, showRing=false){
     // ✅ 미리보기 중/클릭 잠금 중이면 요청 무시 (꼬임 방지)
     if(lock) return;
 
@@ -172,26 +262,31 @@
 
     [...UI.board.children].forEach(t => t.dataset.state = "up");
 
-    // 기본 표시
-    UI.setMessage(`잠깐 보고 기억해요 🙂 (${sec}초)`, "끝나면 다시 물음표로 돌아갑니다.");
+    if(showRing){
+      showPeekRing();
+      UI.setMessage("잠깐 보고 기억해요 🙂", "원형 링이 끝나면 시작해요.");
 
-    // ✅ 새로시작에서만 카운트다운
-    if(countdown){
-      let remain = sec;
-      peekTickTimer = setInterval(() => {
-        remain -= 1;
-        if(remain > 0){
-          UI.setMessage(`잠깐 보고 기억해요 🙂 (${remain}초)`, "끝나면 다시 물음표로 돌아갑니다.");
-        }
-      }, 1000);
+      const start = performance.now();
+      const dur = sec * 1000;
+
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / dur);
+        setPeekRingProgress(t); // 0 → 1 차오름
+        if(t < 1) peekRingRAF = requestAnimationFrame(tick);
+      };
+      peekRingRAF = requestAnimationFrame(tick);
+
+    }else{
+      // 난이도 변경(2초), 잠깐보기(2초)는 기존 텍스트만
+      UI.setMessage(`잠깐 보고 기억해요 🙂 (${sec}초)`, "끝나면 다시 물음표로 돌아갑니다.");
     }
 
     peekTimer = setTimeout(()=>{
-      clearPeekTimer();
-
       [...UI.board.children].forEach(t=>{
         if(!t.classList.contains("matched")) t.dataset.state = "down";
       });
+
+      hidePeekRing();
       UI.setMessage("이제 시작해볼까요?", "팁: 너무 빨리 누르지 않아도 돼요.");
       lock = false;
       peekTimer = null;
@@ -199,19 +294,19 @@
   }
 
   // 이벤트
-  // ✅ 새로 시작: 난이도별 3/4초 + 카운트다운 ON
+  // ✅ 새로 시작: 난이도별 3/4초 + 원형 링 ON
   newBtn.onclick = () => {
     const level = levelSel.value;
     build(getStartPeekSeconds(level), true);
   };
 
-  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게) / 카운트다운 OFF
+  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게) / 링 OFF
   levelSel.onchange = () => {
     build(2, false);
     UI.setMessage("난이도를 바꿨어요 🙂", "카드를 2초만 보여드릴게요.");
   };
 
-  // ✅ 수동 잠깐보기: 선택한 초만큼 / 카운트다운 OFF
+  // ✅ 수동 잠깐보기: 선택한 초만큼 / 링 OFF
   peekSel.onchange = () => {
     const sec = parseInt(peekSel.value, 10) || 2;
     doPeek(sec, false);
@@ -219,6 +314,6 @@
   };
 
   // 시작
-  // ✅ 첫 진입도 “새로시작과 동일”하게 카운트다운 ON (원하면 false로 바꿔도 됨)
+  // ✅ 첫 진입도 “새로시작과 동일”하게 링 ON (원하면 false로 바꾸면 됨)
   build(getStartPeekSeconds(levelSel.value), true);
 })();
