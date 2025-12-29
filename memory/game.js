@@ -52,7 +52,7 @@
     streak = 0;
 
     UI.renderStats({ matched, score });
-    UI.clearFinishState();
+    if (UI.clearFinishState) UI.clearFinishState();
     UI.setMessage("카드를 눌러서 시작해요 🙂", "처음엔 천천히 눌러보면 돼요.");
 
     const level = levelSel.value;
@@ -171,3 +171,4 @@
   // 첫 진입
   build(2);
 })();
+
