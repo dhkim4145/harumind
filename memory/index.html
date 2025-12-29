@@ -263,6 +263,41 @@ button.primary{
   display:none;
 }
 
+/* =========================
+   LIVE PILL (살아있는 테두리)
+   - '맞춘 개수' / '지금 점수' 2개만 적용
+   ========================= */
+.pill.live{
+  position:relative;
+  overflow:hidden;
+  background: rgba(110,231,183,.10);
+  border: 1px solid rgba(110,231,183,.35);
+}
+
+.pill.live::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:999px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(110,231,183,0.0),
+    rgba(110,231,183,0.55),
+    rgba(110,231,183,0.0)
+  );
+  animation: liveSpin 9s linear infinite;
+  z-index:0;
+}
+
+.pill.live > *{
+  position:relative;
+  z-index:1;
+}
+
+@keyframes liveSpin{
+  to{ transform: rotate(360deg); }
+}
+
 /* 메시지 */
 .messageCard{ min-height:92px; }
 #msg{
@@ -434,8 +469,8 @@ button.primary{
       <!-- 오늘 현황 본문(접기/펼치기 대상) (ID 유지) -->
       <div id="statsWrap">
         <div class="stats">
-          <div class="pill"><span>맞춘 개수</span> <b id="matched">0</b></div>
-          <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
+          <div class="pill live"><span>맞춘 개수</span> <b id="matched">0</b></div>
+          <div class="pill live"><span>지금 점수</span> <b id="score">0</b></div>
           <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
           <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
         </div>
