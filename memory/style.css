@@ -377,7 +377,7 @@ body.peeking .card:not(.messageCard){
   position: fixed;
   left: 50%;
   top: 14px;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(-6px);;
   z-index: 99999;
 
   display: inline-flex;
@@ -422,5 +422,9 @@ body.peeking .card:not(.messageCard){
 .hmPeekCount{
   opacity: .9;
   font-weight: 900;
+}
+
+body.peeking .tile{
+  filter: brightness(1.05) saturate(0.95);
 }
 
