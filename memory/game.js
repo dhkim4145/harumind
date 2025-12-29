@@ -311,7 +311,7 @@
 
     if(showRing){
       showPeekRing(sec);
-      UI.setMessage("잠깐 보고 기억해요 🙂", "처음부터 다시 해볼게요.");
+      UI.setMessage("잠깐 보고 기억해요 🙂", "처음부터 해볼게요.");
 
       const start = performance.now();
       const dur = sec * 1000;
@@ -374,6 +374,7 @@
   // ✅ 첫 진입도 “새로시작과 동일”하게 링 ON (원하면 false로 바꾸면 됨)
   build(getStartPeekSeconds(levelSel.value), true);
 })();
+
 
 
 
