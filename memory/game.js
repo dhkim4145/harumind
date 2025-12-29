@@ -41,7 +41,24 @@
     if(peekTimer){ clearTimeout(peekTimer); peekTimer = null; }
   }
 
-  function build(){
+  // ✅ 새로 시작 시 "난이도별 자동 미리보기(초)" 결정
+  // - 레벨 키를 몰라도 안전하게 동작하도록 '카드 개수' 기준으로 계산
+  function getStartPeekSeconds(level){
+    const map = C.LEVEL_MAP;
+    const rc = map[level];
+    if(!rc) return 4; // 예외시 기본값
+    const [r,c] = rc;
+    const tiles = r * c;
+
+    // 3x2(6) → 3초, 4x3(12) → 4초, 5x4(20) → 5초 (그 외는 근사)
+    if(tiles <= 6) return 3;
+    if(tiles <= 12) return 4;
+    return 5;
+  }
+
+  // ✅ build(autoPeekSec)
+  // autoPeekSec가 숫자면 build 직후 자동 미리보기 실행
+  function build(autoPeekSec){
     clearPeekTimer();
     UI.board.innerHTML = "";
     first = null; lock = false;
@@ -61,6 +78,11 @@
       t.onclick = () => clickTile(t);
       UI.board.appendChild(t);
     });
+
+    // ✅ 새로 시작/난이도 변경 등에서 요청된 경우 자동 미리보기
+    if(typeof autoPeekSec === "number" && autoPeekSec > 0){
+      doPeek(autoPeekSec);
+    }
   }
 
   function clickTile(t){
@@ -121,7 +143,7 @@
           title: "오늘의 게임 완료! 🎉",
           sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
           dateStr: UI.dateStr,
-          onRestart: build
+          onRestart: () => build(getStartPeekSeconds(levelSel.value)) // ✅ 완료 팝업에서 재시작도 자동 미리보기
         });
 
         // ✅ 완료 효과음은 ui.js(showFinishPopup)에서 처리하므로 중복 비프 제거
@@ -144,6 +166,7 @@
   }
 
   function doPeek(sec){
+    // ✅ 미리보기 중/클릭 잠금 중이면 요청 무시 (꼬임 방지)
     if(lock) return;
 
     if(first){
@@ -168,13 +191,19 @@
   }
 
   // 이벤트
-  newBtn.onclick = build;
-
-  levelSel.onchange = () => {
-    build();
-    UI.setMessage("난이도를 바꿨어요 🙂 새로 시작했어요.", "천천히 해도 괜찮아요.");
+  // ✅ 새로 시작: 난이도별 3/4/5초 자동 미리보기
+  newBtn.onclick = () => {
+    const level = levelSel.value;
+    build(getStartPeekSeconds(level));
   };
 
+  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게)
+  levelSel.onchange = () => {
+    build(2);
+    UI.setMessage("난이도를 바꿨어요 🙂", "카드를 2초만 보여드릴게요.");
+  };
+
+  // ✅ 수동 잠깐보기: 선택한 초만큼
   peekSel.onchange = () => {
     const sec = parseInt(peekSel.value, 10) || 2;
     doPeek(sec);
@@ -182,6 +211,6 @@
   };
 
   // 시작
-  build();
+  // ✅ 첫 진입도 난이도별 자동 미리보기로 시작 (원치 않으면 build()로 바꾸면 됨)
+  build(getStartPeekSeconds(levelSel.value));
 })();
-
