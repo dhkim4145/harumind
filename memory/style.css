@@ -312,9 +312,15 @@ button.primary{
   background:rgba(0,0,0,.45);
   z-index:9000;
   display:none;
+  pointer-events:none;   /* ✅ 추가: 안 보일 때 터치도 막지 않게 */
   align-items:center;
   justify-content:center;
   padding:18px;
+}
+/* 모달 열림 상태 */
+#modalBack.isOpen{
+  display:flex;
+  pointer-events:auto;
 }
 #modalCard{
   width:min(520px, 100%);
@@ -463,6 +469,7 @@ body.peeking .tile{
   cursor: pointer;
   white-space: nowrap;
 }
+
 
 
 
