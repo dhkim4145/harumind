@@ -470,6 +470,22 @@ body.peeking .tile{
   white-space: nowrap;
 }
 
+/* 모바일에서 완료 문구만 짧게 보이게 */
+@media (max-width:520px){
+  #msg{
+    white-space:normal;
+  }
+
+  #msg::after{
+    content:"🎉 오늘 게임 완료!";
+    display:block;
+  }
+
+  #msg{
+    font-size:15px;
+  }
+}
+
 
 
 
