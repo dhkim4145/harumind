@@ -469,17 +469,3 @@ body.peeking .tile{
   cursor: pointer;
   white-space: nowrap;
 }
-
-/* 모바일: 완료 문구 짧게 */
-@media (max-width:520px){
-  /* 기존 메시지 숨김 */
-  #msg > *{
-    display:none;
-  }
-
-  /* 모바일용 짧은 문구 */
-  #msg::before{
-    content:"🎉 오늘 게임 완료!";
-    display:block;
-  }
-}
