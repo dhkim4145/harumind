@@ -37,6 +37,10 @@
   let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
 
+  // ✅ LIVE PILL(맞춘 개수/지금 점수) 대상 pill 찾기
+  const matchedPill = matchedEl?.closest(".pill");
+  const scorePill   = scoreEl?.closest(".pill");
+
   // ===== 스타일(토스트/폭죽) 주입 =====
   function ensureStyle(){
     if(document.getElementById("hm-ui-style")) return;
@@ -199,9 +203,37 @@
     if(hintEl) hintEl.textContent = hint || "";
   }
 
+  // ✅ LIVE PILL: 값이 바뀔 때만 1회 회전(1~2초)
+  function pulseLivePill(pill){
+    if(!pill) return;
+    if(!pill.classList.contains("live")) return;
+
+    // 연속 업데이트에도 매번 애니메이션이 다시 시작되게 리셋
+    pill.classList.remove("spin");
+    void pill.offsetWidth; // reflow
+    pill.classList.add("spin");
+
+    // CSS(1.4s)보다 살짝 여유있게 제거
+    setTimeout(() => pill.classList.remove("spin"), 1600);
+  }
+
   function renderStats({matched, score}){
-    if(matchedEl) matchedEl.textContent = matched;
-    if(scoreEl) scoreEl.textContent = score;
+    const mStr = String(matched);
+    const sStr = String(score);
+
+    if(matchedEl){
+      if(matchedEl.textContent !== mStr){
+        matchedEl.textContent = mStr;
+        pulseLivePill(matchedPill);
+      }
+    }
+
+    if(scoreEl){
+      if(scoreEl.textContent !== sStr){
+        scoreEl.textContent = sStr;
+        pulseLivePill(scorePill);
+      }
+    }
   }
 
   function renderDaily(dateStr){
