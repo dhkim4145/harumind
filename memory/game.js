@@ -54,8 +54,8 @@
 
   // =========================
   // ✅ 원형 링 타이머(새로시작 전용)
-  // - "메시지 박스(messageCard)" 안에 넣고
-  // - 작고 덜 튀게
+  // - "메시지 박스(messageCard)" 오른쪽에 배치 (빨간 박스 위치)
+  // - 카드 텍스트 안 겹치도록 padding-right 확보
   // - 링 안에 숫자(4→3→2→1) 표시
   // =========================
   function ensureRingStyle(){
@@ -63,9 +63,18 @@
     const s = document.createElement("style");
     s.id = "hm-ring-style";
     s.textContent = `
-      /* ✅ 메시지 박스 안에서 가운데 정렬 */
+      /* ✅ 메시지 카드 오른쪽 공간 확보 (링 들어오면) */
+      .messageCard.hmHasRing{
+        position: relative;
+        padding-right: 86px; /* 링+여백 */
+      }
+
+      /* ✅ 메시지 박스 오른쪽에 고정 */
       .hmRingWrap{
-        margin-top: 10px;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -111,11 +120,13 @@
         z-index: 2;
       }
 
-      /* 모바일에서는 조금 더 작게 */
+      /* 모바일에서는 조금 더 작게 + 패딩도 축소 */
       @media (max-width:520px){
+        .messageCard.hmHasRing{ padding-right: 78px; }
         .hmRing{ width: 48px; height: 48px; }
         .hmRing::after{ inset:6px; }
         .hmRingNum{ font-size: 13px; }
+        .hmRingWrap{ right: 12px; }
       }
     `;
     document.head.appendChild(s);
@@ -133,9 +144,10 @@
       </div>
     `;
 
-    // ✅ 메시지 카드 안에 링 넣기 (카드 가림 0%)
+    // ✅ 메시지 카드 오른쪽에 링 넣기
     const msgCard = document.querySelector(".messageCard");
     if(msgCard){
+      msgCard.classList.add("hmHasRing"); // 텍스트 안겹치게 공간 확보
       msgCard.appendChild(wrap);
     }else{
       // 혹시 구조가 바뀌었을 때의 안전장치
@@ -159,6 +171,10 @@
 
   function hidePeekRing(){
     if(peekRing){
+      // ✅ 링 제거할 때 카드 padding도 원복
+      const msgCard = document.querySelector(".messageCard");
+      if(msgCard) msgCard.classList.remove("hmHasRing");
+
       peekRing.remove();
       peekRing = null;
     }
