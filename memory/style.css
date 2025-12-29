@@ -428,5 +428,41 @@ body.peeking .tile{
   filter: brightness(1.05) saturate(0.95);
 }
 
+/* ✅ 완료 바(작게) */
+.hmFinishBar{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hmFinishBar .txt{
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.hmFinishBar .sub{
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.hmFinishBar .btn{
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 
 
