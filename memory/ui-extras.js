@@ -41,21 +41,61 @@
     });
   }
 
-  function initPeekButton(){
-    if(!peekBtn || !peekSel) return;
+ function initPeekButton(){
+  if(!peekBtn || !peekSel) return;
 
-    peekBtn.addEventListener('click', () => {
-      peekBtn.disabled = true;
-
-      peekSel.value = "2";
-      peekSel.dispatchEvent(new Event('change', { bubbles: true }));
-
-      setTimeout(() => {
-        peekSel.value = "";
-        peekBtn.disabled = false;
-      }, 2200);
-    });
+  // 힌트 배너 1회 생성
+  let banner = document.querySelector(".hmPeekBanner");
+  if(!banner){
+    banner = document.createElement("div");
+    banner.className = "hmPeekBanner";
+    banner.innerHTML = `
+      <span class="hmPeekBadge">👀</span>
+      <span>힌트시간이에요</span>
+      <span class="hmPeekCount">2</span>
+    `;
+    document.body.appendChild(banner);
   }
+
+  const countEl = banner.querySelector(".hmPeekCount");
+
+  function enterPeekMode(sec){
+    document.body.classList.add("peeking");
+    if(countEl) countEl.textContent = String(sec);
+    banner.classList.add("show");
+  }
+
+  function exitPeekMode(){
+    banner.classList.remove("show");
+    document.body.classList.remove("peeking");
+  }
+
+  peekBtn.addEventListener('click', () => {
+    peekBtn.disabled = true;
+
+    // ✅ 힌트모드 진입(2초)
+    enterPeekMode(2);
+
+    // 1초 뒤 카운트 다운 느낌
+    setTimeout(() => {
+      if(document.body.classList.contains("peeking") && countEl){
+        countEl.textContent = "1";
+      }
+    }, 1100);
+
+    // 기존 로직 유지: 2초 보기 트리거
+    peekSel.value = "2";
+    peekSel.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // 끝나면 원복
+    setTimeout(() => {
+      peekSel.value = "";
+      peekBtn.disabled = false;
+      exitPeekMode();
+    }, 2200);
+  });
+}
+
 
   function initHowModal(){
     if(!howBtn || !modalBack || !modalCloseBtn || !modalCard) return;
@@ -207,3 +247,4 @@
   initHowModal();
   initBgm();
 })();
+
