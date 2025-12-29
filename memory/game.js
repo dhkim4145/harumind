@@ -1,7 +1,6 @@
 // /memory/game.js
 // 게임 로직(카드 생성/클릭/매칭/콤보/기록 저장)
-// ✅ 새로시작 버튼 제거 대응
-// ✅ 링(원형 카운트) 코드 완전 삭제
+// ✅ 완료 후 "사라지지 않는 메시지 + 다시 해볼까요 버튼" 구조
 
 (function(){
   const C = window.HARUMIND_CONFIG;
@@ -10,7 +9,6 @@
   // DOM
   const levelSel = document.getElementById("level");
   const peekSel  = document.getElementById("peekSec");
-  const howBtn   = document.getElementById("howBtn"); // (현재 game.js에서는 직접 사용 안 해도 남겨둠)
 
   // 상태
   let first = null;
@@ -28,7 +26,6 @@
 
     UI.board.style.gridTemplateColumns = `repeat(${c},1fr)`;
 
-    // 오늘/난이도 별 고정 배치(매일 바뀜)
     const seed = UI.dateStr + level;
     let h = 0;
     for(const ch of seed) h = Math.imul(31, h) + ch.charCodeAt(0) | 0;
@@ -45,17 +42,7 @@
     }
   }
 
-  // ✅ 새로 시작(첫 진입/난이도 변경용) 미리보기 시간: 쉬움/보통 3초, 어려움(4x3) 4초
-  function getStartPeekSeconds(level){
-    return (level === "4x3") ? 4 : 3;
-  }
-
-  /**
-   * build(autoPeekSec, peekText)
-   * - autoPeekSec가 숫자면 build 직후 자동 미리보기 실행
-   * - peekText: { title, sub } 미리보기 동안 메시지 커스텀
-   */
-  function build(autoPeekSec, peekText){
+  function build(autoPeekSec){
     clearPeekTimer();
     UI.board.innerHTML = "";
     first = null;
@@ -64,7 +51,8 @@
     score = 0;
     streak = 0;
 
-    UI.renderStats({matched, score});
+    UI.renderStats({ matched, score });
+    UI.clearFinishState();
     UI.setMessage("카드를 눌러서 시작해요 🙂", "처음엔 천천히 눌러보면 돼요.");
 
     const level = levelSel.value;
@@ -79,24 +67,19 @@
       UI.board.appendChild(t);
     });
 
-    // ✅ 자동 미리보기
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
-      doPeek(autoPeekSec, peekText);
+      doPeek(autoPeekSec);
     }
   }
 
   function clickTile(t){
-    // ✅ matched 타일까지 눌리는 것 방지(안정성)
     if(lock || t.dataset.state === "up" || t.classList.contains("matched")) return;
 
     t.dataset.state = "up";
 
     if(!first){
       first = t;
-      UI.setMessage(
-        "하나 찾았어요. 같은 그림을 찾아볼까요?",
-        "천천히 같은 그림을 찾아보세요 🙂"
-      );
+      UI.setMessage("하나 찾았어요!", "같은 그림을 찾아볼까요?");
       return;
     }
 
@@ -113,13 +96,7 @@
       score += pts;
 
       UI.showReward(t, `+${pts}`);
-      UI.renderStats({matched, score});
-
-      if(streak >= 2){
-        UI.setMessage("연속으로 잘하고 있어요! 👍", `연속 정답 ${streak}번째! (보너스 점수)`);
-      }else{
-        UI.setMessage("아주 좋아요!", "천천히 해도 잘 하고 있어요 🙂");
-      }
+      UI.renderStats({ matched, score });
 
       UI.playBeep(820 + Math.min(streak,6)*35, 55, 0.015);
 
@@ -127,34 +104,11 @@
       lock = false;
 
       if(matched === totalPairs){
-        UI.setMessage(
-          "완료! 정말 잘하셨어요 🎉",
-          "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요."
-        );
-
-        // 오늘 기록 저장 (로컬)
-        const d = HarumindStorage.loadDaily(UI.dateStr);
-        d.clears += 1;
-        d.best = Math.max(d.best, score);
-        HarumindStorage.saveDaily(UI.dateStr, d);
-        UI.renderDaily(UI.dateStr);
-
-        UI.showFinishPopup({
-          title: "오늘의 게임 완료! 🎉",
-          sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
-          dateStr: UI.dateStr,
-          // ✅ 완료 팝업 재시작: 링 없이 “잠깐보기”만
-          onRestart: () => build(getStartPeekSeconds(levelSel.value), {
-            title: "잠깐 보고 기억해요 🙂",
-            sub: "처음부터 다시 해볼게요."
-          })
-        });
+        finishGame();
       }
 
     }else{
       streak = 0;
-
-      UI.setMessage("괜찮아요 🙂 다시 해보면 됩니다.", "한 번 더 찾아볼까요?");
       UI.playBeep(320, 70, 0.012);
 
       setTimeout(()=>{
@@ -166,13 +120,24 @@
     }
   }
 
-  /**
-   * doPeek(sec, peekText)
-   * - 카드 전체를 sec초 동안 보여주고 다시 물음표로
-   * - 링 없음
-   */
-  function doPeek(sec, peekText){
-    // ✅ 미리보기 중/클릭 잠금 중이면 요청 무시 (꼬임 방지)
+  function finishGame(){
+    // 오늘 기록 저장
+    const d = HarumindStorage.loadDaily(UI.dateStr);
+    d.clears += 1;
+    d.best = Math.max(d.best, score);
+    HarumindStorage.saveDaily(UI.dateStr, d);
+    UI.renderDaily(UI.dateStr);
+
+    UI.setFinishState({
+      title: "🎉 오늘의 게임을 마쳤어요!",
+      message: "아주 잘하셨어요 🙂",
+      buttonText: "🔁 다시 해볼까요?",
+      hint: "난이도는 위에서 언제든 바꿀 수 있어요.",
+      onRestart: () => build(2)
+    });
+  }
+
+  function doPeek(sec){
     if(lock) return;
 
     if(first){
@@ -183,45 +148,26 @@
     lock = true;
     clearPeekTimer();
 
-    // 모두 열기
     [...UI.board.children].forEach(t => t.dataset.state = "up");
+    UI.setMessage("잠깐 보고 기억해요 🙂", "끝나면 다시 물음표로 돌아갑니다.");
 
-    // 미리보기 안내(초 표시는 최소화)
-    if(peekText && (peekText.title || peekText.sub)){
-      UI.setMessage(peekText.title || "잠깐 보고 기억해요 🙂", peekText.sub || "끝나면 다시 물음표로 돌아갑니다.");
-    }else{
-      UI.setMessage("잠깐 보고 기억해요 🙂", "끝나면 다시 물음표로 돌아갑니다.");
-    }
-
-    // 시간 종료
     peekTimer = setTimeout(()=>{
       [...UI.board.children].forEach(t=>{
         if(!t.classList.contains("matched")) t.dataset.state = "down";
       });
-
-      UI.setMessage("이제 시작해볼까요?", "팁: 너무 빨리 누르지 않아도 돼요.");
+      UI.setMessage("이제 시작해볼까요?", "천천히 해도 괜찮아요 🙂");
       lock = false;
       peekTimer = null;
-    }, sec*1000);
+    }, sec * 1000);
   }
 
-  // =========================
   // 이벤트
-  // =========================
-
-  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게) / 링 없음
-  levelSel.onchange = () => {
-    build(2, { title: "난이도를 바꿨어요 🙂", sub: "카드를 잠깐 보여드릴게요." });
-  };
-
-  // ✅ 수동 잠깐보기: 선택한 초만큼 / 링 없음
+  levelSel.onchange = () => build(2);
   peekSel.onchange = () => {
-    const sec = parseInt(peekSel.value, 10) || 2;
-    doPeek(sec, { title: "잠깐 보고 기억해요 🙂", sub: "끝나면 다시 물음표로 돌아갑니다." });
+    doPeek(2);
     peekSel.value = "";
   };
 
-  // ✅ 첫 진입: 난이도별 3/4초 자동 미리보기 (링 없음)
-  build(getStartPeekSeconds(levelSel.value), { title: "잠깐 보고 기억해요 🙂", sub: "처음부터 해볼게요." });
-
+  // 첫 진입
+  build(2);
 })();
