@@ -64,7 +64,7 @@
       .hmRingWrap{
         position: absolute;
         left: 50%;
-        top: -4px;                 /* 필요하면 -48 ~ -60 사이로 조절 */
+        top: 14px;                 /* 필요하면 -48 ~ -60 사이로 조절 */
         transform: translateX(-50%);
         z-index: 5;
         pointer-events: none;
@@ -325,5 +325,6 @@
   // ✅ 첫 진입도 “새로시작과 동일”하게 링 ON (원하면 false로 바꾸면 됨)
   build(getStartPeekSeconds(levelSel.value), true);
 })();
+
 
 
