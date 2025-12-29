@@ -1,5 +1,7 @@
 // /memory/game.js
 // 게임 로직(카드 생성/클릭/매칭/콤보/기록 저장)
+// ✅ 새로시작 버튼 제거 대응
+// ✅ 링(원형 카운트) 코드 완전 삭제
 
 (function(){
   const C = window.HARUMIND_CONFIG;
@@ -8,8 +10,7 @@
   // DOM
   const levelSel = document.getElementById("level");
   const peekSel  = document.getElementById("peekSec");
-  const newBtn   = document.getElementById("newGame");
-  const howBtn   = document.getElementById("howBtn");
+  const howBtn   = document.getElementById("howBtn"); // (현재 game.js에서는 직접 사용 안 해도 남겨둠)
 
   // 상태
   let first = null;
@@ -18,11 +19,6 @@
   let score = 0;
   let totalPairs = 0;
   let peekTimer = null;
-
-  // ✅ 원형 링 상태
-  let peekRing = null;
-  let peekRingRAF = null;
-
   let streak = 0;
 
   function seededCards(level){
@@ -43,158 +39,33 @@
   }
 
   function clearPeekTimer(){
-    if(peekTimer){ clearTimeout(peekTimer); peekTimer = null; }
-    hidePeekRing();
+    if(peekTimer){
+      clearTimeout(peekTimer);
+      peekTimer = null;
+    }
   }
 
-  // ✅ 새로 시작 미리보기 시간: 쉬움/보통 3초, 어려움(4x3) 4초
+  // ✅ 새로 시작(첫 진입/난이도 변경용) 미리보기 시간: 쉬움/보통 3초, 어려움(4x3) 4초
   function getStartPeekSeconds(level){
     return (level === "4x3") ? 4 : 3;
   }
 
-  // =========================
-  // ✅ 원형 링 타이머(새로시작 전용)
-  // - "메시지 박스(messageCard)" 오른쪽에 배치 (빨간 박스 위치)
-  // - 카드 텍스트 안 겹치도록 padding-right 확보
-  // - 링 안에 숫자(4→3→2→1) 표시
-  // =========================
-  function ensureRingStyle(){
-    if(document.getElementById("hm-ring-style")) return;
-    const s = document.createElement("style");
-    s.id = "hm-ring-style";
-    s.textContent = `
-      /* ✅ 메시지 카드 오른쪽 공간 확보 (링 들어오면) */
-      .messageCard.hmHasRing{
-        position: relative;
-        padding-right: 86px; /* 링+여백 */
-      }
-
-      /* ✅ 메시지 박스 오른쪽에 고정 */
-      .hmRingWrap{
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none;
-      }
-
-      /* ✅ 카드보다 작고, 덜 화려한 링 */
-      .hmRing{
-        width: 52px;
-        height: 52px;
-        border-radius: 999px;
-        background: conic-gradient(
-          rgba(110,231,183,.55) calc(var(--p, 0) * 1turn),
-          rgba(255,255,255,.08) 0
-        );
-        border: 1px solid rgba(255,255,255,.10);
-        box-shadow: 0 4px 10px rgba(0,0,0,.22);
-        position: relative;
-        opacity: .95;
-      }
-      .hmRing::after{
-        content:"";
-        position:absolute;
-        inset:6px;
-        border-radius: 999px;
-        background: rgba(11,16,32,.92);
-        border: 1px solid rgba(255,255,255,.08);
-      }
-
-      /* ✅ 링 안 숫자 */
-      .hmRingNum{
-        position:absolute;
-        inset:0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-weight: 900;
-        font-size: 14px;
-        color: rgba(232,236,255,.95);
-        line-height: 1;
-        letter-spacing: .2px;
-        user-select: none;
-        z-index: 2;
-      }
-
-      /* 모바일에서는 조금 더 작게 + 패딩도 축소 */
-      @media (max-width:520px){
-        .messageCard.hmHasRing{ padding-right: 78px; }
-        .hmRing{ width: 48px; height: 48px; }
-        .hmRing::after{ inset:6px; }
-        .hmRingNum{ font-size: 13px; }
-        .hmRingWrap{ right: 12px; }
-      }
-    `;
-    document.head.appendChild(s);
-  }
-
-  function showPeekRing(initSec){
-    ensureRingStyle();
-    if(peekRing) return;
-
-    const wrap = document.createElement("div");
-    wrap.className = "hmRingWrap";
-    wrap.innerHTML = `
-      <div class="hmRing" style="--p: 0;">
-        <div class="hmRingNum">${initSec || ""}</div>
-      </div>
-    `;
-
-    // ✅ 메시지 카드 오른쪽에 링 넣기
-    const msgCard = document.querySelector(".messageCard");
-    if(msgCard){
-      msgCard.classList.add("hmHasRing"); // 텍스트 안겹치게 공간 확보
-      msgCard.appendChild(wrap);
-    }else{
-      // 혹시 구조가 바뀌었을 때의 안전장치
-      document.body.appendChild(wrap);
-    }
-
-    peekRing = wrap;
-  }
-
-  function setPeekRingProgress(p01){
-    if(!peekRing) return;
-    const ring = peekRing.querySelector(".hmRing");
-    if(ring) ring.style.setProperty("--p", String(Math.max(0, Math.min(1, p01))));
-  }
-
-  function setPeekRingNumber(n){
-    if(!peekRing) return;
-    const num = peekRing.querySelector(".hmRingNum");
-    if(num) num.textContent = String(n);
-  }
-
-  function hidePeekRing(){
-    if(peekRing){
-      // ✅ 링 제거할 때 카드 padding도 원복
-      const msgCard = document.querySelector(".messageCard");
-      if(msgCard) msgCard.classList.remove("hmHasRing");
-
-      peekRing.remove();
-      peekRing = null;
-    }
-    if(peekRingRAF){
-      cancelAnimationFrame(peekRingRAF);
-      peekRingRAF = null;
-    }
-  }
-
-  // ✅ build(autoPeekSec, showRing=false)
-  // autoPeekSec가 숫자면 build 직후 자동 미리보기 실행
-  // showRing=true일 때만 원형 링(새로시작 전용)
-  function build(autoPeekSec, showRing=false){
+  /**
+   * build(autoPeekSec, peekText)
+   * - autoPeekSec가 숫자면 build 직후 자동 미리보기 실행
+   * - peekText: { title, sub } 미리보기 동안 메시지 커스텀
+   */
+  function build(autoPeekSec, peekText){
     clearPeekTimer();
     UI.board.innerHTML = "";
-    first = null; lock = false;
-    matched = 0; score = 0; streak = 0;
+    first = null;
+    lock = false;
+    matched = 0;
+    score = 0;
+    streak = 0;
 
     UI.renderStats({matched, score});
-    UI.setMessage("같은 그림 2개를 찾아보세요!", "팁: 너무 빨리 누르지 않아도 돼요.");
+    UI.setMessage("카드를 눌러서 시작해요 🙂", "처음엔 천천히 눌러보면 돼요.");
 
     const level = levelSel.value;
     const cards = seededCards(level);
@@ -210,7 +81,7 @@
 
     // ✅ 자동 미리보기
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
-      doPeek(autoPeekSec, showRing);
+      doPeek(autoPeekSec, peekText);
     }
   }
 
@@ -272,8 +143,11 @@
           title: "오늘의 게임 완료! 🎉",
           sub: "오늘은 이 카드로 놀아보세요 🙂\n내일은 또 다른 카드가 나와요.",
           dateStr: UI.dateStr,
-          // ✅ 완료 팝업에서 재시작도 "새로시작"으로 취급 → 링 ON
-          onRestart: () => build(getStartPeekSeconds(levelSel.value), true)
+          // ✅ 완료 팝업 재시작: 링 없이 “잠깐보기”만
+          onRestart: () => build(getStartPeekSeconds(levelSel.value), {
+            title: "잠깐 보고 기억해요 🙂",
+            sub: "처음부터 다시 해볼게요."
+          })
         });
       }
 
@@ -292,10 +166,12 @@
     }
   }
 
-  // ✅ doPeek(sec, showRing=false)
-  // showRing=true일 때만 원형 링 표시(새로시작 전용)
-  // + 링 안에 숫자(4→3→2→1) 표시
-  function doPeek(sec, showRing=false){
+  /**
+   * doPeek(sec, peekText)
+   * - 카드 전체를 sec초 동안 보여주고 다시 물음표로
+   * - 링 없음
+   */
+  function doPeek(sec, peekText){
     // ✅ 미리보기 중/클릭 잠금 중이면 요청 무시 (꼬임 방지)
     if(lock) return;
 
@@ -307,74 +183,45 @@
     lock = true;
     clearPeekTimer();
 
+    // 모두 열기
     [...UI.board.children].forEach(t => t.dataset.state = "up");
 
-    if(showRing){
-      showPeekRing(sec);
-      UI.setMessage("잠깐 보고 기억해요 🙂", "처음부터 해볼게요.");
-
-      const start = performance.now();
-      const dur = sec * 1000;
-      let lastShown = sec;
-
-      const tick = (now) => {
-        const elapsed = now - start;
-        const t = Math.min(1, elapsed / dur);
-        setPeekRingProgress(t); // 0 → 1 차오름
-
-        // ✅ 남은 초(4→3→2→1)
-        const remain = Math.max(1, Math.ceil((dur - elapsed) / 1000));
-        if(remain !== lastShown){
-          lastShown = remain;
-          setPeekRingNumber(remain);
-        }
-
-        if(t < 1) peekRingRAF = requestAnimationFrame(tick);
-      };
-      peekRingRAF = requestAnimationFrame(tick);
-
+    // 미리보기 안내(초 표시는 최소화)
+    if(peekText && (peekText.title || peekText.sub)){
+      UI.setMessage(peekText.title || "잠깐 보고 기억해요 🙂", peekText.sub || "끝나면 다시 물음표로 돌아갑니다.");
     }else{
-      // 난이도 변경(2초), 잠깐보기(2초)는 기존 텍스트만
-      UI.setMessage(`잠깐 보고 기억해요 🙂 (${sec}초)`, "끝나면 다시 물음표로 돌아갑니다.");
+      UI.setMessage("잠깐 보고 기억해요 🙂", "끝나면 다시 물음표로 돌아갑니다.");
     }
 
+    // 시간 종료
     peekTimer = setTimeout(()=>{
       [...UI.board.children].forEach(t=>{
         if(!t.classList.contains("matched")) t.dataset.state = "down";
       });
 
-      hidePeekRing();
       UI.setMessage("이제 시작해볼까요?", "팁: 너무 빨리 누르지 않아도 돼요.");
       lock = false;
       peekTimer = null;
     }, sec*1000);
   }
 
+  // =========================
   // 이벤트
-  // ✅ 새로 시작: 난이도별 3/4초 + 원형 링 ON
-  newBtn.onclick = () => {
-    const level = levelSel.value;
-    build(getStartPeekSeconds(level), true);
-  };
+  // =========================
 
-  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게) / 링 OFF
+  // ✅ 난이도 변경: 새 판 + 2초 자동 미리보기(짧게) / 링 없음
   levelSel.onchange = () => {
-    build(2, false);
-    UI.setMessage("난이도를 바꿨어요 🙂", "카드를 2초만 보여드릴게요.");
+    build(2, { title: "난이도를 바꿨어요 🙂", sub: "카드를 잠깐 보여드릴게요." });
   };
 
-  // ✅ 수동 잠깐보기: 선택한 초만큼 / 링 OFF
+  // ✅ 수동 잠깐보기: 선택한 초만큼 / 링 없음
   peekSel.onchange = () => {
     const sec = parseInt(peekSel.value, 10) || 2;
-    doPeek(sec, false);
+    doPeek(sec, { title: "잠깐 보고 기억해요 🙂", sub: "끝나면 다시 물음표로 돌아갑니다." });
     peekSel.value = "";
   };
 
-  // 시작
-  // ✅ 첫 진입도 “새로시작과 동일”하게 링 ON (원하면 false로 바꾸면 됨)
-  build(getStartPeekSeconds(levelSel.value), true);
+  // ✅ 첫 진입: 난이도별 3/4초 자동 미리보기 (링 없음)
+  build(getStartPeekSeconds(levelSel.value), { title: "잠깐 보고 기억해요 🙂", sub: "처음부터 해볼게요." });
+
 })();
-
-
-
-
