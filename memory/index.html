@@ -106,7 +106,7 @@ body.bigText{
 
 .titleRow{
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:space-between;
   gap:10px;
 }
@@ -120,6 +120,25 @@ body.bigText{
   font-size:14px;
   color:var(--muted);
   margin-top:6px;
+}
+
+/* ✅ (수정1) 우상단 설정 버튼 영역 */
+.titleActions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* 기본(PC): 숨김, 모바일에서만 보이게 */
+#settingsBtn{
+  display:none;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  padding:8px 10px;
+  cursor:pointer;
+  line-height:1;
 }
 
 /* ===== 오늘 현황 ===== */
@@ -153,10 +172,11 @@ body.bigText{
   transform:rotate(180deg);
 }
 
+/* ✅ (수정2) 오늘 현황 2열 그리드로 정리 */
 .stats{
-  display:flex;
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:10px;
-  flex-wrap:wrap;
   margin-top:12px;
 }
 
@@ -166,13 +186,17 @@ body.bigText{
   border-radius:999px;
   padding:6px 12px;
   font-size:var(--fs-pill);
-}
 
-/* 줄바꿈 강제 */
-.stats-break{
-  flex-basis:100%;
-  height:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
 }
+.pill b{ white-space:nowrap; }
+
+/* 기존 줄바꿈 요소는 영향 없게 처리 */
+.stats-break{ display:none; }
 
 /* 안내 문구 + 구분선(진하게) */
 .statsNote{
@@ -369,19 +393,17 @@ button.primary{
 }
 
 /* ===========================
-   ✅ 모바일 전용 "설정" 묶기
-   - 모바일: 설정 버튼만 보이고(기본 닫힘), 옵션은 펼쳐서 사용
-   - PC: 설정 버튼 숨김, 옵션 버튼들은 그대로 노출
+   ✅ 모바일에서만 우상단 ⚙️로 옵션 3개 묶기
+   - PC: 옵션 버튼 그대로 노출
+   - 모바일: 옵션은 숨김, 우상단 ⚙️ 누르면 열림
    =========================== */
 
-#settingsBtn{ display:none; }          /* PC 기본: 숨김 */
-#settingsGroup{ display: contents; }   /* PC 기본: 버튼들이 컨트롤 라인에 자연스럽게 섞이게 */
+#settingsGroup{ display: contents; }   /* PC 기본 */
 
 /* 모바일(가로폭 작은 화면)에서만 적용 */
 @media (max-width:520px){
-  #settingsBtn{ display:inline-flex; }
+  #settingsBtn{ display:inline-flex; } /* 모바일 우상단 ⚙️ 표시 */
 
-  /* 모바일에서 옵션 그룹은 "한 덩어리"로 취급 */
   #settingsGroup{
     display:flex;
     gap:10px;
@@ -390,9 +412,7 @@ button.primary{
   }
 
   /* 기본 닫힘 */
-  #settingsGroup.isClosed{
-    display:none;
-  }
+  #settingsGroup.isClosed{ display:none; }
 }
 </style>
 </head>
@@ -406,6 +426,11 @@ button.primary{
         <div class="title">같은 그림 찾기</div>
         <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
       </div>
+
+      <!-- ✅ (수정1) 우상단 설정 버튼(모바일에서만 보임) -->
+      <div class="titleActions">
+        <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">⚙️</button>
+      </div>
     </div>
 
     <div id="statsWrap">
@@ -415,14 +440,12 @@ button.primary{
         </button>
       </div>
 
+      <!-- ✅ (수정2) 2열 그리드 -->
       <div class="stats">
-        <div class="pill">맞춘 카드 <b id="matched">0</b></div>
-        <div class="pill">칭찬 점수 <b id="score">0</b></div>
-
-        <div class="stats-break"></div>
-
-        <div class="pill">오늘 한 횟수 <b id="todayClear">0</b>회</div>
-        <div class="pill">오늘 가장 높은 점수 <b id="todayBest">0</b>점</div>
+        <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
+        <div class="pill"><span>칭찬 점수</span> <b id="score">0</b></div>
+        <div class="pill"><span>오늘 한 횟수</span> <b><span id="todayClear">0</span>회</b></div>
+        <div class="pill"><span>오늘 가장 높은 점수</span> <b><span id="todayBest">0</span>점</b></div>
       </div>
 
       <div class="statsNote">* 오늘 한 횟수, 최고 점수는 이 기기에만 저장돼요.</div>
@@ -440,10 +463,7 @@ button.primary{
       <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
 
-      <!-- ✅ 모바일에서만 보이는 "설정" 버튼 -->
-      <button id="settingsBtn" type="button" aria-expanded="false">⚙️ 설정</button>
-
-      <!-- ✅ 설정에 묶일 옵션들(모바일에서는 설정 눌러야 보임) -->
+      <!-- ✅ 옵션(PC는 계속 보임 / 모바일은 ⚙️로 열림) -->
       <span id="settingsGroup">
         <button id="sfxBtn" type="button">🔔 효과음</button>
         <button id="bigBtn" type="button">🔎 큰 글씨</button>
@@ -516,19 +536,19 @@ button.primary{
       // 모바일: 기본 닫힘
       group.classList.add("isClosed");
       settingsBtn.setAttribute("aria-expanded", "false");
-      settingsBtn.textContent = "⚙️ 설정";
+      settingsBtn.setAttribute("aria-label", "설정 열기");
     }else{
       // PC: 항상 열림(설정버튼은 CSS로 숨김)
       group.classList.remove("isClosed");
       settingsBtn.setAttribute("aria-expanded", "false");
-      settingsBtn.textContent = "⚙️ 설정";
+      settingsBtn.setAttribute("aria-label", "설정");
     }
   }
 
   settingsBtn.addEventListener("click", function(){
     const closed = group.classList.toggle("isClosed");
     settingsBtn.setAttribute("aria-expanded", String(!closed));
-    settingsBtn.textContent = closed ? "⚙️ 설정" : "⚙️ 설정 닫기";
+    settingsBtn.setAttribute("aria-label", closed ? "설정 열기" : "설정 닫기");
   });
 
   if(mq.addEventListener){
