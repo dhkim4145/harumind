@@ -85,28 +85,16 @@
     <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
-  <!-- ✅ 게임 후 영역(메시지 카드)로 '오늘 현황' 이동 -->
+  <!-- ✅ 메시지 카드 -->
   <div class="card messageCard">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
 
+    <!-- ✅ '맞춘 개수 / 지금 점수'만 표시 (ID 유지) -->
     <div class="statsArea">
-      <!-- ✅ ui.js가 이 버튼을 잡아서 statsWrap 토글함 (ID 유지) -->
-      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-        오늘 현황 보기 <span class="chev">∨</span>
-      </button>
-
-      <!-- 오늘 현황 본문(접기/펼치기 대상) (ID 유지) -->
-      <div id="statsWrap">
-        <div class="stats">
-          <div class="pill live"><span>맞춘 개수</span> <b id="matched">0</b></div>
-          <div class="pill live"><span>지금 점수</span> <b id="score">0</b></div>
-          <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
-          <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
-        </div>
-
-        <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
-        <div class="statsDivider"></div>
+      <div class="stats">
+        <div class="pill live"><span>맞춘 개수</span> <b id="matched">0</b></div>
+        <div class="pill live"><span>지금 점수</span> <b id="score">0</b></div>
       </div>
     </div>
   </div>
@@ -146,7 +134,7 @@
        preload="auto"
        playsinline></audio>
 
-<!-- ✅ 설정 토글만 index.html에서 처리 (오늘현황 토글은 ui.js가 처리) -->
+<!-- ✅ 설정 토글만 index.html에서 처리 -->
 <script>
 (function(){
   const settingsBtn = document.getElementById("settingsBtn");
@@ -187,7 +175,7 @@
 
   if(settingsBtn){
     settingsBtn.addEventListener("click", function(){
-      if(!mq.matches) return; // PC는 버튼 자체가 안 보이지만 안전장치
+      if(!mq.matches) return;
       const isClosed = settingsPanel.classList.contains("isClosed");
       setMobileOpen(isClosed);
     });
