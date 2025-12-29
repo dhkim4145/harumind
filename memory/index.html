@@ -12,7 +12,7 @@
 <meta name="description"
       content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 자극해보세요." />
 
-<!-- Open Graph (카톡/네이버 공유용) -->
+<!-- Open Graph -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="하루마음" />
 <meta property="og:title" content="같은 그림 찾기 게임 | 하루마음 인지자극 두뇌놀이" />
@@ -28,7 +28,7 @@
 <meta name="twitter:title" content="같은 그림 찾기 게임 | 하루마음" />
 <meta name="twitter:description" content="하루 5분, 같은 그림 찾기 두뇌놀이. 누구나 쉽게 시작해요." />
 
-<!-- Google Analytics 4 (필요 없으면 삭제 가능) -->
+<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -37,20 +37,15 @@
   gtag('config', 'G-JX8PENN22H');
 </script>
 
-<!-- ✅ CSS 분리 -->
 <link rel="stylesheet" href="./style.css">
-
 </head>
 
 <body>
 <div class="wrap">
 
   <div class="card">
-
-    <!-- 제목 / 설정(모바일만 보임) -->
     <div class="titleRow">
       <div class="title">같은 그림 찾기</div>
-
       <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
         ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
       </button>
@@ -58,14 +53,12 @@
 
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
-    <!-- 설정 패널 (PC 항상 보임 / 모바일은 설정 버튼으로 토글) -->
     <div class="settingsPanel" id="settingsPanel">
       <button id="sfxBtn" type="button">🔔 효과음</button>
       <button id="bigBtn" type="button">🔎 큰 글씨</button>
       <button id="bgmBtn" type="button">🎵 배경음악</button>
     </div>
 
-    <!-- 컨트롤 (조작 버튼만 남김) -->
     <div class="controls">
       <select id="level" title="난이도 선택">
         <option value="2x2">쉬움 (2x2)</option>
@@ -73,7 +66,7 @@
         <option value="4x3">어려움 (4x3)</option>
       </select>
 
-      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
+      <button id="peekBtn" type="button">👀 잠깐보기 (2초)</button>
       <button id="howBtn" type="button">방법 보기</button>
     </div>
 
@@ -84,12 +77,10 @@
     <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
-  <!-- ✅ 메시지 카드 -->
   <div class="card messageCard">
     <div id="msg">카드를 눌러서 시작해요 🙂</div>
     <div id="hint">처음엔 천천히 눌러보면 돼요.</div>
 
-    <!-- ✅ '맞춘 개수 / 지금 점수'만 표시 (ID 유지) -->
     <div class="statsArea">
       <div class="stats">
         <div class="pill live"><span>맞춘 개수</span> <b id="matched">0</b></div>
@@ -133,64 +124,12 @@
        preload="auto"
        playsinline></audio>
 
-<!-- ✅ 설정 토글만 index.html에서 처리 -->
-<script>
-(function(){
-  const settingsBtn = document.getElementById("settingsBtn");
-  const settingsPanel = document.getElementById("settingsPanel");
-  const mq = window.matchMedia("(max-width:520px)");
-
-  function setMobileOpen(open){
-    if(!settingsPanel || !settingsBtn) return;
-    if(open){
-      settingsPanel.classList.remove("isClosed");
-      settingsBtn.classList.add("isOpen");
-      settingsBtn.setAttribute("aria-expanded","true");
-      settingsBtn.setAttribute("aria-label","설정 닫기");
-    }else{
-      settingsPanel.classList.add("isClosed");
-      settingsBtn.classList.remove("isOpen");
-      settingsBtn.setAttribute("aria-expanded","false");
-      settingsBtn.setAttribute("aria-label","설정 열기");
-    }
-  }
-
-  function syncViewport(){
-    if(!settingsPanel) return;
-
-    if(mq.matches){
-      // 모바일: 기본 닫힘
-      settingsPanel.classList.add("isClosed");
-      if(settingsBtn){
-        settingsBtn.classList.remove("isOpen");
-        settingsBtn.setAttribute("aria-expanded","false");
-        settingsBtn.setAttribute("aria-label","설정 열기");
-      }
-    }else{
-      // PC: 항상 열림 (설정 버튼은 CSS로 안 보임)
-      settingsPanel.classList.remove("isClosed");
-    }
-  }
-
-  if(settingsBtn){
-    settingsBtn.addEventListener("click", function(){
-      if(!mq.matches) return;
-      const isClosed = settingsPanel.classList.contains("isClosed");
-      setMobileOpen(isClosed);
-    });
-  }
-
-  if(mq.addEventListener) mq.addEventListener("change", syncViewport);
-  else if(mq.addListener) mq.addListener(syncViewport);
-
-  syncViewport();
-})();
-</script>
-
+<!-- JS 로드 순서 중요 -->
 <script src="./config.js"></script>
 <script src="./storage.js"></script>
 <script src="./ui-core.js"></script>
 <script src="./ui-toast.js"></script>
+<script src="./ui-settings.js"></script>
 <script src="./ui-extras.js"></script>
 <script src="./game.js"></script>
 
