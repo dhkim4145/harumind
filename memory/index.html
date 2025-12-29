@@ -101,6 +101,31 @@ body.bigText{
   padding:16px;
 }
 
+/* ======= ✅ 카드 내부 레이아웃(PC/모바일 순서 분리) ======= */
+.cardGrid{
+  display:grid;
+  grid-template-areas:
+    "title"
+    "stats"
+    "controls"
+    "settings";   /* PC에서는 설정을 아래쪽(예전 감각 유지) */
+  gap:12px;
+}
+@media (max-width:520px){
+  .cardGrid{
+    grid-template-areas:
+      "title"
+      "settings"   /* 모바일에서는 설정을 맨 위(제목 아래) */
+      "stats"
+      "controls";
+  }
+}
+
+.areaTitle{ grid-area:title; }
+.areaSettings{ grid-area:settings; }
+.areaStats{ grid-area:stats; }
+.areaControls{ grid-area:controls; }
+
 .titleRow{
   display:flex;
   align-items:flex-start;
@@ -119,55 +144,78 @@ body.bigText{
   margin-top:6px;
 }
 
-/* ✅ 우상단 설정 버튼 */
+/* ✅ 모바일 우상단 설정 버튼(PC는 숨김) */
 .titleActions{
   display:flex;
   align-items:center;
   gap:10px;
 }
-
-/* ✅ 설정 버튼(오늘현황 스타일) */
 #settingsBtn{
+  display:none;                /* PC 기본 숨김 */
   border-radius:999px;
   border:1px solid rgba(255,255,255,.18);
   background:rgba(255,255,255,.08);
   color:var(--text);
-  padding:8px 12px;
+  padding:8px 10px;
   cursor:pointer;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
   line-height:1;
   font-size:14px;
 
-  /* ✅ 줄바꿈 방지(설/정 깨짐 방지) */
+  /* ✅ 줄바꿈/동그라미 깨짐 방지 */
   white-space:nowrap;
   flex-wrap:nowrap;
+
+  align-items:center;
+  gap:8px;
 }
 #settingsBtn .chev{
   display:inline-block;
   transition:transform .18s ease;
   opacity:.9;
 }
-#settingsWrap.isOpen #settingsBtn .chev{ transform:rotate(180deg); }
+/* ✅ 화살표 회전: 버튼 자체에 isOpen 붙여서 확실하게 */
+#settingsBtn.isOpen .chev{ transform:rotate(180deg); }
 
-/* 아주 작은 화면에서는 글자 숨기고 아이콘만(동그라미 유지) */
+/* 아주 좁은 화면에서는 글자 숨기고 ⚙️만 */
 @media (max-width:360px){
-  #settingsBtn{ padding:8px 10px; gap:6px; }
   #settingsBtn .btnText{ display:none; }
+  #settingsBtn{ gap:6px; }
 }
 
-/* ===== 설정(맨 위) ===== */
-#settingsWrap{
-  margin-top:12px;
+/* 모바일에서만 설정버튼 보이기 */
+@media (max-width:520px){
+  #settingsBtn{ display:inline-flex; }
 }
 
-/* 상태 뱃지(항상 보이게) */
+/* ======= ✅ 설정 영역 ======= */
+.settingsWrap{
+  display:block;
+}
+
+/* PC: 설정은 항상 보임(토글 없음) */
+@media (min-width:521px){
+  .settingsPanel{ display:flex !important; }
+}
+
+/* 모바일: 토글로 열고 닫기 */
+.settingsPanel{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  width:100%;
+  padding:10px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.04);
+}
+.settingsPanel.isClosed{ display:none; }
+
+/* 설정 뱃지(항상 보이게) */
 .settingsBadges{
-  margin-top:10px;
   display:flex;
   gap:8px;
   flex-wrap:wrap;
+  margin-bottom:10px;
 }
 
 .badge{
@@ -179,33 +227,17 @@ body.bigText{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  min-width:0;
   white-space:nowrap;
 }
 .badge strong{ font-weight:900; }
 
-/* 설정 패널(버튼들) */
-#settingsPanel{
-  margin-top:10px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  width:100%;
-  padding:10px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.04);
-}
-#settingsPanel.isClosed{ display:none; }
-
 /* ===== 오늘 현황 ===== */
 .statsHeader{
-  margin-top:10px;
+  margin-top:0;
   display:flex;
   justify-content:flex-end;
   align-items:center;
 }
-
 .statsToggle{
   font-size:14px;
   border-radius:999px;
@@ -218,7 +250,6 @@ body.bigText{
   align-items:center;
   gap:8px;
 }
-
 .chev{
   display:inline-block;
   transition:transform .18s ease;
@@ -263,12 +294,12 @@ body.bigText{
   display:none;
 }
 
-/* ===== 컨트롤(게임 조작만) ===== */
+/* ===== 컨트롤 ===== */
 .controls{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
-  margin-top:12px;
+  margin-top:0;
 }
 
 button, select{
@@ -421,73 +452,85 @@ button.primary{
 <div class="wrap">
 
   <div class="card">
-    <div class="titleRow">
-      <div>
-        <div class="title">같은 그림 찾기</div>
-        <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+    <div class="cardGrid">
+
+      <!-- ===== 제목 ===== -->
+      <div class="areaTitle">
+        <div class="titleRow">
+          <div>
+            <div class="title">같은 그림 찾기</div>
+            <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+          </div>
+
+          <!-- ✅ 모바일 전용 설정 버튼 (PC에서는 CSS로 숨김) -->
+          <div class="titleActions">
+            <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
+              ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <!-- ✅ 맨 위 설정(줄바꿈 안 깨지게) -->
-      <div class="titleActions">
-        <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
-          ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
-        </button>
+      <!-- ===== 설정(모바일: 위 / PC: 아래) ===== -->
+      <div class="areaSettings">
+        <div class="settingsWrap" id="settingsWrap">
+          <div class="settingsBadges" aria-label="설정 상태">
+            <span class="badge"><span>🔔</span> <strong id="badgeSfxText">확인중</strong></span>
+            <span class="badge"><span>🎵</span> <strong id="badgeBgmText">확인중</strong></span>
+            <span class="badge"><span>🔠</span> <strong id="badgeBigText">확인중</strong></span>
+          </div>
+
+          <div class="settingsPanel" id="settingsPanel">
+            <button id="sfxBtn" type="button">🔔 효과음</button>
+            <button id="bigBtn" type="button">🔎 큰 글씨</button>
+            <button id="bgmBtn" type="button">🎵 배경음악</button>
+          </div>
+        </div>
       </div>
+
+      <!-- ===== 오늘 현황 ===== -->
+      <div class="areaStats">
+        <div id="statsWrap">
+          <div class="statsHeader">
+            <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
+              오늘 현황 <span class="chev">∨</span>
+            </button>
+          </div>
+
+          <div class="stats">
+            <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
+            <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
+            <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
+            <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
+          </div>
+
+          <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
+          <div class="statsDivider"></div>
+        </div>
+      </div>
+
+      <!-- ===== 게임 컨트롤 ===== -->
+      <div class="areaControls">
+        <div class="controls">
+          <select id="level" title="난이도 선택">
+            <option value="2x2">쉬움 (2x2)</option>
+            <option value="3x2" selected>보통 (3x2)</option>
+            <option value="4x3">어려움 (4x3)</option>
+          </select>
+
+          <button class="primary" id="newGame">새로 시작</button>
+          <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
+          <button id="howBtn" type="button">방법 보기</button>
+        </div>
+
+        <select id="peekSec" style="display:none">
+          <option value="2">2</option>
+        </select>
+
+        <div style="display:none"><span id="todayKey"></span></div>
+      </div>
+
     </div>
-
-    <!-- ✅ 설정 영역: 제목 바로 아래(맨 위) -->
-    <div id="settingsWrap">
-      <!-- 상태 뱃지(항상 보이게) -->
-      <div class="settingsBadges" aria-label="설정 상태">
-        <span class="badge" id="badgeSfx"><span>🔔</span> <strong id="badgeSfxText">확인중</strong></span>
-        <span class="badge" id="badgeBgm"><span>🎵</span> <strong id="badgeBgmText">확인중</strong></span>
-        <span class="badge" id="badgeBig"><span>🔠</span> <strong id="badgeBigText">확인중</strong></span>
-      </div>
-
-      <!-- 설정 패널(버튼들) -->
-      <div id="settingsPanel">
-        <button id="sfxBtn" type="button">🔔 효과음</button>
-        <button id="bigBtn" type="button">🔎 큰 글씨</button>
-        <button id="bgmBtn" type="button">🎵 배경음악</button>
-      </div>
-    </div>
-
-    <div id="statsWrap">
-      <div class="statsHeader">
-        <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-          오늘 현황 <span class="chev">∨</span>
-        </button>
-      </div>
-
-      <div class="stats">
-        <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
-        <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
-        <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
-        <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
-      </div>
-
-      <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
-      <div class="statsDivider"></div>
-    </div>
-
-    <!-- ✅ 게임 조작 -->
-    <div class="controls">
-      <select id="level" title="난이도 선택">
-        <option value="2x2">쉬움 (2x2)</option>
-        <option value="3x2" selected>보통 (3x2)</option>
-        <option value="4x3">어려움 (4x3)</option>
-      </select>
-
-      <button class="primary" id="newGame">새로 시작</button>
-      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
-      <button id="howBtn" type="button">방법 보기</button>
-    </div>
-
-    <select id="peekSec" style="display:none">
-      <option value="2">2</option>
-    </select>
-
-    <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
   <div class="card messageCard">
@@ -533,8 +576,7 @@ button.primary{
 <script>
 (function(){
   const settingsBtn = document.getElementById("settingsBtn");
-  const panel = document.getElementById("settingsPanel");
-  const wrap = document.getElementById("settingsWrap");
+  const settingsPanel = document.getElementById("settingsPanel");
 
   const sfxBtn = document.getElementById("sfxBtn");
   const bgmBtn = document.getElementById("bgmBtn");
@@ -544,53 +586,56 @@ button.primary{
   const badgeBgmText = document.getElementById("badgeBgmText");
   const badgeBigText = document.getElementById("badgeBigText");
 
-  if(!settingsBtn || !panel) return;
-
   const mq = window.matchMedia("(max-width:520px)");
 
-  function setOpenState(open){
+  if(!settingsPanel) return;
+
+  function setMobileOpen(open){
     if(open){
-      panel.classList.remove("isClosed");
-      wrap && wrap.classList.add("isOpen");
-      settingsBtn.setAttribute("aria-expanded","true");
-      settingsBtn.setAttribute("aria-label","설정 닫기");
+      settingsPanel.classList.remove("isClosed");
+      if(settingsBtn){
+        settingsBtn.classList.add("isOpen");          // ✅ 화살표 회전 확실
+        settingsBtn.setAttribute("aria-expanded","true");
+        settingsBtn.setAttribute("aria-label","설정 닫기");
+      }
     }else{
-      panel.classList.add("isClosed");
-      wrap && wrap.classList.remove("isOpen");
-      settingsBtn.setAttribute("aria-expanded","false");
-      settingsBtn.setAttribute("aria-label","설정 열기");
+      settingsPanel.classList.add("isClosed");
+      if(settingsBtn){
+        settingsBtn.classList.remove("isOpen");       // ✅ 화살표 회전 확실
+        settingsBtn.setAttribute("aria-expanded","false");
+        settingsBtn.setAttribute("aria-label","설정 열기");
+      }
     }
   }
 
-  function syncForViewport(){
+  function syncViewport(){
     if(mq.matches){
-      // 모바일: 기본 닫힘
-      setOpenState(false);
+      // 모바일: 기본 닫힘(토글)
+      setMobileOpen(false);
     }else{
-      // PC: 항상 열림
-      setOpenState(true);
+      // PC: 항상 보임(토글/화살표 의미 없음)
+      settingsPanel.classList.remove("isClosed");
+      if(settingsBtn){
+        settingsBtn.classList.remove("isOpen");
+        settingsBtn.setAttribute("aria-expanded","false");
+        settingsBtn.setAttribute("aria-label","설정");
+      }
     }
   }
 
-  settingsBtn.addEventListener("click", function(){
-    // PC는 항상 열림 유지
-    if(!mq.matches) return;
-
-    const isClosed = panel.classList.contains("isClosed");
-    setOpenState(isClosed);
-  });
-
-  if(mq.addEventListener){
-    mq.addEventListener("change", syncForViewport);
-  }else if(mq.addListener){
-    mq.addListener(syncForViewport);
+  if(settingsBtn){
+    settingsBtn.addEventListener("click", function(){
+      if(!mq.matches) return; // PC는 토글 안 함
+      const isClosed = settingsPanel.classList.contains("isClosed");
+      setMobileOpen(isClosed);
+    });
   }
 
-  // ===== 상태 뱃지 업데이트 =====
+  // ===== 상태 뱃지 업데이트(안 꼬이게 최소 로직) =====
   function readOnOffFromText(t){
     if(!t) return null;
-    if(t.includes("켜짐") || t.toLowerCase().includes("on")) return "켜짐";
-    if(t.includes("꺼짐") || t.toLowerCase().includes("off")) return "꺼짐";
+    if(t.includes("켜짐")) return "켜짐";
+    if(t.includes("꺼짐")) return "꺼짐";
     return null;
   }
 
@@ -598,11 +643,12 @@ button.primary{
     const sfxState = readOnOffFromText(sfxBtn ? sfxBtn.textContent : "");
     const bgmState = readOnOffFromText(bgmBtn ? bgmBtn.textContent : "");
 
+    // ui.js가 켜짐/꺼짐을 버튼 텍스트에 넣어주면 그대로 표시
     badgeSfxText.textContent = sfxState || "설정됨";
     badgeBgmText.textContent = bgmState || "설정됨";
 
-    const bigState = document.body.classList.contains("bigText") ? "큰 글씨" : "작은 글씨";
-    badgeBigText.textContent = bigState;
+    // 글씨는 body.bigText로 확정
+    badgeBigText.textContent = document.body.classList.contains("bigText") ? "큰 글씨" : "작은 글씨";
   }
 
   function hook(btn){
@@ -614,9 +660,11 @@ button.primary{
   }
   hook(sfxBtn); hook(bgmBtn); hook(bigBtn);
 
-  syncForViewport();
+  if(mq.addEventListener) mq.addEventListener("change", syncViewport);
+  else if(mq.addListener) mq.addListener(syncViewport);
+
+  syncViewport();
   updateBadges();
-  setTimeout(updateBadges, 50);
   setTimeout(updateBadges, 200);
 })();
 </script>
