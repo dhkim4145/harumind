@@ -19,7 +19,7 @@
   const bgm = document.getElementById("bgm");
   const bgmBtn = document.getElementById("bgmBtn");
 
-  // ✅ FIX: "오늘 현황 보기 ▾ / 닫기 ▴" 라벨을 ui.js에서 직접 관리
+  // ✅ 오늘 현황 토글 (현재 index에서 statsWrap/statsToggle 없으면 자동으로 아무것도 안 함)
   function initStatsToggle(){
     if(!statsWrap || !statsToggle) return;
 
@@ -85,11 +85,18 @@
     bgm.volume = 0.35;
     bgm.muted = false;
 
+    // ✅ 디폴트는 무조건 꺼짐 (자동재생 정책 + UI/실동작 불일치 방지)
     let on = false;
     let loadedOnce = false;
 
+    // ✅ 저장값이 있어도 "처음 진입 자동 켜짐"은 하지 않음
+    //    (원하면 사용자가 버튼 눌러서 켜는 순간부터 적용)
+    //    단, 키가 아예 없으면 명시적으로 0 저장해서 상태를 고정
     try{
-      on = (localStorage.getItem(BGM_KEY_ON) === "1");
+      const saved = localStorage.getItem(BGM_KEY_ON);
+      if(saved === null){
+        localStorage.setItem(BGM_KEY_ON, "0");
+      }
     }catch(e){}
 
     function restoreTimeIfAny(){
@@ -108,6 +115,7 @@
     }
 
     function setLabel(){
+      // 기존 톤 유지
       bgmBtn.textContent = on ? "🎵 배경음악 켜짐" : "🔇 배경음악 꺼짐";
     }
 
@@ -174,6 +182,7 @@
     });
 
     document.addEventListener("visibilitychange", () => {
+      // 탭 이동/잠금 시 끄고 시간 저장
       if(document.hidden && on){
         stop();
       }
@@ -188,8 +197,8 @@
       }
     });
 
+    // ✅ 첫 진입은 항상 꺼짐으로 표시 + 자동 재생 없음
     setLabel();
-    restoreTimeIfAny();
   }
 
   // 초기화 실행
