@@ -108,14 +108,14 @@ body.bigText{
     "title"
     "stats"
     "controls"
-    "settings";   /* PC에서는 설정을 아래쪽(예전 감각 유지) */
+    "settings";
   gap:12px;
 }
 @media (max-width:520px){
   .cardGrid{
     grid-template-areas:
       "title"
-      "settings"   /* 모바일에서는 설정을 맨 위(제목 아래) */
+      "settings"
       "stats"
       "controls";
   }
@@ -161,7 +161,6 @@ body.bigText{
   line-height:1;
   font-size:14px;
 
-  /* ✅ 줄바꿈/동그라미 깨짐 방지 */
   white-space:nowrap;
   flex-wrap:nowrap;
 
@@ -173,7 +172,6 @@ body.bigText{
   transition:transform .18s ease;
   opacity:.9;
 }
-/* ✅ 화살표 회전: 버튼 자체에 isOpen 붙여서 확실하게 */
 #settingsBtn.isOpen .chev{ transform:rotate(180deg); }
 
 /* 아주 좁은 화면에서는 글자 숨기고 ⚙️만 */
@@ -187,17 +185,7 @@ body.bigText{
   #settingsBtn{ display:inline-flex; }
 }
 
-/* ======= ✅ 설정 영역 ======= */
-.settingsWrap{
-  display:block;
-}
-
-/* PC: 설정은 항상 보임(토글 없음) */
-@media (min-width:521px){
-  .settingsPanel{ display:flex !important; }
-}
-
-/* 모바일: 토글로 열고 닫기 */
+/* ======= ✅ 설정 영역(뱃지 제거: 버튼만) ======= */
 .settingsPanel{
   display:flex;
   gap:10px;
@@ -210,26 +198,10 @@ body.bigText{
 }
 .settingsPanel.isClosed{ display:none; }
 
-/* 설정 뱃지(항상 보이게) */
-.settingsBadges{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
+/* PC: 항상 보임 */
+@media (min-width:521px){
+  .settingsPanel{ display:flex !important; }
 }
-
-.badge{
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:999px;
-  padding:6px 10px;
-  font-size:13px;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  white-space:nowrap;
-}
-.badge strong{ font-weight:900; }
 
 /* ===== 오늘 현황 ===== */
 .statsHeader{
@@ -462,7 +434,7 @@ button.primary{
             <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
           </div>
 
-          <!-- ✅ 모바일 전용 설정 버튼 (PC에서는 CSS로 숨김) -->
+          <!-- ✅ 모바일 전용 설정 버튼 -->
           <div class="titleActions">
             <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
               ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
@@ -471,20 +443,12 @@ button.primary{
         </div>
       </div>
 
-      <!-- ===== 설정(모바일: 위 / PC: 아래) ===== -->
+      <!-- ===== 설정(뱃지 없음: 버튼만) ===== -->
       <div class="areaSettings">
-        <div class="settingsWrap" id="settingsWrap">
-          <div class="settingsBadges" aria-label="설정 상태">
-            <span class="badge"><span>🔔</span> <strong id="badgeSfxText">확인중</strong></span>
-            <span class="badge"><span>🎵</span> <strong id="badgeBgmText">확인중</strong></span>
-            <span class="badge"><span>🔠</span> <strong id="badgeBigText">확인중</strong></span>
-          </div>
-
-          <div class="settingsPanel" id="settingsPanel">
-            <button id="sfxBtn" type="button">🔔 효과음</button>
-            <button id="bigBtn" type="button">🔎 큰 글씨</button>
-            <button id="bgmBtn" type="button">🎵 배경음악</button>
-          </div>
+        <div class="settingsPanel" id="settingsPanel">
+          <button id="sfxBtn" type="button">🔔 효과음</button>
+          <button id="bigBtn" type="button">🔎 큰 글씨</button>
+          <button id="bgmBtn" type="button">🎵 배경음악</button>
         </div>
       </div>
 
@@ -577,15 +541,6 @@ button.primary{
 (function(){
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsPanel = document.getElementById("settingsPanel");
-
-  const sfxBtn = document.getElementById("sfxBtn");
-  const bgmBtn = document.getElementById("bgmBtn");
-  const bigBtn = document.getElementById("bigBtn");
-
-  const badgeSfxText = document.getElementById("badgeSfxText");
-  const badgeBgmText = document.getElementById("badgeBgmText");
-  const badgeBigText = document.getElementById("badgeBigText");
-
   const mq = window.matchMedia("(max-width:520px)");
 
   if(!settingsPanel) return;
@@ -594,14 +549,14 @@ button.primary{
     if(open){
       settingsPanel.classList.remove("isClosed");
       if(settingsBtn){
-        settingsBtn.classList.add("isOpen");          // ✅ 화살표 회전 확실
+        settingsBtn.classList.add("isOpen");
         settingsBtn.setAttribute("aria-expanded","true");
         settingsBtn.setAttribute("aria-label","설정 닫기");
       }
     }else{
       settingsPanel.classList.add("isClosed");
       if(settingsBtn){
-        settingsBtn.classList.remove("isOpen");       // ✅ 화살표 회전 확실
+        settingsBtn.classList.remove("isOpen");
         settingsBtn.setAttribute("aria-expanded","false");
         settingsBtn.setAttribute("aria-label","설정 열기");
       }
@@ -610,10 +565,10 @@ button.primary{
 
   function syncViewport(){
     if(mq.matches){
-      // 모바일: 기본 닫힘(토글)
+      // 모바일: 기본 닫힘
       setMobileOpen(false);
     }else{
-      // PC: 항상 보임(토글/화살표 의미 없음)
+      // PC: 항상 보임
       settingsPanel.classList.remove("isClosed");
       if(settingsBtn){
         settingsBtn.classList.remove("isOpen");
@@ -625,47 +580,16 @@ button.primary{
 
   if(settingsBtn){
     settingsBtn.addEventListener("click", function(){
-      if(!mq.matches) return; // PC는 토글 안 함
+      if(!mq.matches) return;
       const isClosed = settingsPanel.classList.contains("isClosed");
       setMobileOpen(isClosed);
     });
   }
 
-  // ===== 상태 뱃지 업데이트(안 꼬이게 최소 로직) =====
-  function readOnOffFromText(t){
-    if(!t) return null;
-    if(t.includes("켜짐")) return "켜짐";
-    if(t.includes("꺼짐")) return "꺼짐";
-    return null;
-  }
-
-  function updateBadges(){
-    const sfxState = readOnOffFromText(sfxBtn ? sfxBtn.textContent : "");
-    const bgmState = readOnOffFromText(bgmBtn ? bgmBtn.textContent : "");
-
-    // ui.js가 켜짐/꺼짐을 버튼 텍스트에 넣어주면 그대로 표시
-    badgeSfxText.textContent = sfxState || "설정됨";
-    badgeBgmText.textContent = bgmState || "설정됨";
-
-    // 글씨는 body.bigText로 확정
-    badgeBigText.textContent = document.body.classList.contains("bigText") ? "큰 글씨" : "작은 글씨";
-  }
-
-  function hook(btn){
-    if(!btn) return;
-    btn.addEventListener("click", function(){
-      setTimeout(updateBadges, 0);
-      setTimeout(updateBadges, 50);
-    });
-  }
-  hook(sfxBtn); hook(bgmBtn); hook(bigBtn);
-
   if(mq.addEventListener) mq.addEventListener("change", syncViewport);
   else if(mq.addListener) mq.addListener(syncViewport);
 
   syncViewport();
-  updateBadges();
-  setTimeout(updateBadges, 200);
 })();
 </script>
 
