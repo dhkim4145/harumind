@@ -192,3 +192,49 @@
     // showFinishPopup은 ui-toast.js에서 붙임
   };
 })();
+
+// ===== 완료 상태 UI =====
+(function(){
+  const msgEl  = document.getElementById("msg");
+  const hintEl = document.getElementById("hint");
+
+  let finishBtn = null;
+
+  HarumindUI.setFinishState = function({ title, message, buttonText, hint, onRestart }){
+    if(!msgEl || !hintEl) return;
+
+    msgEl.innerHTML = `
+      <div style="font-weight:900;">${title}</div>
+      <div style="margin-top:4px;">${message}</div>
+      <button id="finishRestartBtn"
+        style="
+          margin-top:12px;
+          padding:10px 16px;
+          border-radius:999px;
+          border:1px solid rgba(110,231,183,.45);
+          background:rgba(110,231,183,.18);
+          color:inherit;
+          font-size:16px;
+          cursor:pointer;
+        ">
+        ${buttonText}
+      </button>
+    `;
+
+    hintEl.innerHTML = `
+      <div style="margin-top:6px;font-size:12px;opacity:.7;">
+        ${hint}
+      </div>
+    `;
+
+    finishBtn = document.getElementById("finishRestartBtn");
+    if(finishBtn) finishBtn.onclick = onRestart;
+  };
+
+  HarumindUI.clearFinishState = function(){
+    if(finishBtn){
+      finishBtn.remove();
+      finishBtn = null;
+    }
+  };
+})();
