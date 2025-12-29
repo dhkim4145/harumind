@@ -119,14 +119,14 @@ body.bigText{
   margin-top:6px;
 }
 
-/* ✅ 우상단 설정 버튼(오늘현황 스타일) */
+/* ✅ 우상단 설정 버튼 */
 .titleActions{
   display:flex;
   align-items:center;
   gap:10px;
 }
 
-/* PC에서도 보이게(설정은 맨 위) */
+/* ✅ 설정 버튼(오늘현황 스타일) */
 #settingsBtn{
   border-radius:999px;
   border:1px solid rgba(255,255,255,.18);
@@ -139,6 +139,10 @@ body.bigText{
   gap:8px;
   line-height:1;
   font-size:14px;
+
+  /* ✅ 줄바꿈 방지(설/정 깨짐 방지) */
+  white-space:nowrap;
+  flex-wrap:nowrap;
 }
 #settingsBtn .chev{
   display:inline-block;
@@ -147,16 +151,15 @@ body.bigText{
 }
 #settingsWrap.isOpen #settingsBtn .chev{ transform:rotate(180deg); }
 
+/* 아주 작은 화면에서는 글자 숨기고 아이콘만(동그라미 유지) */
+@media (max-width:360px){
+  #settingsBtn{ padding:8px 10px; gap:6px; }
+  #settingsBtn .btnText{ display:none; }
+}
+
 /* ===== 설정(맨 위) ===== */
 #settingsWrap{
   margin-top:12px;
-}
-
-.settingsHeaderRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
 }
 
 /* 상태 뱃지(항상 보이게) */
@@ -179,10 +182,7 @@ body.bigText{
   min-width:0;
   white-space:nowrap;
 }
-
-.badge strong{
-  font-weight:900;
-}
+.badge strong{ font-weight:900; }
 
 /* 설정 패널(버튼들) */
 #settingsPanel{
@@ -196,14 +196,7 @@ body.bigText{
   border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.04);
 }
-
-/* 닫힘 처리 (모바일에서 기본 닫힘) */
 #settingsPanel.isClosed{ display:none; }
-
-/* PC에서는 항상 열림, 모바일은 토글 */
-@media (max-width:520px){
-  #settingsPanel{ padding:10px; }
-}
 
 /* ===== 오늘 현황 ===== */
 .statsHeader{
@@ -253,8 +246,6 @@ body.bigText{
   min-width:0;
 }
 .pill b{ white-space:nowrap; }
-
-.stats-break{ display:none; }
 
 .statsNote{
   margin-top:10px;
@@ -436,10 +427,10 @@ button.primary{
         <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
       </div>
 
-      <!-- ✅ 맨 위 설정(오늘현황/닫기처럼: 버튼 + 화살표) -->
+      <!-- ✅ 맨 위 설정(줄바꿈 안 깨지게) -->
       <div class="titleActions">
         <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
-          ⚙️ 설정 <span class="chev">∨</span>
+          ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
         </button>
       </div>
     </div>
@@ -479,7 +470,7 @@ button.primary{
       <div class="statsDivider"></div>
     </div>
 
-    <!-- ✅ 게임 조작은 그대로(설정은 위로 빠짐) -->
+    <!-- ✅ 게임 조작 -->
     <div class="controls">
       <select id="level" title="난이도 선택">
         <option value="2x2">쉬움 (2x2)</option>
@@ -582,7 +573,7 @@ button.primary{
   }
 
   settingsBtn.addEventListener("click", function(){
-    // PC는 항상 열림 유지(원하면 PC도 토글로 바꿀 수 있음)
+    // PC는 항상 열림 유지
     if(!mq.matches) return;
 
     const isClosed = panel.classList.contains("isClosed");
@@ -596,8 +587,6 @@ button.primary{
   }
 
   // ===== 상태 뱃지 업데이트 =====
-  // ui.js가 버튼 텍스트를 "켜짐/꺼짐" 형태로 바꾸더라도 따라가게,
-  // 버튼 텍스트/바디 클래스 기반으로 안전하게 판단
   function readOnOffFromText(t){
     if(!t) return null;
     if(t.includes("켜짐") || t.toLowerCase().includes("on")) return "켜짐";
@@ -606,35 +595,29 @@ button.primary{
   }
 
   function updateBadges(){
-    // 효과음/배경음: 버튼 텍스트에 켜짐/꺼짐이 들어가면 그걸 우선
     const sfxState = readOnOffFromText(sfxBtn ? sfxBtn.textContent : "");
     const bgmState = readOnOffFromText(bgmBtn ? bgmBtn.textContent : "");
 
     badgeSfxText.textContent = sfxState || "설정됨";
     badgeBgmText.textContent = bgmState || "설정됨";
 
-    // 글씨 크기: body.bigText로 판단 (가장 확실)
     const bigState = document.body.classList.contains("bigText") ? "큰 글씨" : "작은 글씨";
     badgeBigText.textContent = bigState;
   }
 
-  // 초기/클릭 시 갱신
   function hook(btn){
     if(!btn) return;
     btn.addEventListener("click", function(){
-      // ui.js 반영 시간 조금 주고 갱신
       setTimeout(updateBadges, 0);
       setTimeout(updateBadges, 50);
     });
   }
   hook(sfxBtn); hook(bgmBtn); hook(bigBtn);
 
-  // 시작 시 여러 번 갱신(초기 UI 세팅 타이밍 대비)
   syncForViewport();
   updateBadges();
   setTimeout(updateBadges, 50);
   setTimeout(updateBadges, 200);
-
 })();
 </script>
 
