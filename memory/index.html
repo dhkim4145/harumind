@@ -6,11 +6,11 @@
 
 <!-- 네이버 사이트 소유확인 -->
 <meta name="naver-site-verification" content="9a17421f3eca307a085f00983e810d49b7172fdd" />
-  
+
 <title>같은 그림 찾기 게임 | 하루마음 인지자극 두뇌놀이</title>
 
 <meta name="description"
-        content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 자극해보세요." />  
+      content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 자극해보세요." />
 
 <!-- Open Graph (카톡/네이버 공유용) -->
 <meta property="og:type" content="website" />
@@ -18,17 +18,16 @@
 <meta property="og:title" content="같은 그림 찾기 게임 | 하루마음 인지자극 두뇌놀이" />
 <meta property="og:description" content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 자극해보세요." />
 <meta property="og:url" content="https://harumind.kr/memory/" />
+<meta property="og:image" content="https://harumind.kr/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 
 <!-- Twitter Card (겸사겸사) -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content="https://harumind.kr/og.png" />
 <meta name="twitter:title" content="같은 그림 찾기 게임 | 하루마음" />
 <meta name="twitter:description" content="하루 5분, 같은 그림 찾기 두뇌놀이. 누구나 쉽게 시작해요." />
-  
-<meta property="og:image" content="https://harumind.kr/og.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-  
+
 <!-- Google Analytics 4 (필요 없으면 삭제 가능) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
 <script>
@@ -101,36 +100,12 @@ body.bigText{
   padding:16px;
 }
 
-/* ======= ✅ 카드 내부 레이아웃(PC/모바일 순서 분리) ======= */
-.cardGrid{
-  display:grid;
-  grid-template-areas:
-    "title"
-    "stats"
-    "controls"
-    "settings";
-  gap:12px;
-}
-@media (max-width:520px){
-  .cardGrid{
-    grid-template-areas:
-      "title"
-      "settings"
-      "stats"
-      "controls";
-  }
-}
-
-.areaTitle{ grid-area:title; }
-.areaSettings{ grid-area:settings; }
-.areaStats{ grid-area:stats; }
-.areaControls{ grid-area:controls; }
-
+/* ===== 상단(추천 구조) ===== */
 .titleRow{
   display:flex;
-  align-items:flex-start;
+  align-items:center;      /* ✅ 제목/설정 같은 기준선 */
   justify-content:space-between;
-  gap:10px;
+  gap:12px;
 }
 
 .title{
@@ -139,33 +114,27 @@ body.bigText{
 }
 
 .sub{
-  font-size:14px;
+  font-size:13px;
   color:var(--muted);
-  margin-top:6px;
+  margin-top:8px;          /* ✅ 제목 아래 한 줄로 안정 */
+  opacity:.95;
+  line-height:1.35;
 }
 
-/* ✅ 모바일 우상단 설정 버튼(PC는 숨김) */
-.titleActions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+/* 설정 버튼(모바일/PC 공통으로 노출해도 무방. 원하면 모바일만 노출로 바꿀 수 있음) */
 #settingsBtn{
-  display:none;                /* PC 기본 숨김 */
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);
   color:var(--text);
-  padding:8px 10px;
+  padding:8px 12px;
   cursor:pointer;
-  line-height:1;
-  font-size:14px;
-
-  white-space:nowrap;
-  flex-wrap:nowrap;
-
+  display:inline-flex;
   align-items:center;
   gap:8px;
+  line-height:1;
+  font-size:14px;
+  white-space:nowrap;      /* ✅ 줄바꿈 방지 */
 }
 #settingsBtn .chev{
   display:inline-block;
@@ -174,19 +143,15 @@ body.bigText{
 }
 #settingsBtn.isOpen .chev{ transform:rotate(180deg); }
 
-/* 아주 좁은 화면에서는 글자 숨기고 ⚙️만 */
+/* 아주 작은 화면에서는 글자 숨기고 아이콘만 */
 @media (max-width:360px){
   #settingsBtn .btnText{ display:none; }
-  #settingsBtn{ gap:6px; }
+  #settingsBtn{ padding:8px 10px; gap:6px; }
 }
 
-/* 모바일에서만 설정버튼 보이기 */
-@media (max-width:520px){
-  #settingsBtn{ display:inline-flex; }
-}
-
-/* ======= ✅ 설정 영역(뱃지 제거: 버튼만) ======= */
+/* ===== 설정 패널 ===== */
 .settingsPanel{
+  margin-top:12px;
   display:flex;
   gap:10px;
   flex-wrap:wrap;
@@ -198,23 +163,27 @@ body.bigText{
 }
 .settingsPanel.isClosed{ display:none; }
 
-/* PC: 항상 보임 */
+/* PC는 항상 열림 */
 @media (min-width:521px){
   .settingsPanel{ display:flex !important; }
 }
 
-/* ===== 오늘 현황 ===== */
+/* ===== 오늘 현황 (컨트롤 영역으로 이동) ===== */
+.statsWrap{
+  margin-top:12px;
+}
+
 .statsHeader{
-  margin-top:0;
   display:flex;
-  justify-content:flex-end;
+  justify-content:flex-end;   /* ✅ 오른쪽 정렬 */
   align-items:center;
 }
+
 .statsToggle{
   font-size:14px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);
   color:var(--text);
   padding:8px 12px;
   cursor:pointer;
@@ -222,6 +191,7 @@ body.bigText{
   align-items:center;
   gap:8px;
 }
+
 .chev{
   display:inline-block;
   transition:transform .18s ease;
@@ -271,7 +241,7 @@ body.bigText{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
-  margin-top:0;
+  margin-top:12px;
 }
 
 button, select{
@@ -424,77 +394,62 @@ button.primary{
 <div class="wrap">
 
   <div class="card">
-    <div class="cardGrid">
 
-      <!-- ===== 제목 ===== -->
-      <div class="areaTitle">
-        <div class="titleRow">
-          <div>
-            <div class="title">같은 그림 찾기</div>
-            <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
-          </div>
+    <!-- ✅ 추천 구조: 제목/설정 같은 줄, 설명은 그 아래 -->
+    <div class="titleRow">
+      <div class="title">같은 그림 찾기</div>
 
-          <!-- ✅ 모바일 전용 설정 버튼 -->
-          <div class="titleActions">
-            <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
-              ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== 설정(뱃지 없음: 버튼만) ===== -->
-      <div class="areaSettings">
-        <div class="settingsPanel" id="settingsPanel">
-          <button id="sfxBtn" type="button">🔔 효과음</button>
-          <button id="bigBtn" type="button">🔎 큰 글씨</button>
-          <button id="bgmBtn" type="button">🎵 배경음악</button>
-        </div>
-      </div>
-
-      <!-- ===== 오늘 현황 ===== -->
-      <div class="areaStats">
-        <div id="statsWrap">
-          <div class="statsHeader">
-            <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
-              오늘 현황 <span class="chev">∨</span>
-            </button>
-          </div>
-
-          <div class="stats">
-            <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
-            <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
-            <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
-            <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
-          </div>
-
-          <div class="statsNote">* 오늘 현황은 이 기기에서만 보여요.</div>
-          <div class="statsDivider"></div>
-        </div>
-      </div>
-
-      <!-- ===== 게임 컨트롤 ===== -->
-      <div class="areaControls">
-        <div class="controls">
-          <select id="level" title="난이도 선택">
-            <option value="2x2">쉬움 (2x2)</option>
-            <option value="3x2" selected>보통 (3x2)</option>
-            <option value="4x3">어려움 (4x3)</option>
-          </select>
-
-          <button class="primary" id="newGame">새로 시작</button>
-          <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
-          <button id="howBtn" type="button">방법 보기</button>
-        </div>
-
-        <select id="peekSec" style="display:none">
-          <option value="2">2</option>
-        </select>
-
-        <div style="display:none"><span id="todayKey"></span></div>
-      </div>
-
+      <!-- 모바일 토글 / PC는 항상 열림이므로 눌러도 토글 안 되게 JS에서 처리 -->
+      <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기">
+        ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
+      </button>
     </div>
+
+    <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
+
+    <!-- 설정 패널 -->
+    <div class="settingsPanel" id="settingsPanel">
+      <button id="sfxBtn" type="button">🔔 효과음</button>
+      <button id="bigBtn" type="button">🔎 큰 글씨</button>
+      <button id="bgmBtn" type="button">🎵 배경음악</button>
+    </div>
+
+    <!-- 컨트롤 + 오늘 현황(오른쪽) -->
+    <div class="controls">
+      <select id="level" title="난이도 선택">
+        <option value="2x2">쉬움 (2x2)</option>
+        <option value="3x2" selected>보통 (3x2)</option>
+        <option value="4x3">어려움 (4x3)</option>
+      </select>
+
+      <button class="primary" id="newGame">새로 시작</button>
+      <button id="peekBtn" type="button" title="카드를 2초 동안 보여줘요">👀 잠깐보기 (2초)</button>
+      <button id="howBtn" type="button">방법 보기</button>
+
+      <!-- ✅ 오늘 현황은 컨트롤 영역의 오른쪽에 두기 -->
+      <span style="flex:1 1 auto"></span>
+      <button class="statsToggle" id="statsToggle" type="button" aria-expanded="false">
+        오늘 기록 <span class="chev">∨</span>
+      </button>
+    </div>
+
+    <div class="statsWrap" id="statsWrap">
+      <div class="stats">
+        <div class="pill"><span>맞춘 카드</span> <b id="matched">0</b></div>
+        <div class="pill"><span>지금 점수</span> <b id="score">0</b></div>
+        <div class="pill"><span>오늘 횟수</span> <b><span id="todayClear">0</span>회</b></div>
+        <div class="pill"><span>오늘 최고</span> <b><span id="todayBest">0</span>점</b></div>
+      </div>
+
+      <div class="statsNote">* 오늘 기록은 이 기기에서만 보여요.</div>
+      <div class="statsDivider"></div>
+    </div>
+
+    <select id="peekSec" style="display:none">
+      <option value="2">2</option>
+    </select>
+
+    <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
   <div class="card messageCard">
@@ -543,32 +498,32 @@ button.primary{
   const settingsPanel = document.getElementById("settingsPanel");
   const mq = window.matchMedia("(max-width:520px)");
 
-  if(!settingsPanel) return;
+  const statsToggle = document.getElementById("statsToggle");
+  const statsWrap = document.getElementById("statsWrap");
 
-  function setMobileOpen(open){
+  function setSettingsMobileOpen(open){
+    if(!settingsBtn || !settingsPanel) return;
     if(open){
       settingsPanel.classList.remove("isClosed");
-      if(settingsBtn){
-        settingsBtn.classList.add("isOpen");
-        settingsBtn.setAttribute("aria-expanded","true");
-        settingsBtn.setAttribute("aria-label","설정 닫기");
-      }
+      settingsBtn.classList.add("isOpen");
+      settingsBtn.setAttribute("aria-expanded","true");
+      settingsBtn.setAttribute("aria-label","설정 닫기");
     }else{
       settingsPanel.classList.add("isClosed");
-      if(settingsBtn){
-        settingsBtn.classList.remove("isOpen");
-        settingsBtn.setAttribute("aria-expanded","false");
-        settingsBtn.setAttribute("aria-label","설정 열기");
-      }
+      settingsBtn.classList.remove("isOpen");
+      settingsBtn.setAttribute("aria-expanded","false");
+      settingsBtn.setAttribute("aria-label","설정 열기");
     }
   }
 
-  function syncViewport(){
+  function syncSettings(){
+    if(!settingsPanel) return;
+
     if(mq.matches){
       // 모바일: 기본 닫힘
-      setMobileOpen(false);
+      setSettingsMobileOpen(false);
     }else{
-      // PC: 항상 보임
+      // PC: 항상 열림
       settingsPanel.classList.remove("isClosed");
       if(settingsBtn){
         settingsBtn.classList.remove("isOpen");
@@ -580,16 +535,24 @@ button.primary{
 
   if(settingsBtn){
     settingsBtn.addEventListener("click", function(){
-      if(!mq.matches) return;
+      if(!mq.matches) return; // PC는 토글 없음
       const isClosed = settingsPanel.classList.contains("isClosed");
-      setMobileOpen(isClosed);
+      setSettingsMobileOpen(isClosed);
     });
   }
 
-  if(mq.addEventListener) mq.addEventListener("change", syncViewport);
-  else if(mq.addListener) mq.addListener(syncViewport);
+  // 오늘 기록 토글은 기존 ui.js 로직과 충돌 안 나게, 여기서는 클래스만 토글
+  if(statsToggle && statsWrap){
+    statsToggle.addEventListener("click", function(){
+      const isOpen = statsWrap.classList.toggle("isOpen");
+      statsToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+  }
 
-  syncViewport();
+  if(mq.addEventListener) mq.addEventListener("change", syncSettings);
+  else if(mq.addListener) mq.addListener(syncSettings);
+
+  syncSettings();
 })();
 </script>
 
