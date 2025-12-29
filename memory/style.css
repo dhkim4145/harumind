@@ -232,7 +232,7 @@ button.primary{
 /* ✅ 값이 바뀔 때 ui.js가 .spin을 잠깐 붙여서 1회 회전 */
 .pill.live.spin::before{
   opacity:1;
-  animation: liveSpinOnce 1.4s linear;
+  animation: liveSpinOnce 0.8s linear;
 }
 
 .pill.live > *{
@@ -427,4 +427,5 @@ body.peeking .card:not(.messageCard){
 body.peeking .tile{
   filter: brightness(1.05) saturate(0.95);
 }
+
 
