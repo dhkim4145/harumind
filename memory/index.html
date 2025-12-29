@@ -266,6 +266,7 @@ button.primary{
 /* =========================
    LIVE PILL (살아있는 테두리)
    - '맞춘 개수' / '지금 점수' 2개만 적용
+   - ✅ 평소엔 정지, 값 변경 시만 1~2초 회전(1회)
    ========================= */
 .pill.live{
   position:relative;
@@ -274,6 +275,7 @@ button.primary{
   border: 1px solid rgba(110,231,183,.35);
 }
 
+/* 회전 링 레이어: 기본은 숨김(정지 상태) */
 .pill.live::before{
   content:"";
   position:absolute;
@@ -285,8 +287,14 @@ button.primary{
     rgba(110,231,183,0.55),
     rgba(110,231,183,0.0)
   );
-  animation: liveSpin 9s linear infinite;
+  opacity:0;    /* ✅ 평소엔 안 보임 */
   z-index:0;
+}
+
+/* ✅ 값이 바뀔 때 ui.js가 .spin을 잠깐 붙여서 1회 회전 */
+.pill.live.spin::before{
+  opacity:1;
+  animation: liveSpinOnce 1.4s linear; /* ✅ 1~2초 범위: 1.4s~2.0s로 바꿔도 됨 */
 }
 
 .pill.live > *{
@@ -294,8 +302,9 @@ button.primary{
   z-index:1;
 }
 
-@keyframes liveSpin{
-  to{ transform: rotate(360deg); }
+@keyframes liveSpinOnce{
+  from{ transform: rotate(0deg); }
+  to  { transform: rotate(360deg); }
 }
 
 /* 메시지 */
