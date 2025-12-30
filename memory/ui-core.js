@@ -181,6 +181,18 @@
     closeModal,
   };
 
+  // 완료 상태 표시
+  function setStatsComplete(complete){
+    const statsArea = document.querySelector(".statsArea");
+    if(statsArea){
+      if(complete){
+        statsArea.classList.add("isComplete");
+      }else{
+        statsArea.classList.remove("isComplete");
+      }
+    }
+  }
+
   // 기본 export
   window.HarumindUI = {
     board,
@@ -192,6 +204,7 @@
     showReward,
     openModal,
     closeModal,
+    setStatsComplete,
   };
 })();
 

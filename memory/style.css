@@ -230,6 +230,24 @@ button.primary{
 /* ✅ 메시지 카드 아래에 '맞춘 개수 / 지금 점수'만 */
 .statsArea{
   margin-top:12px;
+  transition: all 0.3s ease;
+}
+
+/* 게임 완료 시 점수판 스타일 */
+.statsArea.isComplete .pill{
+  background: rgba(110,231,183,.15);
+  border-color: rgba(110,231,183,.5);
+  animation: statsCompletePulse 1.5s ease;
+}
+
+.statsArea.isComplete .pill.live::before{
+  opacity: 0.6;
+  animation: liveSpinOnce 0.6s linear infinite;
+}
+
+@keyframes statsCompletePulse{
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
 }
 
 /* ===== 상태(맞춘 개수 / 지금 점수) ===== */
@@ -644,6 +662,30 @@ body.peeking .tile{
   .pill .totalPairs{
     font-size:0.85em;
   }
+  
+  /* 모바일 여백 미세 조정 */
+  .wrap{
+    gap:18px; /* 14px → 18px (+4px) */
+  }
+  
+  .controls{
+    margin-top:16px; /* 12px → 16px (+4px) */
+    gap:12px; /* 10px → 12px (+2px) */
+  }
+  
+  .hmFinishBar{
+    margin-top:14px; /* 10px → 14px (+4px) */
+    padding:14px 16px; /* 10px 12px → 14px 16px (+4px) */
+    gap:12px; /* 10px → 12px (+2px) */
+  }
+  
+  .hmFinishText{
+    gap:6px; /* 4px → 6px (+2px) */
+  }
+  
+  .hmFinishSub{
+    margin-top:4px; /* 2px → 4px (+2px) */
+  }
 }
 
 /* ✅ 모바일(520px 이하)에서 완료 바 레이아웃 개선 */
@@ -651,11 +693,18 @@ body.peeking .tile{
   .hmFinishBar{
     flex-direction: column; /* 세로 배치로 변경 */
     align-items: stretch; /* 전체 너비 사용 */
-    gap: 10px; /* 텍스트와 버튼 사이 간격 */
+    gap: 12px; /* 텍스트와 버튼 사이 간격 (10px → 12px) */
+    margin-top: 14px; /* 10px → 14px (+4px) */
+    padding: 14px 16px; /* 10px 12px → 14px 16px (+4px) */
   }
   
   .hmFinishText{
     width: 100%; /* 모바일에서 텍스트 영역 전체 너비 */
+    gap: 6px; /* 4px → 6px (+2px) */
+  }
+  
+  .hmFinishSub{
+    margin-top: 4px; /* 2px → 4px (+2px) */
   }
   
   .hmFinishBtn{

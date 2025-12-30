@@ -83,6 +83,7 @@
     
     UI.renderStats({ matched, score, totalPairs });
     if (UI.clearFinishState) UI.clearFinishState();
+    if (UI.setStatsComplete) UI.setStatsComplete(false); // 완료 상태 해제
     // 시작/새로시작 메시지
     setStateMessage("같은 그림을 찾아볼까요?", "카드를 눌러 같은 그림을 찾아보세요.");
 
@@ -137,8 +138,8 @@
       clearTempMsgTimer();
       setTimeout(() => {
         if(matched === 1){
-          // 첫 매칭 성공 - 콤보 점수 힌트 추가
-          setStateMessage("🎉 하나 찾았어요!", "남은 그림도 천천히 찾아보세요. (연속으로 맞추면 더 많은 점수를 얻을 수 있어요!)");
+          // 첫 매칭 성공 - 콤보 점수 힌트 추가 (별도 줄로 분리)
+          setStateMessage("🎉 하나 찾았어요!", "남은 그림도 천천히 찾아보세요.\n(연속으로 맞추면 더 많은 점수를 얻을 수 있어요!)");
         }else if(matched < totalPairs){
           // 중간 매칭 성공
           setStateMessage("👍 잘하고 있어요.", "남은 그림도 천천히 찾아보세요.");
@@ -184,6 +185,9 @@
     // 완료 상태: 상단 메시지 설정 (임시 메시지 덮어쓰기)
     clearTempMsgTimer();
     setStateMessage("🎉 오늘의 게임을 마쳤어요!", "정말 잘하셨어요.");
+
+    // 점수판 완료 상태 표시
+    if (UI.setStatsComplete) UI.setStatsComplete(true);
 
     UI.setFinishState({
       title: "🎉 오늘의 게임을 마쳤어요!",
