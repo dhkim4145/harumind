@@ -103,11 +103,19 @@ body.bigText{
 
 /* 모바일(520px 이하)에서만 설정 버튼 표시 */
 @media (max-width:520px){
-  #settingsBtn{ display:inline-flex; }
-}
-@media (max-width:360px){
-  #settingsBtn .btnText{ display:none; }
-  #settingsBtn{ padding:8px 10px; gap:6px; }
+  #settingsBtn{ 
+    display:inline-flex;
+    /* 터치 영역 충분히 크게 유지 (최소 44x44px 권장) */
+    padding:12px; 
+    min-width:44px; 
+    min-height:44px; 
+    gap:0; 
+    justify-content:center;
+  }
+  /* 모바일에서는 텍스트 숨기고 아이콘만 표시 */
+  #settingsBtn .btnText{ 
+    display:none; 
+  }
 }
 
 /* 설정 패널 */

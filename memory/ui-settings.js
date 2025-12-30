@@ -13,11 +13,13 @@
       settingsBtn.classList.add("isOpen");
       settingsBtn.setAttribute("aria-expanded","true");
       settingsBtn.setAttribute("aria-label","설정 닫기");
+      settingsBtn.setAttribute("title","설정 닫기");
     }else{
       settingsPanel.classList.add("isClosed");
       settingsBtn.classList.remove("isOpen");
       settingsBtn.setAttribute("aria-expanded","false");
       settingsBtn.setAttribute("aria-label","설정 열기");
+      settingsBtn.setAttribute("title","설정 열기");
     }
   }
 
@@ -30,6 +32,7 @@
         settingsBtn.classList.remove("isOpen");
         settingsBtn.setAttribute("aria-expanded","false");
         settingsBtn.setAttribute("aria-label","설정 열기");
+        settingsBtn.setAttribute("title","설정 열기");
       }
     }else{
       settingsPanel.classList.remove("isClosed");
