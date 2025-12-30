@@ -7,6 +7,8 @@
   const board = document.getElementById("board");
   const matchedEl = document.getElementById("matched");
   const scoreEl = document.getElementById("score");
+  const totalPairsEl = document.getElementById("totalPairs");
+  const scoreHintEl = document.getElementById("scoreHint");
   const msgEl = document.getElementById("msg");
   const hintEl = document.getElementById("hint");
 
@@ -111,7 +113,7 @@
     setTimeout(() => pill.classList.remove("spin"), 1200); // ✅ 체감 길면 여기 900~1200 추천
   }
 
-  function renderStats({matched, score}){
+  function renderStats({matched, score, totalPairs}){
     const mStr = String(matched);
     const sStr = String(score);
 
@@ -120,6 +122,11 @@
         matchedEl.textContent = mStr;
         pulseLivePill(matchedPill);
       }
+    }
+
+    // 진행 상황 표시 (맞춘 개수 / 전체)
+    if(totalPairsEl && totalPairs){
+      totalPairsEl.textContent = ` / ${totalPairs}`;
     }
 
     if(scoreEl){

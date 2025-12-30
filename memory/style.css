@@ -116,6 +116,28 @@ body.bigText{
   #settingsBtn .btnText{ 
     display:none; 
   }
+  
+  /* 모바일에서 설정 패널 그리드 레이아웃 */
+  .settingsPanel{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:8px;
+    padding:12px;
+  }
+  
+  /* 모바일에서 설정 버튼 터치 영역 확보 */
+  .settingsPanel button{
+    min-height:44px;
+    min-width:0;
+    padding:12px 10px;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
 }
 
 /* 설정 패널 */
@@ -129,11 +151,34 @@ body.bigText{
   border-radius:16px;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.04);
+  transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease;
+  overflow:hidden;
+  max-height:200px;
+  opacity:1;
+  transform: translateY(0);
 }
-.settingsPanel.isClosed{ display:none; }
+
+.settingsPanel.isClosed{ 
+  opacity:0;
+  max-height:0;
+  margin-top:0;
+  padding-top:0;
+  padding-bottom:0;
+  transform: translateY(-8px);
+  pointer-events:none;
+}
+
 /* PC는 항상 보임 */
 @media (min-width:521px){
-  .settingsPanel{ display:flex !important; }
+  .settingsPanel{ 
+    display:flex !important;
+    opacity:1 !important;
+    max-height:none !important;
+    margin-top:12px !important;
+    padding:10px !important;
+    transform:none !important;
+    pointer-events:auto !important;
+  }
 }
 
 /* ===== 컨트롤 ===== */
@@ -153,6 +198,11 @@ button, select{
   color:var(--text);
   padding:10px 14px;
   cursor:pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+button:active{
+  transform: scale(0.97);
 }
 
 select#level{
@@ -199,14 +249,37 @@ button.primary{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:10px;
+  gap:8px;
   min-width:0;
   position:relative;
+  flex-wrap:wrap;
 }
-.pill b{
-  position:absolute;
-  left:14px;
+
+.pill > span:first-child{
   white-space:nowrap;
+  flex-shrink:0;
+}
+
+.pill b{
+  white-space:nowrap;
+  font-weight:700;
+  flex-shrink:0;
+}
+
+.pill .totalPairs{
+  color:var(--muted);
+  font-size:0.9em;
+  opacity:0.8;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.pill .scoreHint{
+  color:var(--muted);
+  font-size:0.75em;
+  opacity:0.7;
+  white-space:nowrap;
+  flex-shrink:0;
 }
 
 /* =========================
@@ -284,14 +357,55 @@ button.primary{
   cursor:pointer;
   user-select:none;
   position:relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  will-change: transform;
 }
 
-.tile[data-state="down"]::after{content:"?";font-weight:900;}
-.tile[data-state="up"]::after{content:attr(data-emoji);}
+/* 클릭 시 피드백 */
+.tile:active:not(.matched){
+  transform: scale(0.95);
+}
+
+/* 호버 효과 (PC용) */
+@media (hover: hover){
+  .tile:not(.matched):not([data-state="up"]):hover{
+    border-color:rgba(255,255,255,.20);
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+}
+
+.tile[data-state="down"]::after{
+  content:"?";
+  font-weight:900;
+  transition: opacity 0.2s ease;
+}
+
+.tile[data-state="up"]::after{
+  content:attr(data-emoji);
+  animation: tileFlipIn 0.25s ease;
+}
+
+@keyframes tileFlipIn{
+  0%{
+    opacity:0;
+    transform:scale(0.8) rotateY(-90deg);
+  }
+  100%{
+    opacity:1;
+    transform:scale(1) rotateY(0deg);
+  }
+}
 
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+  animation: matchedPulse 0.4s ease;
+}
+
+@keyframes matchedPulse{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.05); }
+  100%{ transform: scale(1); }
 }
 
 /* 리워드 */
@@ -513,6 +627,23 @@ body.peeking .tile{
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+/* 모바일에서 pill 레이아웃 개선 */
+@media (max-width: 520px){
+  .pill{
+    padding:6px 10px;
+    gap:6px;
+    font-size:calc(var(--fs-pill) * 0.95);
+  }
+  
+  .pill > span:first-child{
+    font-size:0.9em;
+  }
+  
+  .pill .totalPairs{
+    font-size:0.85em;
+  }
 }
 
 /* ✅ 모바일(520px 이하)에서 완료 바 레이아웃 개선 */
