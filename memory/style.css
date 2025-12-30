@@ -694,6 +694,7 @@ body.peeking .tile{
   .controls #level{
     flex:1 1 0;
     min-width:0;
+    max-width:56%;
     height:36px;
     padding:8px 10px;
     font-size:13px;
@@ -701,6 +702,7 @@ body.peeking .tile{
   .controls #peekBtn{
     flex:0 0 auto;
     white-space:nowrap;
+    max-width:44%;
     height:36px;
     padding:8px 10px;
     font-size:13px;

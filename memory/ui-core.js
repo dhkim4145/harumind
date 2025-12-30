@@ -153,23 +153,25 @@
     if(modalBack) modalBack.style.display = "none";
   }
 
-  // ===== 모바일에서 난이도 select 텍스트 간소화 =====
-  function simplifyLevelText(){
+  // ===== 난이도 select 텍스트 원본 유지 =====
+  // value는 절대 변경하지 않고, textContent는 항상 원본으로 유지
+  function updateLevelTextForMobile(){
     const levelSel = document.getElementById("level");
     if(!levelSel) return;
     
-    const isMobile = window.innerWidth <= 520;
-    if(!isMobile) return;
-    
-    // 모바일에서만 옵션 텍스트 간소화 (value는 유지)
     Array.from(levelSel.options).forEach(opt => {
-      const text = opt.textContent;
-      // "(2x2)", "(3x2)", "(4x3)" 패턴 제거
-      const simplified = text.replace(/\s*\([^)]+\)\s*/, "");
-      if(simplified !== text){
-        opt.textContent = simplified;
+      // 원본 텍스트를 data 속성에 저장 (최초 1회만)
+      if(!opt.dataset.originalText){
+        opt.dataset.originalText = opt.textContent;
       }
+      
+      // 항상 원본 텍스트로 유지 (모바일/PC 구분 없음)
+      // value 속성은 절대 변경하지 않음
+      opt.textContent = opt.dataset.originalText;
     });
+    
+    // 선택 표시가 즉시 갱신되도록 change 이벤트 발생
+    levelSel.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   // ===== 초기 세팅 =====
@@ -179,7 +181,16 @@
   renderDaily(dateStr);
   setBigMode(bigOn);
   setSfx(sfxOn);
-  simplifyLevelText(); // 모바일에서 난이도 텍스트 간소화
+  updateLevelTextForMobile(); // 모바일에서만 난이도 표시 간소화 (value는 유지)
+  
+  // 리사이즈 및 화면 회전 시에도 모바일/PC 전환 대응
+  let resizeTimer = null;
+  const handleResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updateLevelTextForMobile, 150);
+  };
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("orientationchange", handleResize);
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
