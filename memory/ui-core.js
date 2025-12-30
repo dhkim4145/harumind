@@ -153,6 +153,25 @@
     if(modalBack) modalBack.style.display = "none";
   }
 
+  // ===== 모바일에서 난이도 select 텍스트 간소화 =====
+  function simplifyLevelText(){
+    const levelSel = document.getElementById("level");
+    if(!levelSel) return;
+    
+    const isMobile = window.innerWidth <= 520;
+    if(!isMobile) return;
+    
+    // 모바일에서만 옵션 텍스트 간소화 (value는 유지)
+    Array.from(levelSel.options).forEach(opt => {
+      const text = opt.textContent;
+      // "(2x2)", "(3x2)", "(4x3)" 패턴 제거
+      const simplified = text.replace(/\s*\([^)]+\)\s*/, "");
+      if(simplified !== text){
+        opt.textContent = simplified;
+      }
+    });
+  }
+
   // ===== 초기 세팅 =====
   const dateStr = HarumindStorage.todayKey();
   if(todayKeyEl) todayKeyEl.textContent = dateStr;
@@ -160,6 +179,7 @@
   renderDaily(dateStr);
   setBigMode(bigOn);
   setSfx(sfxOn);
+  simplifyLevelText(); // 모바일에서 난이도 텍스트 간소화
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
