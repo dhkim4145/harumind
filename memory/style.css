@@ -469,3 +469,60 @@ body.peeking .tile{
   cursor: pointer;
   white-space: nowrap;
 }
+
+/* ✅ 완료 바 텍스트 영역 */
+.hmFinishText{
+  flex: 1;
+  min-width: 0; /* 텍스트 줄바꿈 허용 */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hmFinishTitle{
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
+}
+
+.hmFinishSub{
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
+}
+
+.hmFinishBtn{
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+/* ✅ 모바일(520px 이하)에서 완료 바 레이아웃 개선 */
+@media (max-width: 520px){
+  .hmFinishBar{
+    flex-direction: column; /* 세로 배치로 변경 */
+    align-items: stretch; /* 전체 너비 사용 */
+    gap: 10px; /* 텍스트와 버튼 사이 간격 */
+  }
+  
+  .hmFinishText{
+    width: 100%; /* 모바일에서 텍스트 영역 전체 너비 */
+  }
+  
+  .hmFinishBtn{
+    width: 100%; /* 모바일에서 버튼 전체 너비 */
+    display: flex;
+    justify-content: center; /* 버튼 텍스트 중앙 정렬 */
+    align-items: center;
+  }
+}
