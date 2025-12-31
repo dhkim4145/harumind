@@ -60,24 +60,26 @@
 *{box-sizing:border-box;}
 html, body { 
   overflow-x:hidden; 
-  overscroll-behavior-y: none; /* 아래로 당겼을 때 새로고침 방지 */
+  overscroll-behavior-y: none;
+  scrollbar-gutter: stable;
 }
 
 body{
-  margin: 0; /* 표준 Flex 정렬 */
-  padding: 20px 0; /* 표준 Flex 정렬 */
+  margin: 0;
+  padding: 0;
+  padding-top: 20px;
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
   background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
   color:var(--text);
-  display: flex; /* 표준 Flex 정렬 */
-  flex-direction: column; /* 표준 Flex 정렬 */
-  align-items: center; /* 표준 Flex 정렬 */
-  justify-content: flex-start; /* 표준 Flex 정렬 */
-  min-height: 100vh; /* 화면 꽉 채우기 */
-  width: 100%; /* 화면 꽉 채우기 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  width: 100%;
   font-size:var(--fs-base);
-  -webkit-font-smoothing: antialiased; /* 폰트 렌더링 고정으로 떨림 방지 */
-  text-rendering: optimizeLegibility; /* 텍스트 렌더링 최적화 */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body.bigText{
@@ -90,29 +92,44 @@ body.bigText{
   --tile-fs:52px;
   --gap:14px;
 }
+body.bigText .messageCard{
+  min-height:240px;
+  height:240px;
+}
+body.bigText #msg{
+  min-height:88px;
+  max-height:88px;
+}
+body.bigText #hint{
+  min-height:48px;
+  max-height:48px;
+}
 
 .wrap{
-  width: 90vw !important; /* 너비 강제 */
-  max-width: 500px !important; /* 너비 강제 */
-  margin-left: auto !important; /* 여백 자동 정렬 */
-  margin-right: auto !important; /* 여백 자동 정렬 */
+  width: 95%;
+  max-width: 500px;
+  box-sizing: border-box;
+  margin: 0 auto;
   display:flex;
   flex-direction:column;
-  align-items: center;
-  justify-content: center; /* 중앙 정렬 강제 */
+  align-items: stretch;
   gap:14px;
-  overflow:hidden; /* 애니메이션 중 미세한 크기 변화가 스크롤바 유도하지 않게 */
-  min-height: 100vh; /* 기기 높이에 따라 유동적이더라도 최소 높이 고정으로 애니메이션 중 높이 변화 방지 */
+  overflow:hidden;
+  contain: layout style;
+  will-change: contents;
 }
 
 .card{
+  width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
   border:1px solid rgba(255,255,255,.08);
   border-radius:var(--radius);
   box-shadow:var(--shadow);
   padding:16px;
-  min-width:0; /* 모바일 크롬에서 flex 아이템 축소 허용 */
-  overflow-x:visible; /* 내용이 잘리지 않도록 */
+  min-width:0;
+  overflow-x:visible;
+  contain: layout style;
 }
 
 /* ===== 상단(추천 구조) ===== */
@@ -172,20 +189,21 @@ body.bigText{
     display:none; 
   }
   
-  /* 모바일에서 설정 패널 그리드 레이아웃 */
+  /* 모바일에서 설정 패널 flex 레이아웃 (한 줄 유지) */
   .settingsPanel{
-    display:grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap:8px;
-    padding:12px;
+    display:flex;
+    flex-wrap: nowrap;
+    gap:6px;
+    padding:8px;
   }
   
   /* 모바일에서 설정 버튼 터치 영역 확보 */
   .settingsPanel button{
+    flex: 1 1 0;
+    min-width: 0;
     min-height:44px;
-    min-width:0;
-    padding:12px 10px;
-    font-size:15px;
+    padding:10px 8px;
+    font-size:13px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -198,11 +216,11 @@ body.bigText{
 /* 설정 패널 - Glassmorphism */
 .settingsPanel{
   margin-top:12px;
-  display:grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:10px;
+  display:flex;
+  flex-wrap: nowrap;
+  gap:8px;
   width:100%;
-  padding:12px;
+  padding:10px;
   border-radius:18px;
   border:1px solid rgba(255,255,255,.08);
   background:rgba(255,255,255,.04);
@@ -214,6 +232,20 @@ body.bigText{
   opacity:1;
   transform: translateY(0);
   touch-action: pan-y;
+  contain: layout style;
+}
+
+.settingsPanel button{
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settingsPanel.isClosed{ 
@@ -229,14 +261,21 @@ body.bigText{
 /* PC는 항상 보임 */
 @media (min-width:521px){
   .settingsPanel{ 
-    display:grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    opacity:1 !important;
-    max-height:none !important;
-    margin-top:12px !important;
-    padding:12px !important;
-    transform:none !important;
-    pointer-events:auto !important;
+    display:flex;
+    flex-wrap: nowrap;
+    gap:10px;
+    opacity:1;
+    max-height:none;
+    margin-top:12px;
+    padding:12px;
+    transform:none;
+    pointer-events:auto;
+  }
+  .settingsPanel button{
+    flex: 1 1 0;
+    min-width: 0;
+    padding:12px 14px;
+    font-size:14px;
   }
   .controls{
     grid-template-columns: auto 1fr;
@@ -253,6 +292,7 @@ body.bigText{
   min-width:0;
   width:100%;
   touch-action: pan-y;
+  contain: layout style;
 }
 
 button, select{
@@ -317,6 +357,8 @@ button.primary{
 .statsArea{
   margin-top:12px;
   transition: all 0.3s ease;
+  contain: layout style;
+  flex-shrink:0;
 }
 
 /* 게임 완료 시 점수판 스타일 */
@@ -342,6 +384,7 @@ button.primary{
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:10px;
   margin-top:12px;
+  contain: layout style;
 }
 
 .pill{
@@ -359,6 +402,7 @@ button.primary{
   flex-wrap:wrap;
   box-shadow:0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
   backdrop-filter:blur(8px);
+  contain: layout style;
 }
 
 .pill > span:first-child{
@@ -444,14 +488,29 @@ button.primary{
 }
 
 /* 메시지 */
-.messageCard{ min-height:92px; }
+.messageCard{ 
+  min-height:220px;
+  height:220px;
+  display:flex;
+  flex-direction:column;
+  contain: layout style;
+}
+.messageCard > *:first-child{
+  flex-shrink:0;
+}
 #msg{
   font-size:var(--fs-msg);
   font-weight:900;
   white-space:pre-line;
-  min-height:28px;
+  line-height:1.5;
+  min-height:72px;
+  max-height:72px;
+  display:flex;
+  align-items:center;
   transition:opacity 0.4s ease;
   opacity:1;
+  overflow:hidden;
+  flex-shrink:0;
 }
 #msg.fadeOut{
   opacity:0;
@@ -460,10 +519,16 @@ button.primary{
   font-size:var(--fs-hint);
   color:var(--muted);
   margin-top:4px;
-  min-height:22px;
   white-space:pre-line;
+  line-height:1.5;
+  min-height:40px;
+  max-height:40px;
+  display:flex;
+  align-items:center;
   transition:opacity 0.4s ease;
   opacity:1;
+  overflow:hidden;
+  flex-shrink:0;
 }
 #hint.fadeOut{
   opacity:0;
@@ -471,24 +536,24 @@ button.primary{
 
 /* 보드 */
 .board{ 
-  display: grid !important; /* 게임판 강제 확장 */
-  width: 90vw !important; /* 너비 강제 */
-  max-width: 500px !important; /* 너비 강제 */
-  margin-left: auto !important; /* 여백 자동 정렬 */
-  margin-right: auto !important; /* 여백 자동 정렬 */
-  gap: 8px; /* 카드 사이 간격 줄여서 카드 면적 늘림 */
-  justify-items: stretch; /* 카드 크기 자동 확장 */
-  align-items: stretch; /* 카드 크기 자동 확장 */
+  display: grid;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 8px;
+  justify-items: stretch;
+  align-items: stretch;
   height: auto;
   overflow:hidden; 
-  touch-action: none; /* 더블 탭 확대 완전 차단 */
-  padding: 10px; /* 보드 여백 최소화 */
-  perspective: 1000px; /* 하드웨어 가속으로 떨림 방지 */
+  touch-action: none;
+  padding: 10px;
+  perspective: 1000px;
+  contain: layout style;
+  will-change: transform;
 }
 
 .tile{
-  aspect-ratio: 1 / 1; /* 카드 크기 고정 */
-  width: 100%; /* 카드 크기 고정 */
+  aspect-ratio: 1 / 1;
+  width: 100%;
   min-width: 0;
   border-radius:18px;
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
@@ -503,9 +568,10 @@ button.primary{
   box-sizing:border-box;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   will-change: transform;
-  backface-visibility: hidden; /* 하드웨어 가속으로 떨림 방지 */
-  transform-style: preserve-3d; /* 강제 정수 픽셀 렌더링 */
-  touch-action: none; /* 더블 탭 확대 완전 차단 */
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  touch-action: none;
+  contain: layout style paint;
 }
 
 /* 클릭 시 피드백 */
@@ -952,8 +1018,9 @@ body.peeking .tile{
   }
   
   .settingsPanel{
-    margin-top: 10px; /* 12px → 10px */
-    padding: 10px; /* 10px 유지 */
+    margin-top: 10px;
+    padding: 8px;
+    gap: 6px;
   }
   
   .controls{
