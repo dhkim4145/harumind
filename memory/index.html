@@ -70,7 +70,7 @@ body{
   color:var(--text);
   display:flex;
   justify-content:center;
-  padding:18px;
+  padding:10px; /* 게임판 넓어질 공간 확보 */
   font-size:var(--fs-base);
   -webkit-font-smoothing: antialiased; /* 폰트 렌더링 고정으로 떨림 방지 */
   text-rendering: optimizeLegibility; /* 텍스트 렌더링 최적화 */
@@ -464,15 +464,15 @@ button.primary{
 /* 보드 */
 .board{ 
   display: grid;
-  gap: 10px;
-  width: 100%;
-  max-width: 600px;
+  gap: 8px; /* 카드 사이 간격 줄여서 카드 면적 늘림 */
+  width: 95% !important; /* 너비 강제 확장 */
+  max-width: none; /* 최대 너비 제한 해제 */
   margin: 0 auto;
   align-self: stretch;
   height: auto;
   overflow:hidden; 
   touch-action: none; /* 더블 탭 확대 완전 차단 */
-  padding: 8px; /* 카드 흔들 때 컨테이너 경계에 부딪히지 않게 안전 여백 추가 */
+  padding: 10px; /* 보드 여백 최소화 */
   perspective: 1000px; /* 하드웨어 가속으로 떨림 방지 */
 }
 
