@@ -598,25 +598,39 @@
     });
   }
 
-  // 방법 보기 모달
+  // 방법 보기 모달 (수정 버전)
   function initHowModal(){
-    if(!howBtn || !modalBack || !modalCloseBtn || !modalCard) return;
+    const hBtn = document.getElementById("howBtn");
+    const mBack = document.getElementById("modalBack");
+    const mClose = document.getElementById("modalCloseBtn");
 
-    const open = () => { modalBack.style.display = "flex"; };
-    const close = () => { modalBack.style.display = "none"; };
+    // 최소한 열기 버튼과 배경은 있어야 실행합니다.
+    if(!hBtn || !mBack) return;
 
-    howBtn.addEventListener('click', open);
-    modalCloseBtn.addEventListener('click', close);
+    const open = () => { mBack.style.display = "flex"; };
+    const close = () => { mBack.style.display = "none"; };
 
-    modalBack.addEventListener('click', (e) => {
-      if(e.target === modalBack) close();
+    hBtn.addEventListener('click', open);
+
+    // 닫기 버튼이 HTML에 존재할 때만 리스너 등록
+    if(mClose) {
+      mClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        close();
+      });
+    }
+
+    // 배경 클릭 시 닫기
+    mBack.addEventListener('click', (e) => {
+      if(e.target === mBack) close();
     });
 
+    // Esc 키 대응
     document.addEventListener('keydown', (e) => {
-      if(e.key === "Escape" && modalBack.style.display === "flex") close();
+      if(e.key === "Escape" && mBack.style.display === "flex") close();
     });
   }
-
+  
   // BGM 이어듣기
   const BGM_KEY_ON   = "HARUMIND_BGM_ON";
   const BGM_KEY_TIME = "HARUMIND_BGM_TIME";
