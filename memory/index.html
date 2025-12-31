@@ -64,15 +64,15 @@ html, body {
 }
 
 body{
-  margin: 0; /* 화면 꽉 채우기 */
-  padding: 0; /* 화면 꽉 채우기 */
+  margin: 0; /* 표준 Flex 정렬 */
+  padding: 20px 0; /* 표준 Flex 정렬 */
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
   background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
   color:var(--text);
-  display: flex; /* 화면 꽉 채우기 */
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* 무조건 중앙에 오게 */
+  display: flex; /* 표준 Flex 정렬 */
+  flex-direction: column; /* 표준 Flex 정렬 */
+  align-items: center; /* 표준 Flex 정렬 */
+  justify-content: flex-start; /* 표준 Flex 정렬 */
   min-height: 100vh; /* 화면 꽉 채우기 */
   width: 100%; /* 화면 꽉 채우기 */
   font-size:var(--fs-base);
@@ -92,9 +92,10 @@ body.bigText{
 }
 
 .wrap{
-  width: 95%; /* 메인 컨테이너 너비 설정 */
-  max-width: 600px; /* 메인 컨테이너 너비 설정 */
-  margin: 0 auto; /* 어떤 기기에서도 중앙 유지 */
+  width: 90vw !important; /* 너비 강제 */
+  max-width: 500px !important; /* 너비 강제 */
+  margin-left: auto !important; /* 여백 자동 정렬 */
+  margin-right: auto !important; /* 여백 자동 정렬 */
   display:flex;
   flex-direction:column;
   align-items: center;
@@ -471,10 +472,11 @@ button.primary{
 /* 보드 */
 .board{ 
   display: grid !important; /* 게임판 강제 확장 */
-  width: 100% !important; /* 게임판 강제 확장 */
+  width: 90vw !important; /* 너비 강제 */
+  max-width: 500px !important; /* 너비 강제 */
+  margin-left: auto !important; /* 여백 자동 정렬 */
+  margin-right: auto !important; /* 여백 자동 정렬 */
   gap: 8px; /* 카드 사이 간격 줄여서 카드 면적 늘림 */
-  max-width: 800px; /* 너비 제한 해제: 800px로 확장 */
-  margin: 20px auto; /* PC에서도 화면 정중앙 배치 */
   justify-items: stretch; /* 카드 크기 자동 확장 */
   align-items: stretch; /* 카드 크기 자동 확장 */
   height: auto;
