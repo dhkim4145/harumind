@@ -213,7 +213,7 @@ GitHub Pages를 통해 자동 배포됩니다:
 ## 💌 연락처
 
 - **웹사이트**: [harumind.kr](https://harumind.kr)
-- **이메일**: contact@harumind.kr
+- **이메일**:
 
 ---
 
@@ -224,3 +224,4 @@ GitHub Pages를 통해 자동 배포됩니다:
 Made with 💛 by Harumind Team
 
 </div>
+
