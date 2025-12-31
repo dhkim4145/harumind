@@ -37,9 +37,934 @@
   gtag('config', 'G-JX8PENN22H');
 </script>
 
-<link rel="stylesheet" href="./style.css?v=7">
-</head>
+<style>
+:root{
+  --bg:#0b1020;
+  --text:#e8ecff;
+  --muted:#b9c2ff;
+  --accent:#6ee7b7;
+  --shadow:0 10px 25px rgba(0,0,0,.35);
+  --radius:18px;
 
+  --fs-base:16px;
+  --fs-title:20px;
+  --fs-msg:18px;
+  --fs-hint:14px;
+  --fs-pill:14px;
+
+  --tile-h:90px;
+  --tile-fs:42px;
+  --gap:12px;
+}
+
+*{box-sizing:border-box;}
+html, body { overflow-x:hidden; }
+
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
+  background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  padding:18px;
+  font-size:var(--fs-base);
+}
+
+body.bigText{
+  --fs-base:18px;
+  --fs-title:24px;
+  --fs-msg:22px;
+  --fs-hint:16px;
+  --fs-pill:16px;
+  --tile-h:104px;
+  --tile-fs:52px;
+  --gap:14px;
+}
+
+.wrap{
+  width:min(560px,100%);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  min-width:0; /* 모바일 크롬에서 flex 아이템 축소 허용 */
+  overflow-x:visible; /* 내용이 잘리지 않도록 */
+}
+
+/* ===== 상단(추천 구조) ===== */
+.titleRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.title{
+  font-size:var(--fs-title);
+  font-weight:900;
+}
+.sub{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:8px;
+  opacity:.95;
+  line-height:1.35;
+}
+
+/* ✅ 설정 버튼: PC(웹)에서는 아예 안 보이게 */
+#settingsBtn{
+  display:none;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  padding:8px 12px;
+  cursor:pointer;
+  align-items:center;
+  gap:8px;
+  line-height:1;
+  font-size:14px;
+  white-space:nowrap;
+}
+#settingsBtn .chev{
+  display:inline-block;
+  transition:transform .18s ease;
+  opacity:.9;
+}
+#settingsBtn.isOpen .chev{ transform:rotate(180deg); }
+
+/* 모바일(520px 이하)에서만 설정 버튼 표시 */
+@media (max-width:520px){
+  #settingsBtn{ 
+    display:inline-flex;
+    /* 터치 영역 충분히 크게 유지 (최소 44x44px 권장) */
+    padding:12px; 
+    min-width:44px; 
+    min-height:44px; 
+    gap:0; 
+    justify-content:center;
+  }
+  /* 모바일에서는 텍스트 숨기고 아이콘만 표시 */
+  #settingsBtn .btnText{ 
+    display:none; 
+  }
+  
+  /* 모바일에서 설정 패널 그리드 레이아웃 */
+  .settingsPanel{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:8px;
+    padding:12px;
+  }
+  
+  /* 모바일에서 설정 버튼 터치 영역 확보 */
+  .settingsPanel button{
+    min-height:44px;
+    min-width:0;
+    padding:12px 10px;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+}
+
+/* 설정 패널 - Glassmorphism */
+.settingsPanel{
+  margin-top:12px;
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:10px;
+  width:100%;
+  padding:12px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(8px);
+  box-shadow:0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
+  transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease;
+  overflow:hidden;
+  max-height:200px;
+  opacity:1;
+  transform: translateY(0);
+  touch-action: pan-y;
+}
+
+.settingsPanel.isClosed{ 
+  opacity:0;
+  max-height:0;
+  margin-top:0;
+  padding-top:0;
+  padding-bottom:0;
+  transform: translateY(-8px);
+  pointer-events:none;
+}
+
+/* PC는 항상 보임 */
+@media (min-width:521px){
+  .settingsPanel{ 
+    display:grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    opacity:1 !important;
+    max-height:none !important;
+    margin-top:12px !important;
+    padding:12px !important;
+    transform:none !important;
+    pointer-events:auto !important;
+  }
+  .controls{
+    grid-template-columns: auto 1fr;
+  }
+}
+
+/* ===== 컨트롤 - Glassmorphism ===== */
+.controls{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+  position:relative;
+  min-width:0;
+  width:100%;
+  touch-action: pan-y;
+}
+
+button, select{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(8px);
+  color:var(--text);
+  padding:12px 16px;
+  cursor:pointer;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, box-shadow 0.2s ease;
+  min-width:0;
+  max-width:100%;
+  min-height:44px;
+  box-shadow:0 2px 8px rgba(138, 43, 226, 0.1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+button:active, select:active{
+  transform: scale(0.96);
+  box-shadow:0 1px 4px rgba(138, 43, 226, 0.15);
+}
+
+button:hover, select:hover{
+  background:rgba(255,255,255,.06);
+  box-shadow:0 3px 10px rgba(138, 43, 226, 0.12);
+}
+
+select#level{
+  font-weight:600;
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.08);
+  color: var(--text);
+  min-height:44px;
+  box-shadow:0 2px 8px rgba(138, 43, 226, 0.1);
+}
+
+select#level option{
+  color:#1f2937;
+  background:#ffffff;
+}
+select#level option:checked{
+  background:#e6f4ee;
+  color:#0f172a;
+  font-weight:700;
+}
+
+button.primary{
+  background:rgba(110,231,183,.18);
+  border-color:rgba(110,231,183,.45);
+}
+
+/* ✅ 메시지 카드 아래에 '맞춘 개수 / 지금 점수'만 */
+.statsArea{
+  margin-top:12px;
+  transition: all 0.3s ease;
+}
+
+/* 게임 완료 시 점수판 스타일 */
+.statsArea.isComplete .pill{
+  background: rgba(110,231,183,.15);
+  border-color: rgba(110,231,183,.5);
+  animation: statsCompletePulse 1.5s ease;
+}
+
+.statsArea.isComplete .pill.live::before{
+  opacity: 0.6;
+  animation: liveSpinOnce 0.6s linear infinite;
+}
+
+@keyframes statsCompletePulse{
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* ===== 상태(맞춘 개수 / 지금 점수) ===== */
+.stats{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:10px;
+  margin-top:12px;
+}
+
+.pill{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:var(--fs-pill);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-width:0;
+  position:relative;
+  flex-wrap:wrap;
+  box-shadow:0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
+  backdrop-filter:blur(8px);
+}
+
+.pill > span:first-child{
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.pill b{
+  white-space:nowrap;
+  font-weight:700;
+  flex-shrink:0;
+  transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display:inline-block;
+}
+.pill b.numberPop{
+  animation: numberPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes numberPop{
+  0%{ transform: scale(1); }
+  50%{ transform: scale(1.3); }
+  100%{ transform: scale(1); }
+}
+
+.pill .totalPairs{
+  color:var(--muted);
+  font-size:0.9em;
+  opacity:0.8;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+.pill .scoreHint{
+  color:var(--muted);
+  font-size:0.75em;
+  opacity:0.7;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+
+/* =========================
+   LIVE PILL (살아있는 테두리)
+   - '맞춘 개수' / '지금 점수' 2개만 적용
+   - ✅ 평소엔 정지, 값 변경 시만 1~2초 회전(1회)
+   ========================= */
+.pill.live{
+  position:relative;
+  overflow:hidden;
+  background: rgba(110,231,183,.10);
+  border: 1px solid rgba(110,231,183,.35);
+}
+
+/* 회전 링 레이어: 기본은 숨김(정지 상태) */
+.pill.live::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:999px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(110,231,183,0.0),
+    rgba(110,231,183,0.55),
+    rgba(110,231,183,0.0)
+  );
+  opacity:0;
+  z-index:0;
+}
+
+/* ✅ 값이 바뀔 때 ui.js가 .spin을 잠깐 붙여서 1회 회전 */
+.pill.live.spin::before{
+  opacity:1;
+  animation: liveSpinOnce 0.6s linear;
+}
+
+.pill.live > *{
+  position:relative;
+  z-index:1;
+}
+
+@keyframes liveSpinOnce{
+  from{ transform: rotate(0deg); }
+  to  { transform: rotate(360deg); }
+}
+
+/* 메시지 */
+.messageCard{ min-height:92px; }
+#msg{
+  font-size:var(--fs-msg);
+  font-weight:900;
+  white-space:pre-line;
+  min-height:28px;
+  transition:opacity 0.4s ease;
+  opacity:1;
+}
+#msg.fadeOut{
+  opacity:0;
+}
+#hint{
+  font-size:var(--fs-hint);
+  color:var(--muted);
+  margin-top:4px;
+  min-height:22px;
+  white-space:pre-line;
+  transition:opacity 0.4s ease;
+  opacity:1;
+}
+#hint.fadeOut{
+  opacity:0;
+}
+
+/* 보드 */
+.board{ display:grid; gap:var(--gap); }
+
+.tile{
+  height:var(--tile-h);
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--tile-fs);
+  cursor:pointer;
+  user-select:none;
+  position:relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  will-change: transform;
+}
+
+/* 클릭 시 피드백 */
+.tile:active:not(.matched){
+  transform: scale(0.95);
+}
+
+/* 호버 효과 (PC용) */
+@media (hover: hover){
+  .tile:not(.matched):not([data-state="up"]):hover{
+    border-color:rgba(255,255,255,.20);
+    box-shadow:0 2px 8px rgba(0,0,0,.2);
+  }
+}
+
+.tile[data-state="down"]::after{
+  content:"?";
+  font-weight:900;
+  transition: opacity 0.2s ease;
+}
+
+.tile[data-state="up"]::after{
+  content:attr(data-emoji);
+  animation: tileFlipIn 0.25s ease;
+}
+
+@keyframes tileFlipIn{
+  0%{
+    opacity:0;
+    transform:scale(0.8) rotateY(-90deg);
+  }
+  100%{
+    opacity:1;
+    transform:scale(1) rotateY(0deg);
+  }
+}
+
+.tile.matched{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+  animation: matchedPulse 0.5s ease;
+}
+
+@keyframes matchedPulse{
+  0%{ transform: scale(1); }
+  30%{ transform: scale(1.15); }
+  60%{ transform: scale(0.95); }
+  100%{ transform: scale(1); }
+}
+
+.tile.shake{
+  animation: shakeCard 0.4s ease;
+}
+
+@keyframes shakeCard{
+  0%, 100%{ transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90%{ transform: translateX(-8px); }
+  20%, 40%, 60%, 80%{ transform: translateX(8px); }
+}
+
+/* 리워드 */
+.reward{
+  position:fixed;
+  z-index:9999;
+  transform: translate(-50%, -50%);
+  pointer-events:none;
+  font-weight:900;
+  font-size:18px;
+  color:var(--accent);
+  text-shadow:0 6px 18px rgba(0,0,0,.55);
+  will-change: transform, opacity;
+  animation: rewardFloat .9s ease forwards;
+}
+@keyframes rewardFloat{
+  0%   { opacity:0; transform: translate(-50%, -35%) scale(.95); }
+  15%  { opacity:1; }
+  100% { opacity:0; transform: translate(-50%, -95%) scale(1.05); }
+}
+
+/* 하단 토스트 메시지 */
+.restartToast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  z-index:10000;
+  background:rgba(110,231,183,.15);
+  border:1px solid rgba(110,231,183,.35);
+  border-radius:999px;
+  padding:10px 20px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s ease, transform 0.3s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}
+.restartToast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* 모달 */
+#modalBack{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:9000;
+  display:none;
+  pointer-events:none;   /* ✅ 추가: 안 보일 때 터치도 막지 않게 */
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+/* 모달 열림 상태 */
+#modalBack.isOpen{
+  display:flex;
+  pointer-events:auto;
+}
+#modalCard{
+  width:min(520px, 100%);
+  background:rgba(20, 27, 63, 0.85);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55), 0 4px 16px rgba(138, 43, 226, 0.2);
+  padding:20px 20px 18px;
+}
+.modalTitle{ font-weight:900; font-size:18px; }
+.modalBody{
+  margin-top:10px;
+  line-height:1.8;
+  color:var(--muted);
+  font-size:14px;
+}
+.modalStep{ display:flex; gap:10px; margin:10px 0; }
+.modalNum{
+  width:26px; height:26px;
+  border-radius:999px;
+  background:rgba(110,231,183,.18);
+  border:1px solid rgba(110,231,183,.45);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:var(--text);
+  flex:0 0 auto;
+}
+.modalActions{
+  margin-top:14px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+.modalActions button{
+  font-size:16px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  backdrop-filter:blur(8px);
+  color:var(--text);
+  padding:12px 20px;
+  cursor:pointer;
+  min-height:44px;
+  box-shadow:0 2px 8px rgba(138, 43, 226, 0.1);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, box-shadow 0.2s ease;
+}
+.modalActions button:active{
+  transform: scale(0.96);
+  box-shadow:0 1px 4px rgba(138, 43, 226, 0.15);
+}
+.modalActions button:hover{
+  background:rgba(255,255,255,.06);
+  box-shadow:0 3px 10px rgba(138, 43, 226, 0.12);
+}
+
+/* 결과 모달 */
+#resultModalBack{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  z-index:9001;
+  display:none;
+  pointer-events:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+#resultModalBack.isOpen{
+  display:flex;
+  pointer-events:auto;
+}
+#resultModalCard{
+  width:min(520px, 100%);
+  background:#141b3f;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:22px;
+  box-shadow:0 18px 48px rgba(0,0,0,.55);
+  padding:24px 20px 20px;
+}
+.resultModalTitle{
+  font-weight:900;
+  font-size:24px;
+  text-align:center;
+  margin-bottom:20px;
+  color:var(--text);
+}
+.resultModalBody{
+  margin-top:10px;
+}
+.resultStats{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+  margin-bottom:20px;
+}
+.resultStatItem{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:12px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+}
+.resultStatLabel{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:600;
+}
+.resultStatValue{
+  font-size:20px;
+  font-weight:900;
+  color:var(--text);
+}
+.resultMessage{
+  text-align:center;
+  font-size:16px;
+  color:var(--muted);
+  line-height:1.6;
+  margin-top:16px;
+  padding:12px;
+  background:rgba(110,231,183,.08);
+  border:1px solid rgba(110,231,183,.2);
+  border-radius:12px;
+}
+.resultModalActions{
+  margin-top:20px;
+  display:flex;
+  justify-content:center;
+}
+.resultRestartBtn{
+  font-size:18px;
+  font-weight:800;
+  border-radius:999px;
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
+  color:var(--text);
+  padding:14px 28px;
+  cursor:pointer;
+  min-width:200px;
+  transition: all 0.2s ease;
+}
+.resultRestartBtn:hover{
+  background:rgba(110,231,183,.25);
+  transform: scale(1.02);
+}
+.resultRestartBtn:active{
+  transform: scale(0.98);
+}
+
+/* =========================
+   PEEK MODE (힌트시간 느낌)
+   ========================= */
+body.peeking #board{
+  transform: scale(1.03);
+  transform-origin: center top; /* ✅ 추가 */
+  transition: transform .18s ease;
+  will-change: transform;       /* ✅ 추가 */
+}
+
+body.peeking .card:not(.messageCard){
+  opacity: .88;
+  transition: opacity .18s ease;
+}
+
+/* 상단 오버레이 배너 */
+.hmPeekBanner{
+  position: fixed;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%) translateY(-6px);;
+  z-index: 99999;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.35);
+  color: var(--text);
+
+  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -.2px;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.hmPeekBanner.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hmPeekBadge{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(110,231,183,.18);
+  border: 1px solid rgba(110,231,183,.45);
+}
+
+.hmPeekCount{
+  opacity: .9;
+  font-weight: 900;
+}
+
+body.peeking .tile{
+  filter: brightness(1.05) saturate(0.95);
+}
+
+/* ✅ 완료 바(작게) */
+.hmFinishBar{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hmFinishBar .txt{
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.hmFinishBar .sub{
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.hmFinishBar .btn{
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ✅ 완료 바 텍스트 영역 */
+.hmFinishText{
+  flex: 1;
+  min-width: 0; /* 텍스트 줄바꿈 허용 */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hmFinishTitle{
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
+}
+
+.hmFinishSub{
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
+}
+
+.hmFinishBtn{
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0; /* 버튼 크기 고정 */
+}
+
+/* 모바일에서 pill 레이아웃 개선 및 여백 조정 */
+@media (max-width: 520px){
+  .pill{
+    padding:6px 10px;
+    gap:6px;
+    font-size:calc(var(--fs-pill) * 0.95);
+  }
+  
+  .pill > span:first-child{
+    font-size:0.9em;
+  }
+  
+  .pill .totalPairs{
+    font-size:0.85em;
+  }
+  
+  /* 모바일 여백 미세 조정 */
+  .wrap{
+    gap:16px; /* 14px → 16px (+2px) */
+  }
+  
+  /* 상단 카드 여백 축소 - controls가 더 잘 보이도록 */
+  .card:first-child{
+    padding: 12px 14px; /* 16px → 12px 14px (상하 여백 축소) */
+  }
+  
+  .sub{
+    margin-top: 6px; /* 8px → 6px */
+  }
+  
+  .settingsPanel{
+    margin-top: 10px; /* 12px → 10px */
+    padding: 10px; /* 10px 유지 */
+  }
+  
+  .controls{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .controls #level{
+    width:100%;
+    min-width:0;
+    height:36px;
+    padding:8px 10px;
+    font-size:13px;
+  }
+  .controls #peekBtn{
+    flex:0 0 auto;
+    white-space:nowrap;
+    max-width:44%;
+    height:36px;
+    padding:8px 10px;
+    font-size:13px;
+  }
+  @media (max-width: 380px){
+    .controls #level{ font-size:12px; }
+    .controls #peekBtn{ font-size:12px; padding:8px 8px; }
+  }
+  
+  .hmFinishBar{
+    flex-direction: column; /* 세로 배치로 변경 */
+    align-items: stretch; /* 전체 너비 사용 */
+    margin-top:14px; /* 10px → 14px (+4px) */
+    padding:14px 16px; /* 10px 12px → 14px 16px (+4px) */
+    gap:12px; /* 텍스트와 버튼 사이 간격 (10px → 12px) */
+  }
+  
+  .hmFinishText{
+    width: 100%; /* 모바일에서 텍스트 영역 전체 너비 */
+    gap:6px; /* 4px → 6px (+2px) */
+  }
+  
+  .hmFinishSub{
+    margin-top:4px; /* 2px → 4px (+2px) */
+  }
+  
+  .hmFinishBtn{
+    width: 100%; /* 모바일에서 버튼 전체 너비 */
+    display: flex;
+    justify-content: center; /* 버튼 텍스트 중앙 정렬 */
+    align-items: center;
+  }
+}
+</style>
+</head>
 <body>
 <div class="wrap">
 
@@ -149,9 +1074,8 @@
        preload="auto"
        playsinline></audio>
 
-<!-- JS 로드 순서 중요 -->
-<script src="./config.js?v=6"></script>
-<script src="./main.js?v=6"></script>
+<!-- JS 로드 -->
+<script src="./main.js?v=7"></script>
 
 </body>
 </html>
