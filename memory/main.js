@@ -67,6 +67,40 @@
   let finishTimer = null;
   let gameStartTime = null; // 게임 시작 시간
 
+  // BGM 관련 전역 변수
+  let bgmOn = false;
+  let currentBgmSrc = null; // 직전 재생된 곡 저장
+  const bgmTracks = [
+    'assets/audio/piano1.mp3',
+    'assets/audio/piano2.mp3',
+    'assets/audio/piano3.mp3',
+    'assets/audio/acoustic1.mp3',
+    'assets/audio/acoustic2.mp3',
+    'assets/audio/acoustic3.mp3'
+  ];
+  function selectRandomTrack(){
+    let selected;
+    do {
+      selected = bgmTracks[Math.floor(Math.random() * bgmTracks.length)];
+    } while (selected === currentBgmSrc && bgmTracks.length > 1);
+    currentBgmSrc = selected;
+    return selected;
+  }
+
+  // BGM 재생 함수
+  async function playBgm(){
+    if(!bgm) return;
+    try{
+      bgm.load();
+      const p = bgm.play();
+      if(p && typeof p.then === "function"){
+        await p;
+      }
+    }catch(e){
+      console.log("BGM play error:", e);
+    }
+  }
+
   // ============================================================
   // [Storage] - localStorage 저장/불러오기
   // ============================================================
@@ -845,11 +879,16 @@
   function initBgm(){
     if(!bgm || !bgmBtn) return;
 
-    bgm.volume = 0.35;
+    bgm.volume = 0.15;
+    bgm.loop = true;
     bgm.muted = false;
 
+    // 기본 곡 설정 (랜덤 선택)
+    bgm.src = selectRandomTrack();
+
     // 디폴트는 무조건 꺼짐
-    let on = false;
+    bgmOn = false;
+    bgm.pause(); // 명시적으로 일시정지하여 자동 재생 방지
     let loadedOnce = false;
 
     // 저장값이 있어도 "처음 진입 자동 켜짐"은 하지 않음
@@ -857,6 +896,8 @@
       const saved = localStorage.getItem(BGM_KEY_ON);
       if(saved === null){
         localStorage.setItem(BGM_KEY_ON, "0");
+      }else{
+        bgmOn = saved === "1";
       }
     }catch(e){}
 
@@ -876,18 +917,18 @@
     }
 
     function setLabel(){
-      bgmBtn.textContent = on ? "🎵 따뜻한 멜로디" : "🔇 고요하게";
+      bgmBtn.textContent = bgmOn ? "🎵 따뜻한 멜로디" : "🔇 고요하게";
     }
 
     function saveOn(){
-      try{ localStorage.setItem(BGM_KEY_ON, on ? "1" : "0"); }catch(e){}
+      try{ localStorage.setItem(BGM_KEY_ON, bgmOn ? "1" : "0"); }catch(e){}
     }
 
     let timeSaveTimer = null;
     function startTimeSaver(){
       stopTimeSaver();
       timeSaveTimer = setInterval(() => {
-        if(!on) return;
+        if(!bgmOn) return;
         if(!bgm || bgm.paused) return;
         try{ localStorage.setItem(BGM_KEY_TIME, String(bgm.currentTime || 0)); }catch(e){}
       }, 1000);
@@ -904,10 +945,7 @@
 
       restoreTimeIfAny();
 
-      const p = bgm.play();
-      if(p && typeof p.then === "function"){
-        await p;
-      }
+      await playBgm();
     }
 
     function stop(){
@@ -919,22 +957,22 @@
     }
 
     bgmBtn.addEventListener("click", async () => {
-      if(!on){
-        on = true;
+      if(!bgmOn){
+        bgmOn = true;
         saveOn();
         setLabel();
         try{
           await safePlay();
           startTimeSaver();
         }catch(e){
-          on = false;
+          bgmOn = false;
           saveOn();
           setLabel();
           console.log("BGM play error:", e);
           alert("배경음악 재생이 막혔거나 로딩에 실패했어요.\n(휴대폰 무음/블루투스/브라우저 정책/네트워크 확인)");
         }
       }else{
-        on = false;
+        bgmOn = false;
         saveOn();
         setLabel();
         stop();
@@ -942,14 +980,14 @@
     });
 
     document.addEventListener("visibilitychange", () => {
-      if(document.hidden && on){
+      if(document.hidden && bgmOn){
         stop();
       }
     });
 
     bgm.addEventListener("error", () => {
-      if(on){
-        on = false;
+      if(bgmOn){
+        bgmOn = false;
         saveOn();
         setLabel();
         stopTimeSaver();
@@ -1055,6 +1093,12 @@
 
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
       doPeek(autoPeekSec);
+    }
+
+    // 랜덤 BGM 선택 및 재생
+    bgm.src = selectRandomTrack();
+    if(bgmOn){
+      playBgm();
     }
   }
 
