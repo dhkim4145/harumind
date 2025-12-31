@@ -251,7 +251,8 @@ button, select{
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, box-shadow 0.2s ease;
   min-width:0;
   max-width:100%;
-  min-height:44px;
+  height:44px; /* 고정 높이로 변경하여 내부 텍스트 변화 시에도 높이 유지 */
+  box-sizing:border-box;
   box-shadow:0 2px 8px rgba(138, 43, 226, 0.1);
   display:flex;
   align-items:center;
@@ -449,7 +450,7 @@ button.primary{
 }
 
 /* 보드 */
-.board{ display:grid; gap:var(--gap); }
+.board{ display:grid; gap:var(--gap); overflow:hidden; }
 
 .tile{
   height:var(--tile-h);
@@ -463,6 +464,7 @@ button.primary{
   cursor:pointer;
   user-select:none;
   position:relative;
+  box-sizing:border-box;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   will-change: transform;
 }
