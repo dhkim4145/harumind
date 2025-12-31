@@ -468,14 +468,7 @@ button.primary{
   touch-action: none; /* 더블 탭 확대 완전 차단 */ 
   padding: 8px; /* 카드 흔들 때 컨테이너 경계에 부딪히지 않게 안전 여백 추가 */
   perspective: 1000px; /* 하드웨어 가속으로 떨림 방지 */
-  contain: layout size; /* 내부 애니메이션이 외부로 진동 전달되지 않게 격리 */
-}
-
-.tile{
-  height:var(--tile-h);
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
+  contain: layout paint; /* 내부 애니메이션이 외부로 진동 전달되지 않게 격리, 화면 밖으로 나가지 않게 */
   display:flex;
   align-items:center;
   justify-content:center;
