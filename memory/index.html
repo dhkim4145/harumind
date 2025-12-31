@@ -37,7 +37,7 @@
   gtag('config', 'G-JX8PENN22H');
 </script>
 
-<link rel="stylesheet" href="./style.css?v=6">
+<link rel="stylesheet" href="./style.css?v=7">
 </head>
 
 <body>
@@ -54,9 +54,9 @@
     <div class="sub">같은 그림 2개를 천천히 찾아보세요 🙂</div>
 
     <div class="settingsPanel" id="settingsPanel">
-      <button id="sfxBtn" type="button">🔔 효과음</button>
-      <button id="bgmBtn" type="button">🎵 배경음악</button>
-      <button id="howBtn" type="button">❓ 방법 보기</button>    
+      <button id="sfxBtn" type="button">✨ 작은 소리</button>
+      <button id="bgmBtn" type="button">🔇 고요하게</button>
+      <button id="howBtn" type="button">💡 이렇게 놀아요</button>    
     </div>
 
     <div class="controls">
@@ -64,9 +64,10 @@
         <option value="2x2">쉬움 (2x2)</option>
         <option value="3x2" selected>보통 (3x2)</option>
         <option value="4x3">어려움 (4x3)</option>
+        <option value="4x4">매우 어려움 (4x4)</option>
       </select>
 
-      <button id="peekBtn" type="button">👀 잠깐보기 (2초)</button>
+      <button id="peekBtn" type="button">👁️ 살짝 엿보기</button>
     </div>
 
     <select id="peekSec" style="display:none">
@@ -82,8 +83,8 @@
 
     <div class="statsArea">
       <div class="stats">
-        <div class="pill live"><span>맞춘 개수</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
-        <div class="pill live"><span>지금 점수</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
+        <div class="pill live"><span>찾아준 인연 🤝</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
+        <div class="pill live"><span>마음 온도 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
       </div>
     </div>
   </div>
@@ -99,20 +100,45 @@
 
 </div>
 
-<div id="modalBack" role="dialog" aria-modal="true" aria-label="방법 보기">
+<div id="modalBack" role="dialog" aria-modal="true" aria-label="이렇게 놀아요">
   <div id="modalCard">
-    <div class="modalTitle">방법 보기</div>
+    <div class="modalTitle">마음의 평온을 찾아가는 방법</div>
     <div class="modalBody">
-      <div class="modalStep"><div class="modalNum">1</div><div>카드를 눌러서 그림을 확인해요.</div></div>
-      <div class="modalStep"><div class="modalNum">2</div><div>같은 그림 2개를 찾으면 맞아요.</div></div>
-      <div class="modalStep"><div class="modalNum">3</div><div>헷갈리면 <b>잠깐보기(2초)</b>를 눌러요.</div></div>
-      <div class="modalStep"><div class="modalNum">4</div><div>난이도는 바꿔서 다시 해볼 수 있어요.</div></div>
+      <div class="modalStep"><div class="modalNum">1</div><div>인연 찾기: 뒤집힌 카드 속에서 서로 닮은 짝꿍을 찾아주세요.</div></div>
+      <div class="modalStep"><div class="modalNum">2</div><div>리듬 타기: 연속으로 짝을 찾아주면 '마음 온도'가 더 따뜻하게 올라가요.</div></div>
+      <div class="modalStep"><div class="modalNum">3</div><div>기억의 조각: 매일 새로운 배치가 기다립니다. 당신의 호흡대로 천천히 즐겨보세요.</div></div>
       <div style="margin-top:10px;color:var(--muted);font-size:12px;">
         * 천천히 해도 괜찮아요 🙂
       </div>
     </div>
     <div class="modalActions">
       <button id="modalCloseBtn" type="button">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
+  <div id="resultModalCard">
+    <div class="resultModalTitle" id="resultModalTitle">🎉 완료!</div>
+    <div class="resultModalBody" id="resultModalBody">
+      <div class="resultStats">
+        <div class="resultStatItem">
+          <span class="resultStatLabel">소요 시간</span>
+          <span class="resultStatValue" id="resultTime">0초</span>
+        </div>
+        <div class="resultStatItem">
+          <span class="resultStatLabel">최고 콤보</span>
+          <span class="resultStatValue" id="resultCombo">0</span>
+        </div>
+        <div class="resultStatItem">
+          <span class="resultStatLabel">최종 점수</span>
+          <span class="resultStatValue" id="resultScore">0</span>
+        </div>
+      </div>
+      <div class="resultMessage" id="resultMessage">정말 잘하셨어요! 🎊</div>
+    </div>
+    <div class="resultModalActions">
+      <button id="resultRestartBtn" type="button" class="resultRestartBtn">🔁 다시 하기</button>
     </div>
   </div>
 </div>
@@ -124,8 +150,8 @@
        playsinline></audio>
 
 <!-- JS 로드 순서 중요 -->
-<script src="./config.js?v=5"></script>
-<script src="./main.js?v=5"></script>
+<script src="./config.js?v=6"></script>
+<script src="./main.js?v=6"></script>
 
 </body>
 </html>

@@ -18,9 +18,11 @@
   let totalPairs = 0;
   let peekTimer = null;
   let streak = 0;
+  let maxStreak = 0; // 최고 콤보
   let tempMsgTimer = null;
   let currentStateMsg = { msg: "", hint: "" };
   let finishTimer = null;
+  let gameStartTime = null; // 게임 시작 시간
 
   // ============================================================
   // [Storage] - localStorage 저장/불러오기
@@ -229,7 +231,7 @@
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔔 효과음: 켜짐" : "🔕 효과음: 꺼짐";
+    if(sfxBtn) sfxBtn.textContent = sfxOn ? "✨ 작은 소리" : "🔇 고요하게";
   }
 
   // 비프음
@@ -284,8 +286,25 @@
 
   // 메시지/통계
   function setMessage(msg, hint){
-    if(msgEl) msgEl.textContent = msg || "";
-    if(hintEl) hintEl.textContent = hint || "";
+    // 페이드 아웃
+    if(msgEl){
+      msgEl.classList.add("fadeOut");
+    }
+    if(hintEl){
+      hintEl.classList.add("fadeOut");
+    }
+    
+    // 페이드 인
+    setTimeout(() => {
+      if(msgEl){
+        msgEl.textContent = msg || "";
+        msgEl.classList.remove("fadeOut");
+      }
+      if(hintEl){
+        hintEl.textContent = hint || "";
+        hintEl.classList.remove("fadeOut");
+      }
+    }, 200);
   }
 
   // LIVE PILL: 값이 바뀔 때만 1회 회전
@@ -300,6 +319,58 @@
     setTimeout(() => pill.classList.remove("spin"), 1200);
   }
 
+  // 숫자 애니메이션
+  function animateNumber(element){
+    if(!element) return;
+    element.classList.remove("numberPop");
+    void element.offsetWidth; // reflow
+    element.classList.add("numberPop");
+    setTimeout(() => {
+      element.classList.remove("numberPop");
+    }, 500);
+  }
+
+  // 하트 가루 효과
+  function launchHeartConfetti(targetElement){
+    if(!targetElement) return;
+    
+    const rect = targetElement.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    for(let i = 0; i < 8; i++){
+      const heart = document.createElement("div");
+      heart.textContent = "💖";
+      heart.style.position = "fixed";
+      heart.style.left = centerX + "px";
+      heart.style.top = centerY + "px";
+      heart.style.fontSize = (12 + Math.random() * 8) + "px";
+      heart.style.pointerEvents = "none";
+      heart.style.zIndex = "10001";
+      heart.style.opacity = "0.9";
+      
+      const angle = (Math.PI * 2 * i) / 8;
+      const distance = 30 + Math.random() * 20;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      
+      heart.style.setProperty("--dx", dx + "px");
+      heart.style.setProperty("--dy", dy + "px");
+      heart.style.setProperty("--rot", (Math.random() * 360) + "deg");
+      
+      document.body.appendChild(heart);
+      
+      // 애니메이션 적용
+      requestAnimationFrame(() => {
+        heart.style.transition = "all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        heart.style.transform = `translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0)`;
+        heart.style.opacity = "0";
+      });
+      
+      setTimeout(() => heart.remove(), 800);
+    }
+  }
+
   function renderStats({matched, score, totalPairs}){
     const mStr = String(matched);
     const sStr = String(score);
@@ -307,6 +378,7 @@
     if(matchedEl){
       if(matchedEl.textContent !== mStr){
         matchedEl.textContent = mStr;
+        animateNumber(matchedEl);
         pulseLivePill(matchedPill);
       }
     }
@@ -319,6 +391,7 @@
     if(scoreEl){
       if(scoreEl.textContent !== sStr){
         scoreEl.textContent = sStr;
+        animateNumber(scoreEl);
         pulseLivePill(scorePill);
       }
     }
@@ -671,7 +744,7 @@
     }
 
     function setLabel(){
-      bgmBtn.textContent = on ? "🎵 배경음악 켜짐" : "🔇 배경음악 꺼짐";
+      bgmBtn.textContent = on ? "🎵 따뜻한 멜로디" : "🔇 고요하게";
     }
 
     function saveOn(){
@@ -828,6 +901,8 @@
     matched = 0;
     score = 0;
     streak = 0;
+    maxStreak = 0;
+    gameStartTime = Date.now(); // 게임 시작 시간 기록
 
     const level = levelSel.value;
     const cards = seededCards(level);
@@ -835,7 +910,7 @@
     renderStats({ matched, score, totalPairs });
     clearFinishState();
     setStatsComplete(false);
-    setStateMessage("같은 그림을 찾아볼까요?", "카드를 눌러 같은 그림을 찾아보세요.");
+    setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
 
     cards.forEach(emoji=>{
       const t = document.createElement("div");
@@ -851,6 +926,11 @@
     }
   }
 
+  // 게임 진행 중인지 확인
+  function isGameInProgress(){
+    return first !== null || peekTimer !== null || matched > 0;
+  }
+
   function clickTile(t){
     if(lock || t.dataset.state === "up" || t.classList.contains("matched")) return;
 
@@ -858,8 +938,8 @@
 
     if(!first){
       first = t;
-      showTempMessage("👀 잘 보고 있어요…", "", 800);
-      setStateMessage("같은 그림을 찾아볼까요?", "");
+      showTempMessage("어디에 있을까요? 마음의 눈으로 슥- 보세요 🧐", "", 800);
+      setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
       return;
     }
 
@@ -867,26 +947,38 @@
     clearTempMsgTimer();
 
     if(first.dataset.emoji === t.dataset.emoji){
+      // 성공 애니메이션
       first.classList.add("matched");
       t.classList.add("matched");
 
       matched++;
       streak++;
+      maxStreak = Math.max(maxStreak, streak);
 
       const pts = C.comboPoints(streak);
       score += pts;
 
       showReward(t, `+${pts}`);
       renderStats({ matched, score, totalPairs });
+      
+      // 매칭 성공 시 하트 가루 효과
+      if(scorePill){
+        launchHeartConfetti(scorePill);
+      }
 
       playBeep(820 + Math.min(streak,6)*35, 55, 0.015);
 
       clearTempMsgTimer();
       setTimeout(() => {
         if(matched === 1){
-          setStateMessage("🎉 하나 찾았어요!", "남은 그림도 천천히 찾아보세요.\n(연속으로 맞추면 더 많은 점수를 얻을 수 있어요!)");
+          setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
         }else if(matched < totalPairs){
-          setStateMessage("👍 잘하고 있어요.", "남은 그림도 천천히 찾아보세요.");
+          // 연속 매칭 중인지 확인 (streak >= 2)
+          if(streak >= 2){
+            setStateMessage("와우! 마음이 척척 통하고 있어요! 😍", "지금 이 리듬을 놓치지 마세요!");
+          } else {
+            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+          }
         }
       }, 200);
 
@@ -898,19 +990,25 @@
       }
 
     }else{
+      // 실패 애니메이션
+      first.classList.add("shake");
+      t.classList.add("shake");
+      
       streak = 0;
       playBeep(320, 70, 0.012);
 
       clearTempMsgTimer();
-      setMessage("🙂 괜찮아요.", "다시 천천히 찾아보세요.");
+      setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
 
       setTimeout(()=>{
+        first.classList.remove("shake");
+        t.classList.remove("shake");
         first.dataset.state = "down";
         t.dataset.state = "down";
         first = null;
         lock = false;
         
-        setStateMessage("같은 그림을 찾아볼까요?", "");
+        setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
       }, C.MISMATCH_MS);
     }
   }
@@ -923,17 +1021,96 @@
     renderDaily(dateStr);
 
     clearTempMsgTimer();
-    setStateMessage("🎉 오늘의 게임을 마쳤어요!", "정말 잘하셨어요.");
+    setStateMessage("오늘도 마음의 근육이 한 뼘 더 자라났어요! 🎉", "정말 따뜻한 집중력이었어요.");
 
     setStatsComplete(true);
 
+    // 게임 시간 계산
+    const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+    const minutes = Math.floor(gameTime / 60);
+    const seconds = gameTime % 60;
+    const timeStr = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+
+    // 결과 모달 표시
+    showResultModal({
+      time: timeStr,
+      combo: maxStreak,
+      score: score
+    });
+
     setFinishState({
-      title: "🎉 오늘의 게임을 마쳤어요!",
-      message: "아주 잘하셨어요 🙂",
+      title: "오늘도 마음의 근육이 한 뼘 더 자라났어요! 🎉",
+      message: "정말 따뜻한 집중력이었어요.",
       buttonText: "🔁 다시 해볼까요?",
       hint: "난이도는 위에서 언제든 바꿀 수 있어요.",
       onRestart: () => build(2)
     });
+  }
+
+  // 결과 모달 표시
+  function showResultModal({ time, combo, score }){
+    const resultModalBack = document.getElementById("resultModalBack");
+    const resultModalTitle = document.getElementById("resultModalTitle");
+    const resultTime = document.getElementById("resultTime");
+    const resultCombo = document.getElementById("resultCombo");
+    const resultScore = document.getElementById("resultScore");
+    const resultMessage = document.getElementById("resultMessage");
+    const resultRestartBtn = document.getElementById("resultRestartBtn");
+
+    if(!resultModalBack) return;
+
+    // 결과 메시지 생성
+    let message = "정말 잘하셨어요! 🎊";
+    if(combo >= 5){
+      message = "콤보 마스터! 🔥";
+    } else if(score >= 100){
+      message = "놀라운 실력이에요! ⭐";
+    } else {
+      // time 문자열에서 초 추출 (예: "45초" 또는 "1분 30초")
+      const timeSeconds = time.includes("분") 
+        ? parseInt(time.split("분")[0]) * 60 + parseInt(time.split("분")[1].replace("초", ""))
+        : parseInt(time.replace("초", ""));
+      if(timeSeconds < 60){
+        message = "빠르고 정확해요! ⚡";
+      }
+    }
+
+    if(resultTime) resultTime.textContent = time;
+    if(resultCombo) resultCombo.textContent = combo;
+    if(resultScore) resultScore.textContent = score;
+    if(resultMessage) resultMessage.textContent = message;
+
+    resultModalBack.classList.add("isOpen");
+
+    // 다시 하기 버튼 - 이전 리스너 제거 후 새로 등록
+    if(resultRestartBtn){
+      // 기존 이벤트 리스너 제거를 위해 새 함수 생성
+      const handleRestart = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        resultModalBack.classList.remove("isOpen");
+        // 모달이 완전히 닫힌 후 게임 재시작
+        setTimeout(() => {
+          build(2);
+        }, 100);
+      };
+      
+      // 기존 리스너 제거 후 새로 등록
+      resultRestartBtn.replaceWith(resultRestartBtn.cloneNode(true));
+      const newRestartBtn = document.getElementById("resultRestartBtn");
+      if(newRestartBtn){
+        newRestartBtn.addEventListener('click', handleRestart);
+      }
+    }
+
+    // 배경 클릭 시 닫기
+    const closeOnBackdrop = (e) => {
+      if(e.target === resultModalBack){
+        resultModalBack.classList.remove("isOpen");
+        resultModalBack.removeEventListener('click', closeOnBackdrop);
+      }
+    };
+    resultModalBack.addEventListener('click', closeOnBackdrop);
   }
 
   function doPeek(sec){
@@ -958,14 +1135,47 @@
           if(!t.classList.contains("matched")) t.dataset.state = "down";
         });
       }
-      setStateMessage("같은 그림을 찾아볼까요?", "카드를 눌러 같은 그림을 찾아보세요.");
+      setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
       lock = false;
       peekTimer = null;
     }, sec * 1000);
   }
 
+  // 하단 토스트 메시지 표시
+  function showRestartToast(){
+    let toast = document.querySelector(".restartToast");
+    if(!toast){
+      toast = document.createElement("div");
+      toast.className = "restartToast";
+      toast.textContent = "게임이 재시작되었어요";
+      document.body.appendChild(toast);
+    }
+    
+    toast.classList.remove("show");
+    void toast.offsetWidth; // reflow
+    toast.classList.add("show");
+    
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 2000);
+  }
+
   // 이벤트
-  if(levelSel) levelSel.onchange = () => build(2);
+  if(levelSel) {
+    let previousLevel = levelSel.value; // 이전 난이도 저장
+    levelSel.onchange = () => {
+      const newLevel = levelSel.value;
+      // 게임 진행 중이면 즉시 재시작 + 메시지
+      if(isGameInProgress()){
+        previousLevel = newLevel;
+        build(2);
+        showRestartToast();
+      } else {
+        previousLevel = newLevel;
+        build(2);
+      }
+    };
+  }
   if(peekSel) peekSel.onchange = () => {
     doPeek(2);
     peekSel.value = "";
