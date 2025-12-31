@@ -463,10 +463,12 @@ button.primary{
 
 /* 보드 */
 .board{ 
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr);
+  display: grid;
   gap: 10px;
   width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  align-self: stretch;
   height: auto;
   overflow:hidden; 
   touch-action: none; /* 더블 탭 확대 완전 차단 */
