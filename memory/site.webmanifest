@@ -1,0 +1,15 @@
+{
+  "name": "하루마음",
+  "short_name": "하루마음",
+  "start_url": "/memory/",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#f6f7fb",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
