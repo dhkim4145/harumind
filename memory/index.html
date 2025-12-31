@@ -58,7 +58,10 @@
 }
 
 *{box-sizing:border-box;}
-html, body { overflow-x:hidden; }
+html, body { 
+  overflow-x:hidden; 
+  overscroll-behavior-y: none; /* 아래로 당겼을 때 새로고침 방지 */
+}
 
 body{
   margin:0;
@@ -258,6 +261,9 @@ button, select{
   display:flex;
   align-items:center;
   justify-content:center;
+  outline: none; /* 브라우저 기본 강조 효과 제거 */
+  -webkit-tap-highlight-color: transparent; /* 터치 시 하이라이트 제거 */
+  touch-action: manipulation; /* 터치 시 화면 들썩임 방지 */
 }
 
 button:active, select:active{
@@ -452,7 +458,7 @@ button.primary{
 }
 
 /* 보드 */
-.board{ display:grid; gap:var(--gap); overflow:hidden; }
+.board{ display:grid; gap:var(--gap); overflow:hidden; touch-action: manipulation; }
 
 .tile{
   height:var(--tile-h);
