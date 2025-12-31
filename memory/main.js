@@ -274,7 +274,7 @@
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    if(sfxBtn) sfxBtn.textContent = sfxOn ? "✨ 작은 소리" : "🔇 고요하게";
+    if(sfxBtn) sfxBtn.textContent = sfxOn ? "✨ 맑은 소리" : "🔇 소리 없이";
   }
 
   // 비프음
@@ -303,6 +303,95 @@
       osc.start(now);
       osc.stop(now + ms/1000 + 0.02);
       osc.onended = () => ctx.close();
+    }catch(e){}
+  }
+
+  // 성공음: 맑은 실로폰 느낌 + 0.5초 잔향
+  function playSuccessSound(streak = 1){
+    if(!sfxOn) return;
+    try{
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if(!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // base frequency: 맑은 실로폰 느낌 (약간의 스트릭 보정)
+      const baseFreq = 880 + Math.min(streak, 6) * 35;
+
+      // 두 개의 오실레이터로 풍부한 벨(Bell) 톤 생성
+      const osc1 = ctx.createOscillator();
+      osc1.type = "triangle";
+      osc1.frequency.value = baseFreq;
+
+      const osc2 = ctx.createOscillator();
+      osc2.type = "sine";
+      osc2.frequency.value = baseFreq * 2.005; // 약간 비튼 하모닉
+
+      // 톤을 부드럽게 만드는 밴드패스 필터
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = baseFreq * 1.2;
+      filter.Q.value = 6;
+
+      // 잔향/데케이용 게인
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+
+      // 굵은 어택 -> 0.5초에 걸쳐 지수적으로 사라짐 (잔향)
+      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);   // 빠른 어택
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);   // 0.5초 데케이
+
+      // 연결
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.7);
+      osc2.stop(now + 0.7);
+
+      // 안전하게 컨텍스트 종료
+      setTimeout(()=> {
+        try{ ctx.close(); }catch(e){}
+      }, 800);
+    }catch(e){}
+  }
+
+  // 실패음: 200Hz 짧은 '툭' (귀 피로 저감)
+  function playFailSound(){
+    if(!sfxOn) return;
+    try{
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if(!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      osc.type = "square";
+      osc.frequency.value = 200; // 낮고 짧은 '툭' 소리
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.06, now + 0.005);   // 짧은 펀치
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12); // 빠른 감쇠
+
+      // 약간의 하이컷(귀 피로 저감)
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 1200;
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.14);
+
+      setTimeout(()=> {
+        try{ ctx.close(); }catch(e){}
+      }, 220);
     }catch(e){}
   }
 
@@ -1009,7 +1098,8 @@
         launchHeartConfetti(scorePill);
       }
 
-      playBeep(820 + Math.min(streak,6)*35, 55, 0.015);
+      // 변경: 맑은 실로폰 느낌의 성공음 재생 (잔향 포함)
+      playSuccessSound(streak);
 
       clearTempMsgTimer();
       setTimeout(() => {
@@ -1038,7 +1128,8 @@
       t.classList.add("shake");
       
       streak = 0;
-      playBeep(320, 70, 0.012);
+      // 변경: 200Hz 짧은 '툭' 실패음
+      playFailSound();
 
       clearTempMsgTimer();
       setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
