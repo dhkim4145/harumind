@@ -87,6 +87,7 @@ body.bigText{
   display:flex;
   flex-direction:column;
   gap:14px;
+  overflow:hidden; /* 애니메이션 중 미세한 크기 변화가 스크롤바 유도하지 않게 */
 }
 
 .card{
@@ -353,6 +354,7 @@ button.primary{
   flex-shrink:0;
   transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   display:inline-block;
+  font-variant-numeric: tabular-nums; /* 숫자 폭 고정으로 박스 크기 변화 방지 */
 }
 .pill b.numberPop{
   animation: numberPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -508,6 +510,7 @@ button.primary{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
   animation: matchedPulse 0.5s ease;
+  will-change: transform; /* 렌더링 최적화로 주변 레이아웃 영향 최소화 */
 }
 
 @keyframes matchedPulse{
