@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
 
 <!-- 네이버 사이트 소유확인 -->
 <meta name="naver-site-verification" content="9a17421f3eca307a085f00983e810d49b7172fdd" />
@@ -72,6 +72,8 @@ body{
   justify-content:center;
   padding:18px;
   font-size:var(--fs-base);
+  -webkit-font-smoothing: antialiased; /* 폰트 렌더링 고정으로 떨림 방지 */
+  text-rendering: optimizeLegibility; /* 텍스트 렌더링 최적화 */
 }
 
 body.bigText{
@@ -264,7 +266,7 @@ button, select{
   justify-content:center;
   outline: none; /* 브라우저 기본 강조 효과 제거 */
   -webkit-tap-highlight-color: transparent; /* 터치 시 하이라이트 제거 */
-  touch-action: manipulation; /* 터치 시 화면 들썩임 방지 */
+  touch-action: none; /* 더블 탭 확대 완전 차단 */
 }
 
 button:active, select:active{
@@ -463,9 +465,10 @@ button.primary{
   display:grid; 
   gap:var(--gap); 
   overflow:hidden; 
-  touch-action: manipulation; 
+  touch-action: none; /* 더블 탭 확대 완전 차단 */ 
   padding: 8px; /* 카드 흔들 때 컨테이너 경계에 부딪히지 않게 안전 여백 추가 */
   perspective: 1000px; /* 하드웨어 가속으로 떨림 방지 */
+  contain: layout size; /* 내부 애니메이션이 외부로 진동 전달되지 않게 격리 */
 }
 
 .tile{
@@ -484,6 +487,8 @@ button.primary{
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   will-change: transform;
   backface-visibility: hidden; /* 하드웨어 가속으로 떨림 방지 */
+  transform-style: preserve-3d; /* 강제 정수 픽셀 렌더링 */
+  touch-action: none; /* 더블 탭 확대 완전 차단 */
 }
 
 /* 클릭 시 피드백 */
