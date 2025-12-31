@@ -465,10 +465,9 @@ button.primary{
 .board{ 
   display: grid;
   gap: 8px; /* 카드 사이 간격 줄여서 카드 면적 늘림 */
-  width: 95% !important; /* 너비 강제 확장 */
-  max-width: none; /* 최대 너비 제한 해제 */
-  margin: 0 auto;
-  align-self: stretch;
+  width: min(95%, 800px); /* 강력한 너비 확보: 작은 화면 95%, 큰 모니터 최대 800px */
+  max-width: 800px; /* PC 웹 최적화: 최대 800px 확장 */
+  margin: 20px auto; /* PC에서도 화면 정중앙 배치 */
   height: auto;
   overflow:hidden; 
   touch-action: none; /* 더블 탭 확대 완전 차단 */
