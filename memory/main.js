@@ -598,69 +598,36 @@
     });
   }
 
-  // 방법 보기 모달 (수정 버전)
+  // 방법 보기 모달
   function initHowModal(){
     const hBtn = document.getElementById("howBtn");
     const mBack = document.getElementById("modalBack");
     const mClose = document.getElementById("modalCloseBtn");
 
-    // 최소한 열기 버튼과 배경은 있어야 실행합니다.
     if(!hBtn || !mBack) return;
-
-    // 디버깅: 닫기 버튼 객체 확인
-    console.log('닫기 버튼 객체:', mClose);
-    if(mClose) {
-      console.log('닫기 버튼 존재 확인:', mClose);
-      console.log('닫기 버튼 스타일:', window.getComputedStyle(mClose));
-      console.log('닫기 버튼 z-index:', window.getComputedStyle(mClose).zIndex);
-      console.log('닫기 버튼 pointer-events:', window.getComputedStyle(mClose).pointerEvents);
-    }
 
     const open = () => { 
       mBack.style.display = "flex";
-      mBack.classList.add("isOpen"); // CSS의 pointer-events:auto를 위해 클래스 추가
-      // CSS 레이아웃 점검: 모달이 열릴 때 닫기 버튼 상태 확인
-      if(mClose) {
-        setTimeout(() => {
-          const rect = mClose.getBoundingClientRect();
-          console.log('모달 열림 후 닫기 버튼 위치:', rect);
-          console.log('모달 열림 후 닫기 버튼 pointer-events:', window.getComputedStyle(mClose).pointerEvents);
-          console.log('모달 열림 후 modalBack pointer-events:', window.getComputedStyle(mBack).pointerEvents);
-          console.log('모달 열림 후 modalBack z-index:', window.getComputedStyle(mBack).zIndex);
-          console.log('모달 열림 후 modalCard z-index:', window.getComputedStyle(document.getElementById("modalCard")).zIndex);
-        }, 100);
-      }
+      mBack.classList.add("isOpen");
     };
     const close = () => { 
       mBack.style.display = "none";
-      mBack.classList.remove("isOpen"); // 클래스 제거
+      mBack.classList.remove("isOpen");
     };
 
     hBtn.addEventListener('click', open);
 
-    // 닫기 버튼이 HTML에 존재할 때만 리스너 등록
     if(mClose) {
-      // 테스트: 인라인 onclick 이벤트 추가
-      mClose.onclick = () => { 
-        alert('인라인 클릭 성공'); 
-        close(); 
-      };
-      
-      // 기존 addEventListener도 유지 (비교 테스트용)
       mClose.addEventListener('click', (e) => {
-        console.log('addEventListener 클릭 이벤트 발생:', e);
         e.stopPropagation();
         close();
       });
     }
 
-    // 배경 클릭 시 닫기
     mBack.addEventListener('click', (e) => {
-      console.log('modalBack 클릭 이벤트:', e.target, e.currentTarget);
       if(e.target === mBack) close();
     });
 
-    // Esc 키 대응
     document.addEventListener('keydown', (e) => {
       if(e.key === "Escape" && mBack.style.display === "flex") close();
     });
