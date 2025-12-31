@@ -66,6 +66,7 @@
   let currentStateMsg = { msg: "", hint: "" };
   let finishTimer = null;
   let gameStartTime = null; // 게임 시작 시간
+  let lastWidth = window.innerWidth; // 이전 너비 저장 변수
 
   // BGM 관련 전역 변수
   let bgmOn = false;
@@ -880,7 +881,7 @@
     if(!bgm || !bgmBtn) return;
 
     bgm.volume = 0.15;
-    bgm.loop = true;
+    bgm.loop = false; // 한 곡만 반복되지 않도록 false로 설정
     bgm.muted = false;
 
     // 기본 곡 설정 (랜덤 선택)
@@ -891,15 +892,8 @@
     bgm.pause(); // 명시적으로 일시정지하여 자동 재생 방지
     let loadedOnce = false;
 
-    // 저장값이 있어도 "처음 진입 자동 켜짐"은 하지 않음
-    try{
-      const saved = localStorage.getItem(BGM_KEY_ON);
-      if(saved === null){
-        localStorage.setItem(BGM_KEY_ON, "0");
-      }else{
-        bgmOn = saved === "1";
-      }
-    }catch(e){}
+    // 로컬 스토리지에서 불러오지 않고, 무조건 꺼짐 상태 유지
+    // 사용자가 버튼을 눌렀을 때만 저장됨
 
     function restoreTimeIfAny(){
       try{
@@ -982,6 +976,13 @@
     document.addEventListener("visibilitychange", () => {
       if(document.hidden && bgmOn){
         stop();
+      }
+    });
+
+    bgm.addEventListener("ended", () => {
+      if(bgmOn){
+        bgm.src = selectRandomTrack();
+        playBgm();
       }
     });
 
@@ -1375,7 +1376,12 @@
   let resizeTimer = null;
   const handleResize = () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(updateLevelTextForMobile, 150);
+    resizeTimer = setTimeout(() => {
+      if (window.innerWidth !== lastWidth) {
+        updateLevelTextForMobile();
+        lastWidth = window.innerWidth;
+      }
+    }, 150);
   };
   window.addEventListener("resize", handleResize);
   window.addEventListener("orientationchange", handleResize);
