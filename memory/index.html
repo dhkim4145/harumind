@@ -606,6 +606,7 @@ button.primary{
   overflow:hidden; 
   touch-action: none;
   padding: 10px;
+  padding-bottom: 120px;
   perspective: 1000px;
   contain: layout style;
   will-change: transform;
@@ -1032,6 +1033,28 @@ body.peeking .card:not(.messageCard){
 
 body.peeking .tile{
   filter: brightness(1.05) saturate(0.95);
+}
+
+/* 힌트 강조 효과 */
+.tile.hintHighlight{
+  animation: hintGlow 0.8s ease-out;
+  z-index: 10;
+}
+
+@keyframes hintGlow{
+  0%{
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+  }
+  50%{
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 215, 0, 0.8);
+  }
+  100%{
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+  }
 }
 
 /* ✅ 완료 바(작게) */

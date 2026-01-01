@@ -1789,8 +1789,20 @@
     lock = true;
     clearPeekTimer();
 
+    // 게임 보드 위치로 스크롤
     if(board){
-      [...board.children].forEach(t => t.dataset.state = "up");
+      board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    if(board){
+      [...board.children].forEach(t => {
+        t.dataset.state = "up";
+        // 힌트 강조 효과: 황금색 테두리 광채
+        t.classList.add("hintHighlight");
+        setTimeout(() => {
+          t.classList.remove("hintHighlight");
+        }, 800);
+      });
     }
     setMessage("잠깐 보고 기억해요 🙂", "잠시 후 다시 물음표로 돌아갑니다.");
 
