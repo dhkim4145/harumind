@@ -1667,46 +1667,33 @@
         const currentLevel = levelSel?.value || "3x2";
         const levelName = levelMap[currentLevel] || "쉬움 (3쌍)";
         
-        // 날짜 가져오기
-        const today = new Date();
-        const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
-        
         // 마음 선명도에 따른 라벨 결정 (showResultModal에서 이미 계산된 heartIndex 사용)
-        let heartLabel, heartEmoji, heartDescription;
+        let heartLabel, heartEmoji;
         if(heartIndex >= 90){
           heartEmoji = "💎";
           heartLabel = "보석처럼 단단하고 투명한 마음";
-          heartDescription = "(완벽한 집중력!)";
         } else if(heartIndex >= 70){
           heartEmoji = "✨";
           heartLabel = "반짝이는 윤슬을 닮은 마음";
-          heartDescription = "(기분 좋은 몰입)";
         } else if(heartIndex >= 40){
           heartEmoji = "🌿";
           heartLabel = "싱그러운 아침 숲길 같은 마음";
-          heartDescription = "(평온한 상태)";
         } else {
           heartEmoji = "☁️";
           heartLabel = "안개가 살짝 낀 마음";
-          heartDescription = "(잠시 쉬어가도 좋아요)";
         }
         
-        // 공유 텍스트 생성 (감성적인 스토리형, 모바일 최적화)
-        const shareText = `${heartEmoji} ${heartLabel}
+        // 공유 텍스트 생성 (프레임 & 여백 레이아웃)
+        const shareText = `🌿 ${heartLabel} 🌿
 
-${heartDescription}
+━━━━━━━━━━━━━━━━━━━━━━━━
+✨ 마음 선명도: ${heartIndex}% ✨
+━━━━━━━━━━━━━━━━━━━━━━━━
 
-── 🌿 ──
+완벽하면 100% 💎
+리듬을 타면 선명도가 회복돼요 ✨
 
-📅 일시: ${dateStr}
-
-🧩 마음 선명도: ${heartIndex}% (${levelName}) | ${time} | ${combo} Combo
-
-── 🌿 ──
-
-당신에게도 이 평온함을 보낼게요. 🌿
-
-${window.location.href}`;
+"당신에게도 이 평온함을 보낼게요 🌿"`;
         
         try {
           // 클립보드 API 사용
