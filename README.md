@@ -1,8 +1,8 @@
 # 하루마음 (Harumind) - 감성 힐링 카드 게임
 
-> **v1.39** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
+> **v1.40** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
 
-[![Version](https://img.shields.io/badge/version-1.39-blue.svg)](https://github.com/yourusername/harumind)
+[![Version](https://img.shields.io/badge/version-1.40-blue.svg)](https://github.com/yourusername/harumind)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,7 +168,14 @@ GitHub Pages를 통해 자동 배포됩니다:
 
 ## 📝 변경 이력
 
-### v1.39 (현재)
+### v1.40 (현재)
+- 🔥 실시간 콤보 피드백 애니메이션 추가 (2콤보 이상 시 화면에 표시)
+- 🎨 테마 선택 기능 추가 (기본/따뜻한, 다크/밤하늘, 숲속/그린 3가지 테마)
+- 💾 테마 설정 localStorage 저장 및 자동 복원
+- ✨ 콤보 수에 따른 동적 텍스트 크기 및 색상 변화
+- 🌈 테마 전환 시 부드러운 색상 전환 효과
+
+### v1.39
 - 👑 신기록 강조 UI 추가 (점수/시간 신기록 시 반짝이는 뱃지 표시)
 - 🎉 축하 효과음 추가 (게임 완료 시 경쾌한 fanfare 사운드)
 - 🎊 이모지 파편 폭죽 효과와 함께 축하 효과음 연동

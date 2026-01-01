@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.39",
+    VERSION: "v1.40",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -46,6 +46,7 @@
     KEYS: {
       SFX: "harumind_sfx_on",
       BIG: "harumind_bigtext_on",
+      THEME: "harumind_theme",
       DAILY_PREFIX: "harumind_memory_daily_", // + YYYY-MM-DD
     }
   };
@@ -201,10 +202,65 @@
   const modalCard = document.getElementById("modalCard");
   const bgm = document.getElementById("bgm");
   const bgmBtn = document.getElementById("bgmBtn");
+  const themeSelect = document.getElementById("themeSelect");
 
   // 설정 상태
   let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
+  let currentTheme = safeGet(C.KEYS.THEME) || "warm"; // warm, dark, forest
+
+  // 테마 정의
+  const themes = {
+    warm: {
+      name: "기본(따뜻한)",
+      bg: "#0b1020",
+      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, #0b1020 55%, #050813 100%)",
+      text: "#e8ecff",
+      muted: "#b9c2ff",
+      accent: "#6ee7b7",
+      cardBg: "rgba(255,255,255,.06)",
+      cardBorder: "rgba(255,255,255,.08)"
+    },
+    dark: {
+      name: "다크(밤하늘)",
+      bg: "#000000",
+      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a0a2e 0%, #000000 55%, #000000 100%)",
+      text: "#f0f0f0",
+      muted: "#a0a0a0",
+      accent: "#9b59b6",
+      cardBg: "rgba(255,255,255,.04)",
+      cardBorder: "rgba(255,255,255,.06)"
+    },
+    forest: {
+      name: "숲속(그린)",
+      bg: "#0a1a0a",
+      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a3a1a 0%, #0a1a0a 55%, #051005 100%)",
+      text: "#e8ffe8",
+      muted: "#b8ffb8",
+      accent: "#52d452",
+      cardBg: "rgba(255,255,255,.05)",
+      cardBorder: "rgba(255,255,255,.08)"
+    }
+  };
+
+  // 테마 적용 함수
+  function applyTheme(themeKey){
+    const theme = themes[themeKey] || themes.warm;
+    const root = document.documentElement;
+    
+    root.style.setProperty("--bg", theme.bg);
+    root.style.setProperty("--text", theme.text);
+    root.style.setProperty("--muted", theme.muted);
+    root.style.setProperty("--accent", theme.accent);
+    root.style.setProperty("--card-bg", theme.cardBg);
+    root.style.setProperty("--card-border", theme.cardBorder);
+    
+    // body 배경 그라데이션 직접 적용
+    document.body.style.background = theme.bgGradient;
+    
+    currentTheme = themeKey;
+    safeSet(C.KEYS.THEME, themeKey);
+  }
 
   // LIVE PILL 대상
   const matchedPill = matchedEl?.closest(".pill");
@@ -307,6 +363,29 @@
         0%   { opacity:0; transform: translate(-50%, -50%) rotate(0deg) scale(0.3); }
         10%  { opacity:1; transform: translate(-50%, -50%) rotate(0deg) scale(var(--scale)); }
         100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.1); }
+      }
+
+      .comboFeedback{
+        position:fixed;
+        z-index:10000;
+        pointer-events:none;
+        font-weight:900;
+        white-space:nowrap;
+        opacity:0;
+        transform:translate(-50%, -50%) scale(0.5);
+        transition:opacity 0.3s ease, transform 0.3s ease;
+        text-align:center;
+        letter-spacing:1px;
+      }
+      .comboFeedback.show{
+        opacity:1;
+        animation: comboFloat 1.5s ease-out forwards;
+      }
+      @keyframes comboFloat{
+        0%   { opacity:0; transform:translate(-50%, -40%) scale(0.5); }
+        15%  { opacity:1; transform:translate(-50%, -50%) scale(1.1); }
+        85%  { opacity:1; transform:translate(-50%, -70%) scale(1); }
+        100% { opacity:0; transform:translate(-50%, -80%) scale(0.8); }
       }
     `;
     document.head.appendChild(s);
@@ -537,6 +616,51 @@
 
     document.body.appendChild(r);
     setTimeout(()=>r.remove(), 900);
+  }
+
+  // 콤보 피드백 애니메이션
+  function showComboFeedback(streak){
+    if(streak <= 1) return; // 2콤보 이상일 때만 표시
+    
+    ensureStyle();
+    
+    const comboText = document.createElement("div");
+    comboText.className = "comboFeedback";
+    
+    // 콤보 수에 따라 텍스트와 스타일 변화
+    const emojis = streak >= 5 ? "🔥🔥🔥" : streak >= 3 ? "🔥🔥" : "🔥";
+    comboText.textContent = `${streak} Combo! ${emojis}`;
+    
+    // 콤보 수에 따라 크기와 색상 변화
+    const baseSize = 24;
+    const sizeMultiplier = 1 + (streak - 2) * 0.1; // 2콤보: 1.0x, 3콤보: 1.1x, ...
+    const fontSize = Math.min(baseSize * sizeMultiplier, 40); // 최대 40px
+    
+    // 색상 그라데이션: 낮은 콤보(노란색) → 높은 콤보(빨강-주황)
+    const hue = Math.min(60 - (streak - 2) * 8, 0); // 60(노랑) → 0(빨강)
+    const saturation = Math.min(85 + streak * 3, 100);
+    const lightness = 65;
+    comboText.style.color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    comboText.style.fontSize = fontSize + "px";
+    comboText.style.textShadow = `0 0 ${fontSize/2}px hsl(${hue}, ${saturation}%, ${lightness}%), 0 0 ${fontSize}px rgba(255, 200, 100, 0.5)`;
+    
+    // 화면 중앙 상단에 표시
+    comboText.style.left = "50%";
+    comboText.style.top = "25%";
+    comboText.style.transform = "translate(-50%, -50%)";
+    
+    document.body.appendChild(comboText);
+    
+    // 애니메이션 시작
+    requestAnimationFrame(() => {
+      comboText.classList.add("show");
+    });
+    
+    // 정리
+    setTimeout(() => {
+      comboText.classList.remove("show");
+      setTimeout(() => comboText.remove(), 500);
+    }, 1500);
   }
 
   // 메시지/통계
@@ -1275,6 +1399,11 @@
       showReward(t, `+${pts}`);
       renderStats({ matched, score, totalPairs });
       
+      // 콤보 피드백 표시 (2콤보 이상)
+      if(streak >= 2){
+        showComboFeedback(streak);
+      }
+      
       // 매칭 성공 시 하트 가루 효과
       if(scorePill){
         launchHeartConfetti(scorePill);
@@ -1554,6 +1683,17 @@
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
+  
+  // 테마 선택 이벤트
+  if(themeSelect){
+    themeSelect.value = currentTheme;
+    themeSelect.onchange = () => {
+      applyTheme(themeSelect.value);
+    };
+  }
+  
+  // 초기 테마 적용
+  applyTheme(currentTheme);
 
   // UI 초기화
   initSettingsPanel();
