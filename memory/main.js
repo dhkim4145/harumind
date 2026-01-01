@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.46",
+    VERSION: "v1.48",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -1599,25 +1599,36 @@
         const today = new Date();
         const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
         
-        // 반짝임 지수 계산 (점수 기반, 최대 5개)
-        const sparkleCount = Math.min(5, Math.max(1, Math.floor(score / 50) + 1));
-        const sparkles = "⭐".repeat(sparkleCount);
+        // 점수대별 마음 상태 라벨 결정
+        let heartLabel, heartEmoji, heartDescription;
+        if(score >= 100){
+          heartEmoji = "💎";
+          heartLabel = "보석처럼 단단하고 투명한 마음";
+          heartDescription = "(완벽한 집중력!)";
+        } else if(score >= 80){
+          heartEmoji = "✨";
+          heartLabel = "반짝이는 윤슬을 닮은 마음";
+          heartDescription = "(기분 좋은 몰입)";
+        } else if(score >= 50){
+          heartEmoji = "🌿";
+          heartLabel = "싱그러운 아침 숲길 같은 마음";
+          heartDescription = "(평온한 상태)";
+        } else {
+          heartEmoji = "☁️";
+          heartLabel = "안개가 살짝 낀 마음";
+          heartDescription = "(잠시 쉬어가도 좋아요)";
+        }
         
-        // 공유 텍스트 생성 (박스 형태)
-        const shareText = `╔═══════════════════════════╗
-║   ✨ 하루마음 기록 ✨   ║
-╠═══════════════════════════╣
-║ 📅 날짜: ${dateStr}                ║
-║ 🎮 난이도: ${levelName}            ║
-║ 🏆 최종점수: ${score}점              ║
-║ ⏱️ 소요시간: ${time}                ║
-║ 🔥 최고콤보: ${combo} Combo         ║
-╠═══════════════════════════╣
-║ 내 마음의 반짝임 지수: ${sparkles}  ║
-╠═══════════════════════════╣
-║ 지금 바로 마음을 챙겨보세요!         ║
-║ ${window.location.href}    ║
-╚═══════════════════════════╝`;
+        // 공유 텍스트 생성 (감성적인 스토리형)
+        const shareText = `${heartEmoji} ${heartLabel}
+${heartDescription}
+
+──────────────────
+📅 일시: ${dateStr}
+🧩 기록: ${levelName} | ${time} | ${combo} Combo
+──────────────────
+당신에게도 이 평온함을 보낼게요. 🌿
+${window.location.href}`;
         
         try {
           // 클립보드 API 사용
@@ -1719,7 +1730,7 @@
     if(!toast){
       toast = document.createElement("div");
       toast.className = "shareToast";
-      toast.textContent = "기록이 복사되었습니다. 친구에게 자랑해보세요!";
+      toast.textContent = "오늘의 마음을 복사했습니다. 🌿";
       document.body.appendChild(toast);
     }
     

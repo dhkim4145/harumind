@@ -1,8 +1,8 @@
 # 하루마음 (Harumind) - 감성 힐링 카드 게임
 
-> **v1.46** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
+> **v1.48** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
 
-[![Version](https://img.shields.io/badge/version-1.46-blue.svg)](https://github.com/yourusername/harumind)
+[![Version](https://img.shields.io/badge/version-1.48-blue.svg)](https://github.com/yourusername/harumind)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,7 +168,15 @@ GitHub Pages를 통해 자동 배포됩니다:
 
 ## 📝 변경 이력
 
-### v1.46 (현재) - 최종 밸런스 완성
+### v1.48 (현재) - 감성 라벨 시스템 및 스토리형 공유 UI
+- 💎 점수대별 마음 상태 라벨 시스템 도입 (4단계 감성 표현)
+- ✉️ 스토리형 공유 텍스트: 한 편의 마음 편지 형식으로 재구성
+- 🌿 감성적인 공유 메시지: "당신에게도 이 평온함을 보낼게요"
+- 🎨 디자인 개선: 박스 테두리 제거, 여백과 선(───)만 사용
+- 💬 토스트 메시지 변경: "오늘의 마음을 복사했습니다. 🌿"
+- 📝 공유 문구 레이아웃: 마음 라벨 → 설명 → 기록 정보 → 감성 마무리
+
+### v1.46 - 최종 밸런스 완성
 - 🎴 2D 회전 효과: scaleX() 기반 카드 뒤집기 애니메이션 (0.2초)
 - ✨ 회전 느낌 구현: 카드가 가로로 줄어들었다 펴지는 효과
 - 💬 공유 기능 개선: 박스 형태의 예쁜 텍스트 형식으로 복사
