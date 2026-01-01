@@ -800,6 +800,7 @@ button.primary{
   background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.08);
   border-radius:14px;
+  position:relative;
 }
 .resultStatLabel{
   font-size:12px;
@@ -810,6 +811,33 @@ button.primary{
   font-size:20px;
   font-weight:900;
   color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.resultRecordBadge{
+  font-size:11px;
+  font-weight:800;
+  color:#fde68a;
+  background:rgba(253,230,138,.15);
+  border:1px solid rgba(253,230,138,.4);
+  border-radius:8px;
+  padding:4px 8px;
+  white-space:nowrap;
+  animation: recordGlow 2s ease-in-out infinite;
+  box-shadow:0 0 12px rgba(253,230,138,.3), 0 0 24px rgba(253,230,138,.15);
+}
+@keyframes recordGlow{
+  0%, 100%{
+    box-shadow:0 0 12px rgba(253,230,138,.3), 0 0 24px rgba(253,230,138,.15);
+    transform:scale(1);
+  }
+  50%{
+    box-shadow:0 0 20px rgba(253,230,138,.5), 0 0 40px rgba(253,230,138,.3);
+    transform:scale(1.05);
+  }
 }
 .resultMessage{
   text-align:center;

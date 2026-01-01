@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.38",
+    VERSION: "v1.39",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -141,14 +141,15 @@
   function loadDaily(dateStr){
     try{
       const raw = safeGet(getDailyKey(dateStr));
-      if(!raw) return { clears:0, best:0 };
+      if(!raw) return { clears:0, best:0, bestTime:0 };
       const obj = JSON.parse(raw);
       return {
         clears: toNum(obj?.clears),
         best:   toNum(obj?.best),
+        bestTime: toNum(obj?.bestTime), // 초 단위
       };
     }catch(e){
-      return { clears:0, best:0 };
+      return { clears:0, best:0, bestTime:0 };
     }
   }
 
@@ -156,6 +157,7 @@
     safeSet(getDailyKey(dateStr), JSON.stringify({
       clears: toNum(data?.clears),
       best:   toNum(data?.best),
+      bestTime: toNum(data?.bestTime), // 초 단위
     }));
   }
 
@@ -447,6 +449,75 @@
     }catch(e){}
   }
 
+  // 축하 효과음: 경쾌한 fanfare 사운드
+  function playFanfare(){
+    if(!sfxOn) return;
+    try{
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if(!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // 주요 멜로디: 3개의 톤으로 경쾌한 fanfare 구성
+      const notes = [
+        { freq: 880, time: 0, dur: 0.15 },   // A5
+        { freq: 1046.5, time: 0.2, dur: 0.15 }, // C6
+        { freq: 1318.5, time: 0.4, dur: 0.25 }, // E6
+        { freq: 1046.5, time: 0.7, dur: 0.15 }, // C6
+        { freq: 1318.5, time: 0.9, dur: 0.3 }   // E6 (긴 마무리)
+      ];
+
+      notes.forEach(({ freq, time, dur }) => {
+        const osc1 = ctx.createOscillator();
+        osc1.type = "triangle";
+        osc1.frequency.value = freq;
+
+        const osc2 = ctx.createOscillator();
+        osc2.type = "sine";
+        osc2.frequency.value = freq * 2; // 옥타브 위 하모닉
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, now + time);
+        gain.gain.linearRampToValueAtTime(0.08, now + time + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + time + dur);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now + time);
+        osc1.stop(now + time + dur + 0.05);
+        osc2.start(now + time);
+        osc2.stop(now + time + dur + 0.05);
+      });
+
+      // 베이스 톤 추가 (더 풍성하게)
+      const bassOsc = ctx.createOscillator();
+      bassOsc.type = "sawtooth";
+      bassOsc.frequency.value = 220; // A3
+
+      const bassGain = ctx.createGain();
+      bassGain.gain.setValueAtTime(0, now);
+      bassGain.gain.linearRampToValueAtTime(0.04, now + 0.1);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+      const bassFilter = ctx.createBiquadFilter();
+      bassFilter.type = "lowpass";
+      bassFilter.frequency.value = 400;
+
+      bassOsc.connect(bassFilter);
+      bassFilter.connect(bassGain);
+      bassGain.connect(ctx.destination);
+
+      bassOsc.start(now);
+      bassOsc.stop(now + 0.85);
+
+      setTimeout(() => {
+        try{ ctx.close(); }catch(e){}
+      }, 1300);
+    }catch(e){}
+  }
+
   // +점수 리워드
   function showReward(tile, text){
     const r = document.createElement("div");
@@ -681,6 +752,9 @@
   // 이모지 파편 폭죽 효과 (결과 모달용)
   function launchEmojiFireworks(){
     ensureStyle();
+    
+    // 축하 효과음 재생
+    playFanfare();
     
     const emojis = ['🎉', '✨', '🌟', '💫', '🎊', '💖', '⭐', '💝', '🌺', '🦋'];
     const centerX = window.innerWidth / 2;
@@ -1258,7 +1332,19 @@
   function finishGame(){
     const d = HarumindStorage.loadDaily(dateStr);
     d.clears += 1;
+    
+    // 게임 시간 계산 (초 단위)
+    const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+    
+    // 최고 기록 업데이트
+    const isNewBestScore = score > d.best;
+    const isNewBestTime = d.bestTime === 0 || (gameTime > 0 && gameTime < d.bestTime);
+    
     d.best = Math.max(d.best, score);
+    if(isNewBestTime){
+      d.bestTime = gameTime;
+    }
+    
     HarumindStorage.saveDaily(dateStr, d);
     renderDaily(dateStr);
 
@@ -1267,8 +1353,6 @@
 
     setStatsComplete(true);
 
-    // 게임 시간 계산
-    const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
     const minutes = Math.floor(gameTime / 60);
     const seconds = gameTime % 60;
     const timeStr = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
@@ -1276,8 +1360,11 @@
     // 결과 모달 표시
     showResultModal({
       time: timeStr,
+      timeSeconds: gameTime,
       combo: maxStreak,
-      score: score
+      score: score,
+      isNewBestScore: isNewBestScore,
+      isNewBestTime: isNewBestTime
     });
 
     setFinishState({
@@ -1290,7 +1377,7 @@
   }
 
   // 결과 모달 표시
-  function showResultModal({ time, combo, score }){
+  function showResultModal({ time, timeSeconds, combo, score, isNewBestScore, isNewBestTime }){
     const resultModalBack = document.getElementById("resultModalBack");
     const resultModalTitle = document.getElementById("resultModalTitle");
     const resultTime = document.getElementById("resultTime");
@@ -1314,6 +1401,24 @@
       "대단해요! 천천히 그리고 확실하게, 정말 멋진 여정이었어요 🌺"
     ];
     const message = warmMessages[Math.floor(Math.random() * warmMessages.length)];
+
+    // 기존 뱃지 제거
+    document.querySelectorAll(".resultRecordBadge").forEach(badge => badge.remove());
+
+    // 신기록 뱃지 추가
+    if(isNewBestScore && resultScore){
+      const badge = document.createElement("span");
+      badge.className = "resultRecordBadge";
+      badge.textContent = "신기록! 👑";
+      resultScore.parentElement.appendChild(badge);
+    }
+
+    if(isNewBestTime && resultTime){
+      const badge = document.createElement("span");
+      badge.className = "resultRecordBadge";
+      badge.textContent = "신기록! 👑";
+      resultTime.parentElement.appendChild(badge);
+    }
 
     if(resultTime) resultTime.textContent = time;
     if(resultCombo) resultCombo.textContent = combo;
