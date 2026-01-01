@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.40",
+    VERSION: "v1.41",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -1349,6 +1349,22 @@
       t.className = "tile";
       t.dataset.state = "down";
       t.dataset.emoji = emoji;
+      
+      // 3D 카드 구조 생성
+      const tileInner = document.createElement("div");
+      tileInner.className = "tile-inner";
+      
+      const tileFront = document.createElement("div");
+      tileFront.className = "tile-front";
+      tileFront.dataset.emoji = emoji;
+      
+      const tileBack = document.createElement("div");
+      tileBack.className = "tile-back";
+      
+      tileInner.appendChild(tileFront);
+      tileInner.appendChild(tileBack);
+      t.appendChild(tileInner);
+      
       t.onclick = () => clickTile(t);
       if(board) board.appendChild(t);
     });
@@ -1371,6 +1387,12 @@
 
   function clickTile(t){
     if(lock || t.dataset.state === "up" || t.classList.contains("matched")) return;
+    
+    // 애니메이션 중 클릭 방지
+    lock = true;
+    setTimeout(() => {
+      lock = false;
+    }, 600); // 카드 뒤집기 애니메이션 시간(0.6s) 동안 lock
 
     t.dataset.state = "up";
 
@@ -1378,10 +1400,13 @@
       first = t;
       showTempMessage("어디에 있을까요? 마음의 눈으로 슥- 보세요 🧐", "", 800);
       setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
+      // 첫 카드 뒤집기 후 lock 해제
+      setTimeout(() => {
+        lock = false;
+      }, 600);
       return;
     }
 
-    lock = true;
     clearTempMsgTimer();
 
     if(first.dataset.emoji === t.dataset.emoji){
@@ -1427,7 +1452,11 @@
       }, 200);
 
       first = null;
-      lock = false;
+      
+      // 성공 시에도 애니메이션 완료 후 lock 해제
+      setTimeout(() => {
+        lock = false;
+      }, 600);
 
       if(matched === totalPairs){
         finishGame();
@@ -1514,6 +1543,7 @@
     const resultScore = document.getElementById("resultScore");
     const resultMessage = document.getElementById("resultMessage");
     const resultRestartBtn = document.getElementById("resultRestartBtn");
+    const resultShareBtn = document.getElementById("resultShareBtn");
 
     if(!resultModalBack) return;
 
@@ -1577,6 +1607,60 @@
       }
     }
 
+    // 공유 버튼 이벤트
+    if(resultShareBtn){
+      const handleShare = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // 난이도 이름 가져오기
+        const levelMap = {
+          "3x2": "쉬움",
+          "4x3": "보통",
+          "4x4": "어려움"
+        };
+        const levelName = levelMap[levelSel?.value || "3x2"] || "쉬움";
+        
+        // 공유 텍스트 생성
+        const shareText = `오늘의 하루마음 기록: [${levelName}] ${score}점 / ${time}초! 당신의 마음은 오늘 얼마나 반짝였나요? ✨ ${window.location.href}`;
+        
+        try {
+          // 클립보드 API 사용
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(shareText);
+            showShareToast();
+          } else {
+            // fallback: 구식 방법
+            const textArea = document.createElement("textarea");
+            textArea.value = shareText;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+              document.execCommand('copy');
+              showShareToast();
+            } catch(err) {
+              console.error('복사 실패:', err);
+              alert('복사에 실패했습니다. 브라우저를 확인해주세요.');
+            }
+            document.body.removeChild(textArea);
+          }
+        } catch(err) {
+          console.error('클립보드 복사 오류:', err);
+          alert('복사에 실패했습니다. 브라우저를 확인해주세요.');
+        }
+      };
+      
+      // 기존 리스너 제거 후 새로 등록
+      resultShareBtn.replaceWith(resultShareBtn.cloneNode(true));
+      const newShareBtn = document.getElementById("resultShareBtn");
+      if(newShareBtn){
+        newShareBtn.addEventListener('click', handleShare);
+      }
+    }
+
     // 배경 클릭 시 닫기
     const closeOnBackdrop = (e) => {
       if(e.target === resultModalBack){
@@ -1632,6 +1716,25 @@
     setTimeout(() => {
       toast.classList.remove("show");
     }, 2000);
+  }
+
+  // 공유 완료 토스트 메시지
+  function showShareToast(){
+    let toast = document.querySelector(".shareToast");
+    if(!toast){
+      toast = document.createElement("div");
+      toast.className = "shareToast";
+      toast.textContent = "기록이 복사되었습니다. 친구에게 자랑해보세요!";
+      document.body.appendChild(toast);
+    }
+    
+    toast.classList.remove("show");
+    void toast.offsetWidth; // reflow
+    toast.classList.add("show");
+    
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
   }
 
   // 이벤트

@@ -597,64 +597,91 @@ button.primary{
   width: 100%;
   min-width: 0;
   border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:var(--tile-fs);
   cursor:pointer;
   user-select:none;
   position:relative;
   box-sizing:border-box;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
   touch-action: none;
   contain: layout style paint;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.tile-inner{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius:18px;
+}
+
+.tile[data-state="up"] .tile-inner{
+  transform: rotateY(180deg);
+}
+
+.tile-front,
+.tile-back{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--tile-fs);
+  box-sizing:border-box;
+}
+
+.tile-front{
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  transform: rotateY(180deg);
+}
+
+.tile-back{
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.tile.matched .tile-front,
+.tile.matched .tile-back{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
 /* 클릭 시 피드백 */
-.tile:active:not(.matched){
-  transform: scale(0.95);
+.tile:active:not(.matched) .tile-inner{
+  transform: scale(0.95) rotateY(var(--current-rotation, 0deg));
+}
+
+.tile[data-state="up"]:active:not(.matched) .tile-inner{
+  transform: scale(0.95) rotateY(180deg);
 }
 
 /* 호버 효과 (PC용) */
 @media (hover: hover){
-  .tile:not(.matched):not([data-state="up"]):hover{
+  .tile:not(.matched):not([data-state="up"]):hover .tile-back{
     border-color:rgba(255,255,255,.20);
     box-shadow:0 2px 8px rgba(0,0,0,.2);
   }
 }
 
-.tile[data-state="down"]::after{
+.tile-back::before{
   content:"?";
   font-weight:900;
-  transition: opacity 0.2s ease;
+  color:var(--text);
+  opacity:0.8;
 }
 
-.tile[data-state="up"]::after{
+.tile-front::before{
   content:attr(data-emoji);
-  animation: tileFlipIn 0.25s ease;
 }
 
-@keyframes tileFlipIn{
-  0%{
-    opacity:0;
-    transform:scale(0.8) rotateY(-90deg);
-  }
-  100%{
-    opacity:1;
-    transform:scale(1) rotateY(0deg);
-  }
-}
-
-.tile.matched{
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+.tile.matched .tile-inner{
   animation: matchedPulse 0.5s ease;
-  will-change: transform; /* 렌더링 최적화로 주변 레이아웃 영향 최소화 */
 }
 
 @keyframes matchedPulse{
@@ -713,6 +740,31 @@ button.primary{
   box-shadow:0 8px 24px rgba(0,0,0,.3);
 }
 .restartToast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+.shareToast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  z-index:10000;
+  background:rgba(253,230,138,.15);
+  border:1px solid rgba(253,230,138,.35);
+  border-radius:999px;
+  padding:10px 20px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.3s ease, transform 0.3s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  max-width:calc(100% - 48px);
+  text-align:center;
+}
+.shareToast.show{
   opacity:1;
   transform:translateX(-50%) translateY(0);
 }
@@ -890,19 +942,36 @@ button.primary{
 .resultModalActions{
   margin-top:20px;
   display:flex;
-  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+  align-items:center;
 }
+.resultShareBtn,
 .resultRestartBtn{
   font-size:18px;
   font-weight:800;
   border-radius:999px;
-  border:1px solid rgba(110,231,183,.45);
-  background:rgba(110,231,183,.18);
   color:var(--text);
   padding:14px 28px;
   cursor:pointer;
   min-width:200px;
   transition: all 0.2s ease;
+  border:none;
+}
+.resultShareBtn{
+  border:1px solid rgba(253,230,138,.45);
+  background:rgba(253,230,138,.18);
+}
+.resultShareBtn:hover{
+  background:rgba(253,230,138,.25);
+  transform: scale(1.02);
+}
+.resultShareBtn:active{
+  transform: scale(0.98);
+}
+.resultRestartBtn{
+  border:1px solid rgba(110,231,183,.45);
+  background:rgba(110,231,183,.18);
 }
 .resultRestartBtn:hover{
   background:rgba(110,231,183,.25);
@@ -1245,6 +1314,7 @@ body.peeking .tile{
       <div class="resultMessage" id="resultMessage">정말 잘하셨어요! 🎊</div>
     </div>
     <div class="resultModalActions">
+      <button id="resultShareBtn" type="button" class="resultShareBtn">오늘의 기록 공유하기 💌</button>
       <button id="resultRestartBtn" type="button" class="resultRestartBtn">🔁 다시 하기</button>
     </div>
   </div>
