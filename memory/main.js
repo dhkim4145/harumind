@@ -1116,6 +1116,16 @@
     }
 
     peekBtn.addEventListener('click', () => {
+      // 마음 선명도 5% 미만이면 힌트 차단
+      if(heartIndex < 5){
+        setMessage("마음이 흐려져서 지금은 힌트를 볼 수 없어요", "");
+        return;
+      }
+
+      // 마음 선명도 5% 차감
+      heartIndex = Math.max(0, heartIndex - 5);
+      renderStats({ matched, totalPairs });
+
       peekBtn.disabled = true;
 
       // 힌트모드 진입(2초)
@@ -1390,14 +1400,29 @@
     setStatsComplete(false);
     setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
 
-    cards.forEach(emoji=>{
+    cards.forEach((emoji, index)=>{
       const t = document.createElement("div");
       t.className = "tile";
       t.dataset.state = "down";
       t.dataset.emoji = emoji;
       t.onclick = () => clickTile(t);
+      // 페이드 인 효과를 위한 초기 투명도
+      t.style.opacity = "0";
       if(board) board.appendChild(t);
+      
+      // 각 카드에 순차적으로 페이드 인 적용
+      setTimeout(() => {
+        t.style.transition = "opacity 0.4s ease-in";
+        t.style.opacity = "1";
+      }, index * 10); // 10ms씩 간격을 두어 자연스럽게
     });
+
+    // 게임 보드 위치로 부드럽게 스크롤
+    if(board){
+      setTimeout(() => {
+        board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
 
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
       doPeek(autoPeekSec);
