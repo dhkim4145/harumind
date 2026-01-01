@@ -604,12 +604,13 @@ button.primary{
   align-items: stretch;
   height: auto;
   overflow:hidden; 
-  touch-action: none;
+  touch-action: pan-y;
   padding: 10px;
   padding-bottom: 120px;
   perspective: 1000px;
   contain: layout style;
   will-change: transform;
+  pointer-events: auto;
 }
 
 .tile{
@@ -1037,7 +1038,7 @@ body.peeking .tile{
 
 /* 힌트 강조 효과 */
 .tile.hintHighlight{
-  animation: hintGlow 0.8s ease-out;
+  animation: hintGlow 2s ease-in-out;
   z-index: 10;
 }
 
@@ -1045,15 +1046,26 @@ body.peeking .tile{
   0%{
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border-color: rgba(255,255,255,.12);
+    opacity: 1;
   }
-  50%{
+  25%{
     transform: scale(1.08);
     box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
     border-color: rgba(255, 215, 0, 0.8);
+    opacity: 1;
+  }
+  75%{
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+    border-color: rgba(255, 215, 0, 0.8);
+    opacity: 1;
   }
   100%{
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    border-color: rgba(255,255,255,.12);
+    opacity: 1;
   }
 }
 
@@ -1186,6 +1198,22 @@ body.peeking .tile{
     padding:8px 10px;
     font-size:13px;
   }
+
+/* 힌트 버튼 고정 (모바일) */
+@media (max-width: 520px){
+  #peekBtn{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: var(--card-bg, linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)));
+    border: 1px solid var(--card-border, rgba(255,255,255,.08));
+    border-radius: 999px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+  }
+}
   @media (max-width: 380px){
     .controls #level{ font-size:12px; }
     .controls #peekBtn{ font-size:12px; padding:8px 8px; }

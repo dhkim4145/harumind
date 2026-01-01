@@ -1399,6 +1399,11 @@
     clearFinishState();
     setStatsComplete(false);
     setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
+    
+    // 힌트 버튼 리셋
+    if(peekBtn){
+      peekBtn.disabled = false;
+    }
 
     cards.forEach((emoji, index)=>{
       const t = document.createElement("div");
@@ -1797,11 +1802,11 @@
     if(board){
       [...board.children].forEach(t => {
         t.dataset.state = "up";
-        // 힌트 강조 효과: 황금색 테두리 광채
+        // 힌트 강조 효과: 황금색 테두리 광채 (2초 지속)
         t.classList.add("hintHighlight");
         setTimeout(() => {
           t.classList.remove("hintHighlight");
-        }, 800);
+        }, 2000);
       });
     }
     setMessage("잠깐 보고 기억해요 🙂", "잠시 후 다시 물음표로 돌아갑니다.");
