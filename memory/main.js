@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.48",
+    VERSION: "v1.49",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -1593,41 +1593,90 @@
           "4x3": "보통 (6쌍)",
           "4x4": "어려움 (8쌍)"
         };
-        const levelName = levelMap[levelSel?.value || "3x2"] || "쉬움 (3쌍)";
+        const currentLevel = levelSel?.value || "3x2";
+        const levelName = levelMap[currentLevel] || "쉬움 (3쌍)";
         
         // 날짜 가져오기
         const today = new Date();
         const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
         
-        // 점수대별 마음 상태 라벨 결정
+        // 난이도별 점수 기준으로 마음 상태 라벨 결정
         let heartLabel, heartEmoji, heartDescription;
-        if(score >= 100){
-          heartEmoji = "💎";
-          heartLabel = "보석처럼 단단하고 투명한 마음";
-          heartDescription = "(완벽한 집중력!)";
-        } else if(score >= 80){
-          heartEmoji = "✨";
-          heartLabel = "반짝이는 윤슬을 닮은 마음";
-          heartDescription = "(기분 좋은 몰입)";
-        } else if(score >= 50){
-          heartEmoji = "🌿";
-          heartLabel = "싱그러운 아침 숲길 같은 마음";
-          heartDescription = "(평온한 상태)";
+        
+        if(currentLevel === "3x2"){
+          // 쉬움: 💎 35점+ | ✨ 25점+ | 🌿 15점+ | ☁️ 그 미만
+          if(score >= 35){
+            heartEmoji = "💎";
+            heartLabel = "보석처럼 단단하고 투명한 마음";
+            heartDescription = "(완벽한 집중력!)";
+          } else if(score >= 25){
+            heartEmoji = "✨";
+            heartLabel = "반짝이는 윤슬을 닮은 마음";
+            heartDescription = "(기분 좋은 몰입)";
+          } else if(score >= 15){
+            heartEmoji = "🌿";
+            heartLabel = "싱그러운 아침 숲길 같은 마음";
+            heartDescription = "(평온한 상태)";
+          } else {
+            heartEmoji = "☁️";
+            heartLabel = "안개가 살짝 낀 마음";
+            heartDescription = "(잠시 쉬어가도 좋아요)";
+          }
+        } else if(currentLevel === "4x3"){
+          // 보통: 💎 100점+ | ✨ 70점+ | 🌿 40점+ | ☁️ 그 미만
+          if(score >= 100){
+            heartEmoji = "💎";
+            heartLabel = "보석처럼 단단하고 투명한 마음";
+            heartDescription = "(완벽한 집중력!)";
+          } else if(score >= 70){
+            heartEmoji = "✨";
+            heartLabel = "반짝이는 윤슬을 닮은 마음";
+            heartDescription = "(기분 좋은 몰입)";
+          } else if(score >= 40){
+            heartEmoji = "🌿";
+            heartLabel = "싱그러운 아침 숲길 같은 마음";
+            heartDescription = "(평온한 상태)";
+          } else {
+            heartEmoji = "☁️";
+            heartLabel = "안개가 살짝 낀 마음";
+            heartDescription = "(잠시 쉬어가도 좋아요)";
+          }
         } else {
-          heartEmoji = "☁️";
-          heartLabel = "안개가 살짝 낀 마음";
-          heartDescription = "(잠시 쉬어가도 좋아요)";
+          // 어려움 (4x4): 기존 기준 유지 💎 100점+ | ✨ 80점+ | 🌿 50점+ | ☁️ 그 미만
+          if(score >= 100){
+            heartEmoji = "💎";
+            heartLabel = "보석처럼 단단하고 투명한 마음";
+            heartDescription = "(완벽한 집중력!)";
+          } else if(score >= 80){
+            heartEmoji = "✨";
+            heartLabel = "반짝이는 윤슬을 닮은 마음";
+            heartDescription = "(기분 좋은 몰입)";
+          } else if(score >= 50){
+            heartEmoji = "🌿";
+            heartLabel = "싱그러운 아침 숲길 같은 마음";
+            heartDescription = "(평온한 상태)";
+          } else {
+            heartEmoji = "☁️";
+            heartLabel = "안개가 살짝 낀 마음";
+            heartDescription = "(잠시 쉬어가도 좋아요)";
+          }
         }
         
-        // 공유 텍스트 생성 (감성적인 스토리형)
+        // 공유 텍스트 생성 (감성적인 스토리형, 모바일 최적화)
         const shareText = `${heartEmoji} ${heartLabel}
+
 ${heartDescription}
 
-──────────────────
+── 🌿 ──
+
 📅 일시: ${dateStr}
+
 🧩 기록: ${levelName} | ${time} | ${combo} Combo
-──────────────────
+
+── 🌿 ──
+
 당신에게도 이 평온함을 보낼게요. 🌿
+
 ${window.location.href}`;
         
         try {
