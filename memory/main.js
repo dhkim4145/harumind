@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.49",
+    VERSION: "v1.51",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -27,15 +27,21 @@
       "4x4": [4,4],   // 8쌍 (9쌍 이모지 중 8쌍 사용)
     },
 
+    // 난이도별 차등 감점 로직 (3-4-5 법칙)
+    PENALTY_PER_MISTAKE: {
+      "3x2": 5,   // 쉬움: 실수 1회당 -5%
+      "4x3": 4,   // 보통: 실수 1회당 -4%
+      "4x4": 3,   // 어려움: 실수 1회당 -3%
+    },
+
     // 틀렸을 때 다시 뒤집히는 시간(ms)
     MISMATCH_MS: 700,
 
-    // 콤보 점수 규칙: 더 후하게! 10, 15, 22, 31, 42, 55, 70, 87, 106, 127(최대)
-    // 콤보가 쌓일수록 보너스가 빠르게 증가 (2차 곡선)
+    // 콤보 점수 규칙: 긍정 강화형 - 콤보가 쌓일수록 보너스가 더 빠르게 증가
+    // 1콤보: 10, 2콤보: 15, 3콤보: 22, 4콤보: 31, 5콤보: 42, 6콤보: 55, 7콤보: 70, 8콤보: 87
     comboPoints(streakNow){
       if(streakNow <= 1) return 10;
-      // 기본 10점 + 증가폭이 점점 커지는 보너스
-      // 2콤보: +5, 3콤보: +7, 4콤보: +9, 5콤보: +11, 6콤보: +13...
+      // 기본 10점 + 증가폭이 점점 커지는 보너스 (2차 곡선)
       // 공식: 10 + (streak-1) * (streak+3) / 2
       const bonus = Math.floor((streakNow - 1) * (streakNow + 3) / 2);
       const maxBonus = 117; // 최대 보너스 117점 (총 127점)
@@ -62,6 +68,7 @@
   let peekTimer = null;
   let streak = 0;
   let maxStreak = 0; // 최고 콤보
+  let heartIndex = 100; // 마음 선명도 (100%에서 시작)
   let tempMsgTimer = null;
   let currentStateMsg = { msg: "", hint: "" };
   let finishTimer = null;
@@ -260,6 +267,31 @@
     
     currentTheme = themeKey;
     safeSet(C.KEYS.THEME, themeKey);
+  }
+
+  // 마음 선명도에 따른 배경색 변경
+  function applyHeartBackground(heartIndex){
+    let bgColor;
+    if(heartIndex >= 90){
+      bgColor = "#E3F2FD"; // 하늘색
+    } else if(heartIndex >= 70){
+      bgColor = "#F3E5F5"; // 보라색
+    } else if(heartIndex >= 40){
+      bgColor = "#E8F5E9"; // 초록색
+    } else {
+      bgColor = "#F5F5F5"; // 회색
+    }
+    
+    // 배경색 부드럽게 변경 (1.5초 transition)
+    document.body.style.transition = "background 1.5s ease";
+    document.body.style.background = bgColor;
+  }
+
+  // 배경색 원래대로 복구
+  function restoreBackground(){
+    const theme = themes[currentTheme] || themes.warm;
+    document.body.style.transition = "background 1.5s ease";
+    document.body.style.background = theme.bgGradient;
   }
 
   // LIVE PILL 대상
@@ -750,9 +782,10 @@
     }
   }
 
-  function renderStats({matched, score, totalPairs}){
+  function renderStats({matched, totalPairs}){
     const mStr = String(matched);
-    const sStr = String(score);
+    // 마음 선명도 표시 (퍼센트 단위)
+    const heartStr = heartIndex + '%';
 
     if(matchedEl){
       if(matchedEl.textContent !== mStr){
@@ -768,8 +801,8 @@
     }
 
     if(scoreEl){
-      if(scoreEl.textContent !== sStr){
-        scoreEl.textContent = sStr;
+      if(scoreEl.textContent !== heartStr){
+        scoreEl.textContent = heartStr;
         animateNumber(scoreEl);
         pulseLivePill(scorePill);
       }
@@ -931,7 +964,7 @@
     if(finishTimer){ clearTimeout(finishTimer); finishTimer = null; }
 
     const d = HarumindStorage.loadDaily(dateStr);
-    const extra = `오늘 횟수: ${d.clears}회 · 오늘 최고: ${d.best}점`;
+    const extra = `오늘 횟수: ${d.clears}회 · 오늘 최고: ${d.best}%`;
 
     const back = document.createElement("div");
     back.className = "hmToastBack";
@@ -1334,12 +1367,16 @@
     score = 0;
     streak = 0;
     maxStreak = 0;
+    heartIndex = 100; // 마음 선명도 100%에서 시작
     gameStartTime = Date.now(); // 게임 시작 시간 기록
+    
+    // 배경색 원래대로 복구
+    restoreBackground();
 
     const level = levelSel.value;
     const cards = seededCards(level);
     
-    renderStats({ matched, score, totalPairs });
+    renderStats({ matched, totalPairs });
     clearFinishState();
     setStatsComplete(false);
     setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
@@ -1387,7 +1424,7 @@
 
     // 두 번째 카드 확인 시간을 주기 위해 약간의 지연 (손맛을 위한 미세 조정)
     setTimeout(() => {
-      // 매칭 판정 및 점수 계산
+      // 매칭 판정 및 마음 선명도 계산
       if(first.dataset.emoji === t.dataset.emoji){
         // 성공 처리
         first.classList.add("matched");
@@ -1397,13 +1434,14 @@
         streak++;
         maxStreak = Math.max(maxStreak, streak);
 
-        const pts = C.comboPoints(streak);
-        score += pts;
+        // 3콤보 달성 시 +1% 회복 (최대 100% 초과 불가)
+        if(streak % 3 === 0){
+          heartIndex = Math.min(100, heartIndex + 1);
+        }
 
         // UI 업데이트도 비동기로 처리
         setTimeout(() => {
-          showReward(t, `+${pts}`);
-          renderStats({ matched, score, totalPairs });
+          renderStats({ matched, totalPairs });
           
           // 콤보 피드백 표시 (2콤보 이상)
           if(streak >= 2){
@@ -1419,13 +1457,13 @@
           playSuccessSound(streak);
 
           if(matched === 1){
-            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 선명도가 회복돼요 ✨");
           }else if(matched < totalPairs){
             // 연속 매칭 중인지 확인 (streak >= 2)
             if(streak >= 2){
               setStateMessage("와우! 마음이 척척 통하고 있어요! 😍", "지금 이 리듬을 놓치지 마세요!");
             } else {
-              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 선명도가 회복돼요 ✨");
             }
           }
         }, 0);
@@ -1438,12 +1476,19 @@
         }
 
       }else{
-        // 실패 처리
+        // 실패 처리 - 난이도별 차등 감점
+        const currentLevel = levelSel?.value || "3x2";
+        const penalty = C.PENALTY_PER_MISTAKE[currentLevel] || 5;
+        heartIndex = Math.max(0, heartIndex - penalty); // 최소 0% 보장
+
         first.classList.add("shake");
         t.classList.add("shake");
         
         streak = 0;
         playFailSound();
+
+        // 실시간 마음 선명도 업데이트
+        renderStats({ matched, totalPairs });
 
         setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
 
@@ -1468,11 +1513,11 @@
     // 게임 시간 계산 (초 단위)
     const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
     
-    // 최고 기록 업데이트
-    const isNewBestScore = score > d.best;
+    // 최고 기록 업데이트 (마음 선명도 기준, heartIndex는 이미 실시간으로 계산됨)
+    const isNewBestScore = heartIndex > d.best;
     const isNewBestTime = d.bestTime === 0 || (gameTime > 0 && gameTime < d.bestTime);
     
-    d.best = Math.max(d.best, score);
+    d.best = Math.max(d.best, heartIndex);
     if(isNewBestTime){
       d.bestTime = gameTime;
     }
@@ -1489,12 +1534,12 @@
     const seconds = gameTime % 60;
     const timeStr = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
 
-    // 결과 모달 표시
+    // 결과 모달 표시 (heartIndex를 메인 값으로 전달)
     showResultModal({
       time: timeStr,
       timeSeconds: gameTime,
       combo: maxStreak,
-      score: score,
+      heartIndex: heartIndex,
       isNewBestScore: isNewBestScore,
       isNewBestTime: isNewBestTime
     });
@@ -1509,7 +1554,7 @@
   }
 
   // 결과 모달 표시
-  function showResultModal({ time, timeSeconds, combo, score, isNewBestScore, isNewBestTime }){
+  function showResultModal({ time, timeSeconds, combo, heartIndex, isNewBestScore, isNewBestTime }){
     const resultModalBack = document.getElementById("resultModalBack");
     const resultModalTitle = document.getElementById("resultModalTitle");
     const resultTime = document.getElementById("resultTime");
@@ -1520,6 +1565,29 @@
     const resultShareBtn = document.getElementById("resultShareBtn");
 
     if(!resultModalBack) return;
+
+    // 마음 선명도에 따른 배경색 변경
+    applyHeartBackground(heartIndex);
+
+    // 마음 선명도에 따른 라벨 결정
+    let heartLabel, heartEmoji, heartDescription;
+    if(heartIndex >= 90){
+      heartEmoji = "💎";
+      heartLabel = "보석처럼 단단하고 투명한 마음";
+      heartDescription = "(완벽한 집중력!)";
+    } else if(heartIndex >= 70){
+      heartEmoji = "✨";
+      heartLabel = "반짝이는 윤슬을 닮은 마음";
+      heartDescription = "(기분 좋은 몰입)";
+    } else if(heartIndex >= 40){
+      heartEmoji = "🌿";
+      heartLabel = "싱그러운 아침 숲길 같은 마음";
+      heartDescription = "(평온한 상태)";
+    } else {
+      heartEmoji = "☁️";
+      heartLabel = "안개가 살짝 낀 마음";
+      heartDescription = "(잠시 쉬어가도 좋아요)";
+    }
 
     // 이모지 폭죽 효과 (모달이 열리기 전에 실행)
     launchEmojiFireworks();
@@ -1555,8 +1623,9 @@
 
     if(resultTime) resultTime.textContent = time;
     if(resultCombo) resultCombo.textContent = combo;
-    if(resultScore) resultScore.textContent = score;
-    if(resultMessage) resultMessage.textContent = message;
+    // 마음 선명도만 표시 (생 점수 제거)
+    if(resultScore) resultScore.textContent = heartIndex + '%';
+    if(resultMessage) resultMessage.textContent = `${heartEmoji} ${heartLabel} - ${heartDescription}`;
 
     resultModalBack.classList.add("isOpen");
 
@@ -1567,6 +1636,8 @@
         e.preventDefault();
         e.stopPropagation();
         resultModalBack.classList.remove("isOpen");
+        // 배경색 원래대로 복구
+        restoreBackground();
         // 모달이 완전히 닫힌 후 게임 재시작
         setTimeout(() => {
           build(2);
@@ -1600,66 +1671,24 @@
         const today = new Date();
         const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
         
-        // 난이도별 점수 기준으로 마음 상태 라벨 결정
+        // 마음 선명도에 따른 라벨 결정 (showResultModal에서 이미 계산된 heartIndex 사용)
         let heartLabel, heartEmoji, heartDescription;
-        
-        if(currentLevel === "3x2"){
-          // 쉬움: 💎 35점+ | ✨ 25점+ | 🌿 15점+ | ☁️ 그 미만
-          if(score >= 35){
-            heartEmoji = "💎";
-            heartLabel = "보석처럼 단단하고 투명한 마음";
-            heartDescription = "(완벽한 집중력!)";
-          } else if(score >= 25){
-            heartEmoji = "✨";
-            heartLabel = "반짝이는 윤슬을 닮은 마음";
-            heartDescription = "(기분 좋은 몰입)";
-          } else if(score >= 15){
-            heartEmoji = "🌿";
-            heartLabel = "싱그러운 아침 숲길 같은 마음";
-            heartDescription = "(평온한 상태)";
-          } else {
-            heartEmoji = "☁️";
-            heartLabel = "안개가 살짝 낀 마음";
-            heartDescription = "(잠시 쉬어가도 좋아요)";
-          }
-        } else if(currentLevel === "4x3"){
-          // 보통: 💎 100점+ | ✨ 70점+ | 🌿 40점+ | ☁️ 그 미만
-          if(score >= 100){
-            heartEmoji = "💎";
-            heartLabel = "보석처럼 단단하고 투명한 마음";
-            heartDescription = "(완벽한 집중력!)";
-          } else if(score >= 70){
-            heartEmoji = "✨";
-            heartLabel = "반짝이는 윤슬을 닮은 마음";
-            heartDescription = "(기분 좋은 몰입)";
-          } else if(score >= 40){
-            heartEmoji = "🌿";
-            heartLabel = "싱그러운 아침 숲길 같은 마음";
-            heartDescription = "(평온한 상태)";
-          } else {
-            heartEmoji = "☁️";
-            heartLabel = "안개가 살짝 낀 마음";
-            heartDescription = "(잠시 쉬어가도 좋아요)";
-          }
+        if(heartIndex >= 90){
+          heartEmoji = "💎";
+          heartLabel = "보석처럼 단단하고 투명한 마음";
+          heartDescription = "(완벽한 집중력!)";
+        } else if(heartIndex >= 70){
+          heartEmoji = "✨";
+          heartLabel = "반짝이는 윤슬을 닮은 마음";
+          heartDescription = "(기분 좋은 몰입)";
+        } else if(heartIndex >= 40){
+          heartEmoji = "🌿";
+          heartLabel = "싱그러운 아침 숲길 같은 마음";
+          heartDescription = "(평온한 상태)";
         } else {
-          // 어려움 (4x4): 기존 기준 유지 💎 100점+ | ✨ 80점+ | 🌿 50점+ | ☁️ 그 미만
-          if(score >= 100){
-            heartEmoji = "💎";
-            heartLabel = "보석처럼 단단하고 투명한 마음";
-            heartDescription = "(완벽한 집중력!)";
-          } else if(score >= 80){
-            heartEmoji = "✨";
-            heartLabel = "반짝이는 윤슬을 닮은 마음";
-            heartDescription = "(기분 좋은 몰입)";
-          } else if(score >= 50){
-            heartEmoji = "🌿";
-            heartLabel = "싱그러운 아침 숲길 같은 마음";
-            heartDescription = "(평온한 상태)";
-          } else {
-            heartEmoji = "☁️";
-            heartLabel = "안개가 살짝 낀 마음";
-            heartDescription = "(잠시 쉬어가도 좋아요)";
-          }
+          heartEmoji = "☁️";
+          heartLabel = "안개가 살짝 낀 마음";
+          heartDescription = "(잠시 쉬어가도 좋아요)";
         }
         
         // 공유 텍스트 생성 (감성적인 스토리형, 모바일 최적화)
@@ -1671,7 +1700,7 @@ ${heartDescription}
 
 📅 일시: ${dateStr}
 
-🧩 기록: ${levelName} | ${time} | ${combo} Combo
+🧩 마음 선명도: ${heartIndex}% (${levelName}) | ${time} | ${combo} Combo
 
 ── 🌿 ──
 

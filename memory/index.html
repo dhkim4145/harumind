@@ -1206,6 +1206,9 @@ body.peeking .tile{
         <option value="4x3">보통 (6쌍)</option>
         <option value="4x4">어려움 (8쌍)</option>
       </select>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4;">
+        안 틀리고 다 맞추면 선명도 100%! 틀릴 때마다 선명도가 조금씩 낮아집니다. (연속 성공 시 회복 ✨)
+      </div>
 
       <button id="peekBtn" type="button">👁️ 살짝 엿보기</button>
     </div>
@@ -1224,7 +1227,7 @@ body.peeking .tile{
     <div class="statsArea">
       <div class="stats">
         <div class="pill live"><span>찾아준 인연 🤝</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
-        <div class="pill live"><span>마음 온도 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
+        <div class="pill live"><span>마음 선명도 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
       </div>
     </div>
   </div>
@@ -1245,7 +1248,7 @@ body.peeking .tile{
     <div class="modalTitle">마음의 평온을 찾아가는 방법</div>
     <div class="modalBody">
       <div class="modalStep"><div class="modalNum">1</div><div>인연 찾기: 뒤집힌 카드 속에서 서로 닮은 짝꿍을 찾아주세요.</div></div>
-      <div class="modalStep"><div class="modalNum">2</div><div>리듬 타기: 연속으로 짝을 찾아주면 '마음 온도'가 더 따뜻하게 올라가요.</div></div>
+      <div class="modalStep"><div class="modalNum">2</div><div>리듬 타기: 연속으로 짝을 찾아주면 '마음 선명도'가 회복돼요.</div></div>
       <div class="modalStep"><div class="modalNum">3</div><div>기억의 조각: 매일 새로운 배치가 기다립니다. 당신의 호흡대로 천천히 즐겨보세요.</div></div>
       <div style="margin-top:10px;color:var(--muted);font-size:12px;">
         * 천천히 해도 괜찮아요 🙂
@@ -1271,7 +1274,7 @@ body.peeking .tile{
           <span class="resultStatValue" id="resultCombo">0</span>
         </div>
         <div class="resultStatItem">
-          <span class="resultStatLabel">최종 점수</span>
+          <span class="resultStatLabel">마음 선명도</span>
           <span class="resultStatValue" id="resultScore">0</span>
         </div>
       </div>

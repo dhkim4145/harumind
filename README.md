@@ -1,8 +1,8 @@
 # 하루마음 (Harumind) - 감성 힐링 카드 게임
 
-> **v1.49** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
+> **v1.51** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
 
-[![Version](https://img.shields.io/badge/version-1.49-blue.svg)](https://github.com/yourusername/harumind)
+[![Version](https://img.shields.io/badge/version-1.51-blue.svg)](https://github.com/yourusername/harumind)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,7 +168,20 @@ GitHub Pages를 통해 자동 배포됩니다:
 
 ## 📝 변경 이력
 
-### v1.49 (현재) - 기기별 공유 문구 줄바꿈 최적화 및 난이도별 점수 로직
+### v1.51 (현재) - 난이도별 점수 정규화 및 마음 지수 시스템, 배경색 감성 테마
+- 📊 마음 지수(Score Normalization) 시스템 도입: 난이도별 기준 만점으로 점수 정규화
+  - 쉬움: MaxScore 40 | 보통: 120 | 어려움: 200
+  - 계산식: (내 점수 / MaxScore) * 100 (최대 100점, 정수 반올림)
+- 🎨 통합 등급 판정 및 배경색 연동 (1.5초 transition):
+  - 90점 이상: 💎 + #E3F2FD (하늘색)
+  - 70점 이상: ✨ + #F3E5F5 (보라색)
+  - 40점 이상: 🌿 + #E8F5E9 (초록색)
+  - 40점 미만: ☁️ + #F5F5F5 (회색)
+- 💬 공유 문구 최적화: '기록' → '마음 지수'로 변경, 구분선 유지
+- 🔄 복구 로직: 게임 재시작 시 배경색 부드럽게 원래대로 복구
+- ✨ 완성도 정점 달성: 감성과 기능의 완벽한 조화
+
+### v1.49 - 기기별 공유 문구 줄바꿈 최적화 및 난이도별 점수 로직
 - 📱 모바일 최적화: 긴 구분선을 짧은 선(── 🌿 ──)으로 변경하여 줄바꿈 방지
 - 🎯 난이도별 점수 기준 적용: 쉬움/보통/어려움 모드별 차등 라벨 시스템
   - 쉬움: 💎 35점+ | ✨ 25점+ | 🌿 15점+ | ☁️ 그 미만
