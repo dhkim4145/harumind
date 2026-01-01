@@ -288,6 +288,24 @@
         10%  { opacity:1; }
         100% { opacity:0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); }
       }
+
+      .hmEmojiFirework{
+        position:fixed;
+        z-index:10000;
+        pointer-events:none;
+        font-size:24px;
+        opacity:0;
+        transform:translate(-50%, -50%) rotate(0deg) scale(1);
+        will-change: transform, opacity;
+      }
+      .hmEmojiFirework.launch{
+        animation: emojiFireworkPop 2s ease-out forwards;
+      }
+      @keyframes emojiFireworkPop{
+        0%   { opacity:0; transform: translate(-50%, -50%) rotate(0deg) scale(0.3); }
+        10%  { opacity:1; transform: translate(-50%, -50%) rotate(0deg) scale(var(--scale)); }
+        100% { opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(0.1); }
+      }
     `;
     document.head.appendChild(s);
   }
@@ -658,6 +676,52 @@
 
     document.body.appendChild(box);
     setTimeout(()=>box.remove(), 950);
+  }
+
+  // 이모지 파편 폭죽 효과 (결과 모달용)
+  function launchEmojiFireworks(){
+    ensureStyle();
+    
+    const emojis = ['🎉', '✨', '🌟', '💫', '🎊', '💖', '⭐', '💝', '🌺', '🦋'];
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for(let i = 0; i < 30; i++){
+      const emoji = document.createElement("div");
+      emoji.className = "hmEmojiFirework";
+      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      
+      // 화면 중앙에서 시작
+      emoji.style.left = centerX + "px";
+      emoji.style.top = centerY + "px";
+      
+      // 랜덤 방향과 거리
+      const angle = (Math.PI * 2 * i) / 30 + Math.random() * 0.5;
+      const distance = 150 + Math.random() * 200;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance - 50; // 위로 약간 더 튀도록
+      
+      emoji.style.setProperty("--dx", dx + "px");
+      emoji.style.setProperty("--dy", dy + "px");
+      emoji.style.setProperty("--rot", (Math.random() * 720 - 360) + "deg");
+      emoji.style.setProperty("--scale", (0.8 + Math.random() * 0.4).toFixed(2));
+      
+      // 랜덤 크기
+      const size = 20 + Math.random() * 15;
+      emoji.style.fontSize = size + "px";
+      
+      document.body.appendChild(emoji);
+      
+      // 애니메이션 시작
+      requestAnimationFrame(() => {
+        emoji.classList.add("launch");
+      });
+    }
+    
+    // 정리
+    setTimeout(() => {
+      document.querySelectorAll(".hmEmojiFirework").forEach(el => el.remove());
+    }, 2000);
   }
 
   // 완료 토스트
@@ -1237,21 +1301,19 @@
 
     if(!resultModalBack) return;
 
-    // 결과 메시지 생성
-    let message = "정말 잘하셨어요! 🎊";
-    if(combo >= 5){
-      message = "콤보 마스터! 🔥";
-    } else if(score >= 100){
-      message = "놀라운 실력이에요! ⭐";
-    } else {
-      // time 문자열에서 초 추출 (예: "45초" 또는 "1분 30초")
-      const timeSeconds = time.includes("분") 
-        ? parseInt(time.split("분")[0]) * 60 + parseInt(time.split("분")[1].replace("초", ""))
-        : parseInt(time.replace("초", ""));
-      if(timeSeconds < 60){
-        message = "빠르고 정확해요! ⚡";
-      }
-    }
+    // 이모지 폭죽 효과 (모달이 열리기 전에 실행)
+    launchEmojiFireworks();
+
+    // 따뜻한 결과 메시지 랜덤 선택
+    const warmMessages = [
+      "정말 잘하셨어요! 당신의 집중력이 빛났어요 🌟",
+      "멋져요! 오늘도 마음의 근육이 튼튼해졌네요 💪",
+      "완벽해요! 따뜻한 마음으로 하나씩 찾아낸 모습이 아름다워요 💛",
+      "훌륭해요! 이런 작은 성취들이 모여 큰 기쁨이 되죠 ✨",
+      "수고하셨어요! 오늘도 자신과의 약속을 잘 지키셨네요 🎉",
+      "대단해요! 천천히 그리고 확실하게, 정말 멋진 여정이었어요 🌺"
+    ];
+    const message = warmMessages[Math.floor(Math.random() * warmMessages.length)];
 
     if(resultTime) resultTime.textContent = time;
     if(resultCombo) resultCombo.textContent = combo;
