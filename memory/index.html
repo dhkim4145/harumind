@@ -324,7 +324,7 @@ body.bigText #hint{
     font-size:14px;
   }
   .controls{
-    grid-template-columns: auto 1fr;
+    flex-direction: row;
   }
 }
 
@@ -355,12 +355,14 @@ body.bigText #hint{
 
 .controls-hint{
   margin: 0;
+  margin-left: auto;
   flex: 1 1 auto;
   font-size: 0.9rem;
   font-weight: 300;
   color: var(--muted);
   line-height: 1.4;
   min-width: 200px;
+  text-align: left;
 }
 
 button, select{
@@ -1206,7 +1208,7 @@ body.peeking .tile{
   }
   
   .controls{
-    gap:10px;
+    gap:12px;
   }
   .controls #level{
     flex: 1 1 100%;
@@ -1222,8 +1224,10 @@ body.peeking .tile{
   }
   .controls-hint{
     margin: 0;
+    margin-left: 0;
     flex: 1 1 100%;
     font-size: 0.85rem;
+    max-width: calc(100% - 260px);
   }
   @media (max-width: 380px){
     .controls #level{ font-size:12px; }
