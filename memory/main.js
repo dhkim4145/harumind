@@ -807,6 +807,15 @@
         pulseLivePill(scorePill);
       }
     }
+
+    // 100%일 때 perfect 클래스 추가/제거
+    if(scorePill){
+      if(heartIndex === 100){
+        scorePill.classList.add('perfect');
+      } else {
+        scorePill.classList.remove('perfect');
+      }
+    }
   }
 
   function renderDaily(dateStr){
@@ -1693,7 +1702,9 @@
 완벽하면 100% 💎
 리듬을 타면 선명도가 회복돼요 ✨
 
-"당신에게도 이 평온함을 보낼게요 🌿"`;
+"당신에게도 이 평온함을 보낼게요 🌿"
+
+👉 게임하러 가기: ${window.location.href}`;
         
         try {
           // 클립보드 API 사용
