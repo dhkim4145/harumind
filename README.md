@@ -1,8 +1,8 @@
 # 하루마음 (Harumind) - 감성 힐링 카드 게임
 
-> **v1.41** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
+> **v1.45** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
 
-[![Version](https://img.shields.io/badge/version-1.41-blue.svg)](https://github.com/yourusername/harumind)
+[![Version](https://img.shields.io/badge/version-1.45-blue.svg)](https://github.com/yourusername/harumind)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,7 +168,29 @@ GitHub Pages를 통해 자동 배포됩니다:
 
 ## 📝 변경 이력
 
-### v1.41 (현재)
+### v1.45 (현재) - 성능과 손맛의 균형
+- 🎯 가벼운 손맛 추가: 카드 클릭 시 0.15초 scale(1.05) 효과
+- ✨ 카드 뒤집기 페이드 효과: opacity 0.5→1 빠른 전환으로 자연스러움
+- ⏱️ 미세 지연 조정: 두 번째 카드 확인 시간 100ms 제공
+- ⚡ 성능 유지: GPU 가속 활용한 가벼운 애니메이션만 적용
+- 🎨 쾌적함과 반응성의 완벽한 균형 달성
+
+### v1.43 - 성능 최적화 버전
+- ⚡ 클릭 반응 속도 대폭 개선: 두 번째 카드 클릭 시 즉각적인 UI 업데이트
+- 🚀 비동기 처리 적용: 매칭 판정을 requestAnimationFrame으로 분리
+- 🎯 Bounce 애니메이션 제거로 CPU 부하 감소
+- 💪 하드웨어 가속 강제: will-change, backface-visibility, translateZ(0) 적용
+- 🔧 불필요한 transition 제거 및 리플로우 최소화
+- 📱 모바일 성능 최적화 (GPU 가속 활용)
+
+### v1.42
+- ⚡ 2D 최적화: 3D 카드 애니메이션 제거로 모바일 성능 향상
+- 🎯 매칭 시 짧은 Bounce 효과 추가 (0.2초 타격감)
+- 💌 공유 문구 비주얼 업그레이드 (구조화된 예쁜 형식, 반짝임 지수 포함)
+- 🗑️ 불필요한 3D CSS 클래스 제거로 코드 경량화
+- 📱 모바일 사용성 개선 (즉각적인 카드 반응)
+
+### v1.41
 - 🎴 3D 카드 뒤집기 애니메이션 구현 (rotateY를 활용한 실제 카드 뒤집기 효과)
 - 💌 결과 공유 기능 추가 (클립보드 복사 및 친구 공유)
 - ✨ 카드 뒤집기 애니메이션 중 클릭 오류 방지 로직 개선

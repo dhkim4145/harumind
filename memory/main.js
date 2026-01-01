@@ -6,7 +6,7 @@
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
   // ============================================================
   const C = {
-    VERSION: "v1.41",
+    VERSION: "v1.45",
     TIMEZONE: "Asia/Seoul",
 
     EMOJIS: [
@@ -1349,22 +1349,6 @@
       t.className = "tile";
       t.dataset.state = "down";
       t.dataset.emoji = emoji;
-      
-      // 3D 카드 구조 생성
-      const tileInner = document.createElement("div");
-      tileInner.className = "tile-inner";
-      
-      const tileFront = document.createElement("div");
-      tileFront.className = "tile-front";
-      tileFront.dataset.emoji = emoji;
-      
-      const tileBack = document.createElement("div");
-      tileBack.className = "tile-back";
-      
-      tileInner.appendChild(tileFront);
-      tileInner.appendChild(tileBack);
-      t.appendChild(tileInner);
-      
       t.onclick = () => clickTile(t);
       if(board) board.appendChild(t);
     });
@@ -1387,104 +1371,94 @@
 
   function clickTile(t){
     if(lock || t.dataset.state === "up" || t.classList.contains("matched")) return;
-    
-    // 애니메이션 중 클릭 방지
-    lock = true;
-    setTimeout(() => {
-      lock = false;
-    }, 600); // 카드 뒤집기 애니메이션 시간(0.6s) 동안 lock
 
+    // 즉시 UI 업데이트 (성능 최우선)
     t.dataset.state = "up";
 
     if(!first){
       first = t;
       showTempMessage("어디에 있을까요? 마음의 눈으로 슥- 보세요 🧐", "", 800);
       setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
-      // 첫 카드 뒤집기 후 lock 해제
-      setTimeout(() => {
-        lock = false;
-      }, 600);
       return;
     }
 
+    lock = true;
     clearTempMsgTimer();
 
-    if(first.dataset.emoji === t.dataset.emoji){
-      // 성공 애니메이션
-      first.classList.add("matched");
-      t.classList.add("matched");
+    // 두 번째 카드 확인 시간을 주기 위해 약간의 지연 (손맛을 위한 미세 조정)
+    setTimeout(() => {
+      // 매칭 판정 및 점수 계산
+      if(first.dataset.emoji === t.dataset.emoji){
+        // 성공 처리
+        first.classList.add("matched");
+        t.classList.add("matched");
 
-      matched++;
-      streak++;
-      maxStreak = Math.max(maxStreak, streak);
+        matched++;
+        streak++;
+        maxStreak = Math.max(maxStreak, streak);
 
-      const pts = C.comboPoints(streak);
-      score += pts;
+        const pts = C.comboPoints(streak);
+        score += pts;
 
-      showReward(t, `+${pts}`);
-      renderStats({ matched, score, totalPairs });
-      
-      // 콤보 피드백 표시 (2콤보 이상)
-      if(streak >= 2){
-        showComboFeedback(streak);
-      }
-      
-      // 매칭 성공 시 하트 가루 효과
-      if(scorePill){
-        launchHeartConfetti(scorePill);
-      }
-
-      // 변경: 맑은 실로폰 느낌의 성공음 재생 (잔향 포함)
-      playSuccessSound(streak);
-
-      clearTempMsgTimer();
-      setTimeout(() => {
-        if(matched === 1){
-          setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
-        }else if(matched < totalPairs){
-          // 연속 매칭 중인지 확인 (streak >= 2)
+        // UI 업데이트도 비동기로 처리
+        setTimeout(() => {
+          showReward(t, `+${pts}`);
+          renderStats({ matched, score, totalPairs });
+          
+          // 콤보 피드백 표시 (2콤보 이상)
           if(streak >= 2){
-            setStateMessage("와우! 마음이 척척 통하고 있어요! 😍", "지금 이 리듬을 놓치지 마세요!");
-          } else {
-            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+            showComboFeedback(streak);
           }
-        }
-      }, 200);
+          
+          // 매칭 성공 시 하트 가루 효과
+          if(scorePill){
+            launchHeartConfetti(scorePill);
+          }
 
-      first = null;
-      
-      // 성공 시에도 애니메이션 완료 후 lock 해제
-      setTimeout(() => {
-        lock = false;
-      }, 600);
+          // 맑은 실로폰 느낌의 성공음 재생
+          playSuccessSound(streak);
 
-      if(matched === totalPairs){
-        finishGame();
-      }
+          if(matched === 1){
+            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+          }else if(matched < totalPairs){
+            // 연속 매칭 중인지 확인 (streak >= 2)
+            if(streak >= 2){
+              setStateMessage("와우! 마음이 척척 통하고 있어요! 😍", "지금 이 리듬을 놓치지 마세요!");
+            } else {
+              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "기분 좋은 리듬을 타면 보너스 점수가 쌓여요 🎵");
+            }
+          }
+        }, 0);
 
-    }else{
-      // 실패 애니메이션
-      first.classList.add("shake");
-      t.classList.add("shake");
-      
-      streak = 0;
-      // 변경: 200Hz 짧은 '툭' 실패음
-      playFailSound();
-
-      clearTempMsgTimer();
-      setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
-
-      setTimeout(()=>{
-        first.classList.remove("shake");
-        t.classList.remove("shake");
-        first.dataset.state = "down";
-        t.dataset.state = "down";
         first = null;
         lock = false;
+
+        if(matched === totalPairs){
+          finishGame();
+        }
+
+      }else{
+        // 실패 처리
+        first.classList.add("shake");
+        t.classList.add("shake");
         
-        setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
-      }, C.MISMATCH_MS);
-    }
+        streak = 0;
+        playFailSound();
+
+        setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
+
+        setTimeout(()=>{
+          first.classList.remove("shake");
+          t.classList.remove("shake");
+          first.dataset.state = "down";
+          t.dataset.state = "down";
+          first = null;
+          lock = false;
+          
+          setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
+        }, C.MISMATCH_MS);
+      }
+    }, 100); // 100ms 지연으로 두 번째 카드 확인 시간 제공
   }
 
   function finishGame(){
@@ -1615,14 +1589,31 @@
         
         // 난이도 이름 가져오기
         const levelMap = {
-          "3x2": "쉬움",
-          "4x3": "보통",
-          "4x4": "어려움"
+          "3x2": "쉬움 (3쌍)",
+          "4x3": "보통 (6쌍)",
+          "4x4": "어려움 (8쌍)"
         };
-        const levelName = levelMap[levelSel?.value || "3x2"] || "쉬움";
+        const levelName = levelMap[levelSel?.value || "3x2"] || "쉬움 (3쌍)";
         
-        // 공유 텍스트 생성
-        const shareText = `오늘의 하루마음 기록: [${levelName}] ${score}점 / ${time}초! 당신의 마음은 오늘 얼마나 반짝였나요? ✨ ${window.location.href}`;
+        // 날짜 가져오기
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+        
+        // 반짝임 지수 계산 (점수 기반, 최대 5개)
+        const sparkleCount = Math.min(5, Math.max(1, Math.floor(score / 50) + 1));
+        const sparkles = "⭐".repeat(sparkleCount);
+        
+        // 공유 텍스트 생성 (예쁜 형식)
+        const shareText = `✨ [하루마음 기록] ✨
+━━━━━━━━━━━━━━
+📅 날짜: ${dateStr}
+🎮 난이도: ${levelName}
+🏆 최종점수: ${score}점
+⏱️ 소요시간: ${time}
+🔥 최고콤보: ${combo} Combo
+━━━━━━━━━━━━━━
+내 마음의 반짝임 지수: ${sparkles}
+지금 바로 마음을 챙겨보세요! ${window.location.href}`;
         
         try {
           // 클립보드 API 사용

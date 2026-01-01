@@ -597,98 +597,59 @@ button.primary{
   width: 100%;
   min-width: 0;
   border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:var(--tile-fs);
   cursor:pointer;
   user-select:none;
   position:relative;
   box-sizing:border-box;
   touch-action: none;
   contain: layout style paint;
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-.tile-inner{
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius:18px;
-}
-
-.tile[data-state="up"] .tile-inner{
-  transform: rotateY(180deg);
-}
-
-.tile-front,
-.tile-back{
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius:18px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:var(--tile-fs);
-  box-sizing:border-box;
+  transform: translateZ(0);
+  transition: transform 0.15s ease-out;
 }
 
-.tile-front{
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
-  transform: rotateY(180deg);
-}
-
-.tile-back{
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
-}
-
-.tile.matched .tile-front,
-.tile.matched .tile-back{
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
-}
-
-/* 클릭 시 피드백 */
-.tile:active:not(.matched) .tile-inner{
-  transform: scale(0.95) rotateY(var(--current-rotation, 0deg));
-}
-
-.tile[data-state="up"]:active:not(.matched) .tile-inner{
-  transform: scale(0.95) rotateY(180deg);
+/* 클릭 시 눌리는 느낌 */
+.tile:active:not(.matched){
+  transform: scale(1.05) translateZ(0);
 }
 
 /* 호버 효과 (PC용) */
 @media (hover: hover){
-  .tile:not(.matched):not([data-state="up"]):hover .tile-back{
+  .tile:not(.matched):not([data-state="up"]):hover{
     border-color:rgba(255,255,255,.20);
     box-shadow:0 2px 8px rgba(0,0,0,.2);
   }
 }
 
-.tile-back::before{
+.tile[data-state="down"]::after{
   content:"?";
   font-weight:900;
-  color:var(--text);
-  opacity:0.8;
+  opacity:1;
+  transition: opacity 0.15s ease-out;
 }
 
-.tile-front::before{
+.tile[data-state="up"]::after{
   content:attr(data-emoji);
+  opacity:0;
+  animation: cardFlipFade 0.15s ease-out forwards;
 }
 
-.tile.matched .tile-inner{
-  animation: matchedPulse 0.5s ease;
+@keyframes cardFlipFade{
+  0%{ opacity:0.5; }
+  100%{ opacity:1; }
 }
 
-@keyframes matchedPulse{
-  0%{ transform: scale(1); }
-  30%{ transform: scale(1.15); }
-  60%{ transform: scale(0.95); }
-  100%{ transform: scale(1); }
+.tile.matched{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
 }
 
 .tile.shake{
