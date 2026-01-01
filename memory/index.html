@@ -25,6 +25,7 @@
 <meta property="og:image" content="https://harumind.kr/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="하루마음 같은 그림 찾기 게임" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
@@ -633,18 +634,20 @@ button.primary{
   content:"?";
   font-weight:900;
   opacity:1;
-  transition: opacity 0.15s ease-out;
+  transform: scaleX(1);
+  transition: transform 0.2s ease-out;
 }
 
 .tile[data-state="up"]::after{
   content:attr(data-emoji);
-  opacity:0;
-  animation: cardFlipFade 0.15s ease-out forwards;
+  opacity:1;
+  animation: cardFlip 0.2s ease-out forwards;
 }
 
-@keyframes cardFlipFade{
-  0%{ opacity:0.5; }
-  100%{ opacity:1; }
+@keyframes cardFlip{
+  0%{ transform: scaleX(1); }
+  50%{ transform: scaleX(0); }
+  100%{ transform: scaleX(1); }
 }
 
 .tile.matched{

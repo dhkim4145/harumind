@@ -1,8 +1,8 @@
 # 하루마음 (Harumind) - 감성 힐링 카드 게임
 
-> **v1.45** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
+> **v1.46** | 하루 5분, 마음의 평온을 찾아가는 따뜻한 인지 자극 게임
 
-[![Version](https://img.shields.io/badge/version-1.45-blue.svg)](https://github.com/yourusername/harumind)
+[![Version](https://img.shields.io/badge/version-1.46-blue.svg)](https://github.com/yourusername/harumind)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ---
@@ -168,7 +168,15 @@ GitHub Pages를 통해 자동 배포됩니다:
 
 ## 📝 변경 이력
 
-### v1.45 (현재) - 성능과 손맛의 균형
+### v1.46 (현재) - 최종 밸런스 완성
+- 🎴 2D 회전 효과: scaleX() 기반 카드 뒤집기 애니메이션 (0.2초)
+- ✨ 회전 느낌 구현: 카드가 가로로 줄어들었다 펴지는 효과
+- 💬 공유 기능 개선: 박스 형태의 예쁜 텍스트 형식으로 복사
+- 📱 카카오톡 공유 최적화: OG 태그 보강으로 소셜 공유 품질 향상
+- ⚡ 성능 최적화 유지: 비동기 로직 및 GPU 가속 그대로 적용
+- 🎯 손맛과 시각 효과의 완벽한 균형 달성
+
+### v1.45 - 성능과 손맛의 균형
 - 🎯 가벼운 손맛 추가: 카드 클릭 시 0.15초 scale(1.05) 효과
 - ✨ 카드 뒤집기 페이드 효과: opacity 0.5→1 빠른 전환으로 자연스러움
 - ⏱️ 미세 지연 조정: 두 번째 카드 확인 시간 100ms 제공
