@@ -1786,12 +1786,7 @@
   function doPeek(sec){
     if(lock) return;
 
-    if(first){
-      first.dataset.state = "down";
-      first = null;
-    }
-
-    lock = true;
+    lock = true; // 힌트 중에는 다른 카드 클릭 막기
     clearPeekTimer();
 
     // 게임 보드 위치로 스크롤
@@ -1800,27 +1795,57 @@
     }
 
     if(board){
+      // 1단계: 현재 뒤집혀 있는 카드들의 상태 저장 (원래 뒤집어놓은 카드들)
+      const originallyFlipped = new Set();
       [...board.children].forEach(t => {
-        t.dataset.state = "up";
-        // 힌트 강조 효과: 황금색 테두리 광채 (2초 지속)
+        if(t.dataset.state === "up" && !t.classList.contains("matched")){
+          originallyFlipped.add(t);
+        }
+      });
+
+      // 2단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기
+      const hintCards = [];
+      [...board.children].forEach(t => {
+        if(!t.classList.contains("matched")){
+          // 원래 뒤집혀 있지 않았던 카드만 힌트 카드로 표시
+          if(!originallyFlipped.has(t)){
+            hintCards.push(t);
+          }
+          t.dataset.state = "up";
+        }
+      });
+
+      // 3단계: 힌트 카드들에만 황금빛 광채 효과 적용
+      hintCards.forEach(t => {
         t.classList.add("hintHighlight");
         setTimeout(() => {
           t.classList.remove("hintHighlight");
-        }, 2000);
+        }, sec * 1000);
       });
-    }
-    setMessage("잠깐 보고 기억해요 🙂", "잠시 후 다시 물음표로 돌아갑니다.");
 
-    peekTimer = setTimeout(()=>{
-      if(board){
-        [...board.children].forEach(t=>{
-          if(!t.classList.contains("matched")) t.dataset.state = "down";
-        });
-      }
-      setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
-      lock = false;
-      peekTimer = null;
-    }, sec * 1000);
+      // 4단계: 힌트 시간이 끝나면 힌트 카드만 다시 뒷면으로 닫기
+      peekTimer = setTimeout(()=>{
+        if(board){
+          hintCards.forEach(t => {
+            if(!t.classList.contains("matched")){
+              t.dataset.state = "down";
+            }
+          });
+          // 원래 뒤집어놓은 카드는 그대로 유지 (already up 상태)
+        }
+        setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
+        lock = false;
+        peekTimer = null;
+      }, sec * 1000);
+    } else {
+      // board가 없는 경우에도 lock 해제
+      peekTimer = setTimeout(()=>{
+        lock = false;
+        peekTimer = null;
+      }, sec * 1000);
+    }
+
+    setMessage("잠깐 보고 기억해요 🙂", "잠시 후 다시 물음표로 돌아갑니다.");
   }
 
   // 하단 토스트 메시지 표시
