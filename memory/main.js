@@ -99,6 +99,7 @@
 
   // BGM 재생 함수
   async function playBgm(){
+    if(!bgmOn) return;
     if(!bgm) return;
     try{
       bgm.load();
@@ -280,7 +281,9 @@
   // 설정 상태
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
   let baseBackground = document.body.style.background;
-  const tone = (freq, type = 'sine', duration = 0.12) => core.playSfx(freq, type, duration);
+  
+  // tone 함수 통합: core.playSfx() 호출로 단순화
+  const tone = (type = 'click') => core.playSfx(type);
 
   // 테마 적용 함수 - core 엔진 사용
   function applyTheme(themeKey){
@@ -457,42 +460,24 @@
     }
   }
 
-  function refreshSfxUi(){
-    if(sfxBtn) {
-      sfxBtn.innerHTML = core.isSfxOn ? "🔊 효과" : "🔇 효과";
-      sfxBtn.style.opacity = core.isSfxOn ? '1' : '0.6';
-    }
-  }
-
   // 비프음 (core 엔진 사용)
   function playBeep(freq=880, ms=70){
-    tone(freq, 'sine', ms / 1000);
+    core.playSfx('click');
   }
 
-  // 성공음: 가벼운 멜로디 시퀀스
+  // 성공음
   function playSuccessSound(streak = 1){
-    const base = 880 + Math.min(streak, 6) * 35;
-    tone(base, 'triangle', 0.18);
-    setTimeout(() => tone(base * 1.5, 'sine', 0.16), 90);
-    setTimeout(() => tone(base * 2, 'sine', 0.14), 180);
+    core.playSfx('success');
   }
 
   // 실패음
   function playFailSound(){
-    tone(200, 'square', 0.14);
+    core.playSfx('click');
   }
 
   // 축하 효과음
   function playFanfare(){
-    const notes = [
-      { freq: 880, time: 0, dur: 0.15 },
-      { freq: 1046.5, time: 0.2, dur: 0.15 },
-      { freq: 1318.5, time: 0.4, dur: 0.2 },
-      { freq: 1046.5, time: 0.7, dur: 0.15 },
-      { freq: 1318.5, time: 0.9, dur: 0.22 }
-    ];
-    notes.forEach(({ freq, time, dur }) => setTimeout(() => tone(freq, 'triangle', dur), time * 1000));
-    setTimeout(() => tone(220, 'sawtooth', 0.3), 0);
+    core.playSfx('success');
   }
 
   // +점수 리워드
@@ -1787,7 +1772,7 @@
   renderDaily(dateStr);
   renderStreak(); // 연속 출석일 표시
   setBigMode(bigOn);
-  refreshSfxUi();
+  core.updateSfxUi(); // core에서 UI 동기화
   updateLevelTextForMobile();
 
   // 리사이즈 및 화면 회전 시에도 모바일/PC 전환 대응
@@ -1805,17 +1790,15 @@
   window.addEventListener("orientationchange", handleResize);
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
-  if(sfxBtn) sfxBtn.onclick = () => {
-    core.toggleSfx();
-    refreshSfxUi();
-    tone(440, 'sine', 0.05);
-  };
+  
+  // SFX/BGM 버튼은 core.js에서 자동 처리됨 (bindUI에서)
   
   // 테마 선택 이벤트
   if(themeSelect){
     themeSelect.value = core.currentTheme;
     themeSelect.onchange = () => {
       applyTheme(themeSelect.value);
+      core.playSfx('click');
     };
   }
   

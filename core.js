@@ -2,7 +2,9 @@
 class HaruCore {
     constructor() {
         this.audioCtx = null;
+        this.bgmAudio = null;
         this.isSfxOn = localStorage.getItem('sfxOn') !== 'false';
+        this.isBgmOn = localStorage.getItem('bgmOn') === 'true';
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.init();
     }
@@ -16,14 +18,20 @@ class HaruCore {
         // 공통 UI 요소 연결
         const sfxBtn = document.getElementById('sfxBtn');
         if (sfxBtn) {
-            sfxBtn.textContent = this.isSfxOn ? '🔊 효과' : '🔇 효과';
-            sfxBtn.onclick = () => this.toggleSfx();
+            this.updateSfxUi();
+            sfxBtn.addEventListener('click', () => this.toggleSfx());
+        }
+        
+        const bgmBtn = document.getElementById('bgmBtn');
+        if (bgmBtn) {
+            this.updateBgmUi();
+            bgmBtn.addEventListener('click', () => this.toggleBgm());
         }
         
         const themeSel = document.getElementById('themeSelect');
         if (themeSel) {
             themeSel.value = this.currentTheme;
-            themeSel.onchange = (e) => this.applyTheme(e.target.value);
+            themeSel.addEventListener('change', (e) => this.applyTheme(e.target.value));
         }
     }
 
@@ -39,23 +47,132 @@ class HaruCore {
         document.body.style.background = `radial-gradient(circle at 30% 10%, ${s.grad} 0%, ${s.bg} 70%)`;
     }
 
-    playSfx(freq, type = 'sine', duration = 0.1) {
+    // 효과음 재생 (타입별 사전 정의된 사운드)
+    playSfx(type = 'click') {
         if (!this.isSfxOn) return;
-        if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = this.audioCtx.createOscillator();
-        const g = this.audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
-        osc.connect(g); g.connect(this.audioCtx.destination);
-        osc.start(); osc.stop(this.audioCtx.currentTime + duration);
+        
+        // AudioContext 초기화 및 suspended 상태 확인
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+
+        switch(type) {
+            case 'click':
+                // 짧고 경쾌한 비프음
+                this._playTone(440, 'sine', 0.05);
+                break;
+            case 'success':
+                // '도-미-솔-도' 아르페지오 (팡팡 터지는 사운드)
+                this._playTone(523, 'sine', 0.08);     // C5
+                setTimeout(() => this._playTone(659, 'sine', 0.08), 50);   // E5
+                setTimeout(() => this._playTone(783, 'sine', 0.08), 100);  // G5
+                setTimeout(() => this._playTone(1046, 'sine', 0.12), 150); // C6
+                break;
+            default:
+                this._playTone(440, 'sine', 0.05);
+        }
+    }
+
+    _playTone(freq, type, duration) {
+        try {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            
+            osc.start();
+            osc.stop(this.audioCtx.currentTime + duration);
+        } catch(e) {
+            console.warn('SFX 생성 실패:', e);
+        }
+    }
+
+    // 배경음 재생 (MP3 파일)
+    ensureBgm() {
+        if (!this.isBgmOn) return;
+        
+        if (!this.bgmAudio) {
+            this.bgmAudio = document.getElementById('bgmAudio');
+            if (!this.bgmAudio) {
+                // bgmAudio 태그가 없으면 동적 생성
+                this.bgmAudio = new Audio('../memory/assets/audio/piano1.mp3');
+                this.bgmAudio.loop = true;
+                this.bgmAudio.id = 'bgmAudio';
+            }
+        }
+        
+        if (this.bgmAudio) {
+            this.bgmAudio.volume = 0.25;
+            try {
+                this.bgmAudio.play().catch(e => console.warn('BGM 재생 차단:', e));
+            } catch(e) {
+                console.warn('BGM play error:', e);
+            }
+        }
+    }
+
+    stopBgm() {
+        if (this.bgmAudio) {
+            this.bgmAudio.pause();
+            this.bgmAudio.currentTime = 0;
+        }
     }
 
     toggleSfx() {
         this.isSfxOn = !this.isSfxOn;
         localStorage.setItem('sfxOn', this.isSfxOn);
+        this.updateSfxUi();
+        // 토글 피드백음
+        if (this.isSfxOn) this.playSfx('click');
+    }
+
+    toggleBgm() {
+        this.isBgmOn = !this.isBgmOn;
+        localStorage.setItem('bgmOn', this.isBgmOn);
+        this.updateBgmUi();
+        
+        if (this.isBgmOn) {
+            this.ensureBgm();
+        } else {
+            this.stopBgm();
+        }
+        // 토글 피드백음
+        this.playSfx('click');
+    }
+
+    updateSfxUi() {
         const sfxBtn = document.getElementById('sfxBtn');
-        if (sfxBtn) sfxBtn.textContent = this.isSfxOn ? '🔊 효과' : '🔇 효과';
+        if (sfxBtn) {
+            if (this.isSfxOn) {
+                sfxBtn.textContent = '🔊 효과';
+                sfxBtn.classList.remove('off');
+            } else {
+                sfxBtn.textContent = '🔇 효과';
+                sfxBtn.classList.add('off');
+            }
+        }
+    }
+
+    updateBgmUi() {
+        const bgmBtn = document.getElementById('bgmBtn');
+        if (bgmBtn) {
+            if (this.isBgmOn) {
+                bgmBtn.textContent = '🎵 배경';
+                bgmBtn.classList.remove('off');
+            } else {
+                bgmBtn.textContent = '🔇 배경';
+                bgmBtn.classList.add('off');
+            }
+        }
     }
 }
 

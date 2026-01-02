@@ -13,8 +13,6 @@
     let currentWord = "";
     let shuffledChars = [];
     let userSelection = [];
-    let bgmOn = false;
-    const tone = (freq, type = 'sine', duration = 0.1) => core.playSfx(freq, type, duration);
 
     // ============================================================
     // [Storage Helper]
@@ -87,7 +85,7 @@
         
         const attendanceEl = document.getElementById('attendanceInline');
         if(attendanceEl) {
-            attendanceEl.innerText = `🔥 연속 출석 ${streak}일`;
+            attendanceEl.innerText = `🔥 ${streak}일째`;
         }
     }
 
@@ -139,7 +137,7 @@
         const tile = document.getElementById(`tile-${index}`);
         if (tile.classList.contains('selected')) return;
 
-        tone(880, 'sine', 0.07);
+        core.playSfx('click');
         tile.classList.add('selected');
         userSelection.push(char);
         renderAnswer();
@@ -147,20 +145,19 @@
 
         if (userSelection.length === currentWord.length) {
             if (userSelection.join('') === currentWord) {
-                // 정답!
-                tone(523.25, 'sine', 0.3);
-                setTimeout(() => tone(659.25, 'sine', 0.25), 120);
+                // 정답! 아르페지오 효과음
+                core.playSfx('success');
+                
                 launchConfetti();
                 pulseAnswerArea('sparkle', 800);
                 
                 setTimeout(() => {
-                    tone(1046.5, 'sine', 0.35);
                     document.getElementById('modal-word-display').innerText = currentWord;
                     document.getElementById('modal').style.display = 'flex';
                 }, 500);
             } else {
                 // 틀림
-                tone(200, 'sawtooth', 0.18);
+                core.playSfx('click');
                 pulseAnswerArea('shake');
                 setTimeout(() => {
                     resetCurrentWord();
@@ -187,31 +184,8 @@
         const homeBtn = document.getElementById('homeBtn');
         if(homeBtn) {
             homeBtn.addEventListener('click', () => {
-                core.playSfx(520, 'sine', 0.08);
+                core.playSfx('click');
                 window.location.href = '../index.html';
-            });
-        }
-
-        // SFX 버튼 - core.js에 위임
-        const sfxBtn = document.getElementById('sfxBtn');
-        if(sfxBtn) {
-            sfxBtn.addEventListener('click', () => {
-                core.toggleSfx();
-                sfxBtn.style.opacity = core.isSfxOn ? '1' : '0.6';
-                tone(440, 'sine', 0.05);
-            });
-        }
-
-        // BGM 버튼
-        const bgmBtn = document.getElementById('bgmBtn');
-        if(bgmBtn) {
-            bgmBtn.addEventListener('click', () => {
-                bgmOn = !bgmOn;
-                setBool(STORAGE_KEYS.BGM, bgmOn);
-                bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
-                bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
-                // BGM 재생/정지 로직은 필요시 추가
-                tone(550, 'sine', 0.05);
             });
         }
 
@@ -221,25 +195,30 @@
             themeSelect.value = core.currentTheme;
             themeSelect.addEventListener('change', (e) => {
                 core.applyTheme(e.target.value);
-                sfxBtn && tone(660, 'sine', 0.05);
+                core.playSfx('click');
             });
         }
+    }
+
+    function updateSfxUi() {
+        core.updateSfxUi();
+    }
+
+    function updateBgmUi() {
+        core.updateBgmUi();
     }
 
     // ============================================================
     // [Initialization]
     // ============================================================
     document.addEventListener('DOMContentLoaded', () => {
-        // Load settings
-        bgmOn = getBool(STORAGE_KEYS.BGM, false);
-        const bgmBtn = document.getElementById('bgmBtn');
-        if(bgmBtn) {
-            bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
-            bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
-        }
-
         // 초기 테마 동기화
         core.applyTheme(core.currentTheme);
+
+        // BGM 상태 복원 후 필요 시 재생 시도
+        if(core.isBgmOn) {
+            core.ensureBgm();
+        }
 
         // Init controls
         initControls();
