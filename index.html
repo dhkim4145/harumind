@@ -1,157 +1,156 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
-
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-<!-- 네이버 사이트 소유확인 -->
-  <meta name="naver-site-verification"
-        content="9a17421f3eca307a085f00983e810d49b7172fdd" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   
-  <title>하루마음 - 하루 5분 두뇌놀이</title>
+  <title>하루마음 | 매일 5분, 건강한 두뇌 습관</title>
+  <meta name="description" content="부담 없이 즐기는 인지 자극 두뇌 놀이. 같은 그림 찾기부터 다양한 게임으로 집중력과 기억력을 지키세요." />
+  <link rel="canonical" href="https://harumind.kr/" />
 
-  <!-- SEO 기본 -->
-  <meta name="description" content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 키워보세요." />
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
 
-  <!-- Open Graph (카톡/네이버/페북 등 공유용) -->
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="하루마음" />
   <meta property="og:title" content="하루마음 - 하루 5분 두뇌놀이" />
-  <meta property="og:description" content="누구나 편하게 즐길 수 있는 같은 그림 찾기 인지 자극 게임입니다. 하루 5분 두뇌놀이로 집중력과 기억력을 키워보세요." />
-  <meta property="og:url" content="https://harumind.kr/" />
+  <meta property="og:description" content="로그인 없이 바로 즐기는 인지 자극 게임. 오늘부터 시작해보세요!" />
   <meta property="og:image" content="https://harumind.kr/og.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
 
-  <!-- Twitter/X (겸사겸사) -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="하루마음 - 하루 5분 두뇌놀이" />
-  <meta name="twitter:description" content="같은 그림 찾기 게임으로 하루 5분 두뇌놀이. 누구나 쉽게 시작해요." />
-  <meta name="twitter:image" content="https://harumind.kr/og.png" />
- 
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-JX8PENN22H');
-  </script>
-  
   <style>
-    :root{
-      --bg:#0b1020;
-      --text:#e8ecff;
-      --muted:#b9c2ff;
-      --accent:#6ee7b7;
-      --shadow:0 10px 25px rgba(0,0,0,.35);
-      --radius:18px;
+    :root {
+      --bg: #0b1020;
+      --card-bg: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+      --text: #e8ecff;
+      --muted: #b9c2ff;
+      --accent: #6ee7b7;
+      --radius: 20px;
     }
-    *{box-sizing:border-box;}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif;
-      background: radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%);
-      color:var(--text);
-      display:flex;
-      justify-content:center;
-      padding:18px;
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif;
+      background: radial-gradient(circle at 30% 10%, #1b2457 0%, var(--bg) 70%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
     }
-    .wrap{
-      width:min(560px,100%);
-      display:flex;
-      flex-direction:column;
-      gap:16px;
+
+    .container { width: min(500px, 100%); display: flex; flex-direction: column; gap: 20px; }
+
+    /* 상단 브랜딩 */
+    .header { text-align: center; padding: 10px 0; }
+    .brand { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: var(--accent); }
+    .tagline { font-size: 16px; color: var(--muted); margin-top: 5px; opacity: 0.9; }
+
+    /* 메인 카드 */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
     }
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;
+
+    .hero-title { font-size: 22px; font-weight: 800; line-height: 1.4; margin-bottom: 24px; }
+    .highlight { color: var(--accent); }
+
+    /* 게임 리스트 스타일 */
+    .game-list { display: flex; flex-direction: column; gap: 14px; }
+    
+    .game-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(110,231,183,0.2);
+      border-radius: 16px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s ease;
     }
-    .brand{
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:-.4px;
+
+    .game-item:active { transform: scale(0.97); background: rgba(110,231,183,0.1); }
+
+    .game-info { display: flex; flex-direction: column; gap: 4px; }
+    .game-name { font-size: 19px; font-weight: 800; }
+    .game-desc { font-size: 13px; color: var(--muted); }
+    
+    .start-badge {
+      background: var(--accent);
+      color: #0b1020;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 800;
     }
-    .tag{
-      margin-top:6px;
-      color:var(--muted);
-      font-size:15px;
+
+    /* 하단 안내 */
+    .footer-note { font-size: 14px; color: var(--muted); line-height: 1.6; text-align: center; }
+    .info-grid { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px; 
+      margin-top: 15px;
+      font-size: 12px;
     }
-    .hero{
-      font-size:22px;
-      font-weight:900;
-      line-height:1.35;
-      letter-spacing:-.3px;
-    }
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:20px;
-      font-weight:900;
-      border-radius:999px;
-      border:2px solid rgba(110,231,183,.45);
-      background:rgba(110,231,183,.18);
-      color:var(--text);
-      padding:14px 22px;
-      text-decoration:none;
-      margin-top:12px;
-    }
-    .note{
-      font-size:13px;
-      color:var(--muted);
-      line-height:1.5;
-    }
+    .info-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
+
+    .coming-soon { opacity: 0.5; border: 1px dashed rgba(255,255,255,0.2); background: none; cursor: default; }
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="brand">하루마음</div>
-      <div class="tag">하루 5분, 천천히 해도 괜찮은 두뇌놀이</div>
+
+<div class="container">
+  <header class="header">
+    <div class="brand">하루마음</div>
+    <div class="tagline">매일 조금씩, 건강해지는 두뇌 습관</div>
+  </header>
+
+  <main class="card">
+    <div class="hero-title">
+      반가워요!<br/>
+      오늘은 <span class="highlight">어떤 놀이</span>를 해볼까요?
     </div>
 
-    <div class="card">
-      <div class="hero">
-        오늘도 부담 없이<br/>
-        짧게, 가볍게 해볼까요?
-      </div>
-
-      <!-- ✅ 핵심 수정: memory.html → /memory/ -->
-      <a class="btn" href="/memory/">
-        ▶ 같은 그림 찾기 시작
+    <div class="game-list">
+      <a href="/memory/" class="game-item">
+        <div class="game-info">
+          <span class="game-name">🧩 같은 그림 찾기</span>
+          <span class="game-desc">기억력과 관찰력을 키워요</span>
+        </div>
+        <span class="start-badge">시작</span>
       </a>
 
-      <div class="note" style="margin-top:12px;">
-        ✓ 로그인 없음 · ✓ 광고 없음 · ✓ 설치 없음<br/>
-        *하루마음은 눈에 잘 보이고 조작이 쉬운 인지 자극 두뇌 놀이 서비스입니다.
+      <div class="game-item coming-soon">
+        <div class="game-info">
+          <span class="game-name">✍️ 단어 조합하기</span>
+          <span class="game-desc">준비 중입니다. 기대해 주세요!</span>
+        </div>
       </div>
     </div>
+  </main>
 
-    <div class="card note">
-      📌 추천: 홈화면에 아이콘을 만들어 두면 편해요.<br/>
-      · 안드로이드: 메뉴(⋮) → “홈 화면에 추가”<br/>
-      · 아이폰: 공유(⬆️) → “홈 화면에 추가”
+  <div class="footer-note">
+    <div class="info-grid">
+      <div class="info-item">✨ 로그인 없이 바로</div>
+      <div class="info-item">🚫 광고 없이 쾌적하게</div>
     </div>
+    <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+      * 하루마음은 인지 기능 유지에 도움을 주는<br/>쉬운 두뇌 놀이를 지향합니다.
+    </p>
   </div>
+
+  <footer class="card" style="padding: 16px; font-size: 13px;">
+    <b>💡 스마트폰 홈 화면에 추가해보세요</b><br/>
+    앱처럼 더 쉽고 편하게 접속할 수 있습니다.
+  </footer>
+</div>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
