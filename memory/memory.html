@@ -164,144 +164,79 @@ body.bigText #hint{
 }
 
 /* Settings row - word-fragments style */
-.settings-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-
-.settings-btn {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text);
-  padding: 6px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-  backdrop-filter: blur(10px);
-  min-height: 36px;
-}
-
-.settings-btn:hover {
-  background: rgba(255,255,255,0.1);
-  border-color: var(--accent);
-}
-
-.settings-select {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text);
-  padding: 6px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  backdrop-filter: blur(10px);
-  min-height: 36px;
-}
-
-/* ✅ 설정 버튼: PC(웹)에서는 아예 안 보이게 */
+/* 설정 트리거 버튼 */
 #settingsBtn{
-  display:none;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.06);
+  background:rgba(255,255,255,.08);
   color:var(--text);
   padding:8px 12px;
   cursor:pointer;
   align-items:center;
-  gap:8px;
+  gap:6px;
   line-height:1;
   font-size:14px;
   white-space:nowrap;
+  display:flex;
 }
-#settingsBtn .chev{
-  display:inline-block;
-  transition:transform .18s ease;
-  opacity:.9;
-}
-#settingsBtn.isOpen .chev{ transform:rotate(180deg); }
-
-/* 모바일(520px 이하)에서 설정 버튼 스타일 */
-@media (max-width:520px){
-  #settingsBtn{ 
-    display:none; /* 설정 버튼 완전히 숨김 - 항상 표시 */
-  }
-  
-  /* 모바일에서 settings-row 한 줄 유지 */
-  .settings-row{
-    display:flex;
-    flex-wrap: wrap;
-    gap:6px;
-    padding:0;
-  }
-  
-  /* 모바일에서 설정 버튼 터치 영역 확보 */
-  .settings-row .settings-btn,
-  .settings-row .settings-select{
-    flex: 1 1 calc(50% - 3px);
-    min-width: 0;
-    min-height:36px;
-    padding:8px 6px;
-    font-size:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
+#settingsBtn:hover{
+  background:rgba(255,255,255,.12);
+  border-color:rgba(255,255,255,.28);
 }
 
-/* 설정 패널 제거됨 - settings-row 사용 */
-
-.settingsPanel button,
-.settingsPanel select{
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 12px 14px;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* 설정 모달 */
+.settings-modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:11000;
+  padding:18px;
+  backdrop-filter: blur(6px);
 }
-
-.settingsPanel select#themeSelect{
-  cursor: pointer;
-  background: rgba(255,255,255,.04);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.08);
-  color: var(--text);
-  border-radius: 999px;
-  min-height: 44px;
-  box-shadow: 0 2px 8px rgba(138, 43, 226, 0.1);
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease, box-shadow 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e8ecff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  padding-right: 40px;
+.settings-modal-backdrop.isOpen{ display:flex; }
+.settings-modal{
+  width:min(360px, 100%);
+  background:rgba(20,27,63,0.9);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  padding:20px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
-
-.settingsPanel select#themeSelect:hover{
-  background-color: rgba(255,255,255,.06);
-  box-shadow: 0 3px 10px rgba(138, 43, 226, 0.12);
+.settings-modal h3{
+  margin:0 0 4px 0;
+  font-size:16px;
+  font-weight:800;
+  color:var(--text);
+  text-align:center;
 }
-
-.settingsPanel select#themeSelect:active{
-  transform: scale(0.96);
+.settings-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
-
-.settingsPanel select#themeSelect option{
-  background: #1a2250;
-  color: #e8ecff;
-  padding: 8px;
+.settings-group button,
+.settings-group select{
+  width:100%;
+}
+.settings-close{
+  margin-top:6px;
+  width:100%;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border-radius:12px;
+  padding:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.settings-close:hover{
+  background:rgba(255,255,255,.12);
 }
 
 /* PC는 항상 보임 */
@@ -1329,26 +1264,13 @@ body.peeking .tile{
   <div class="card">
     <div class="titleRow">
       <div class="title">🧩 소중한 친구들 찾기</div>
-      <button id="settingsBtn" type="button" aria-expanded="false" aria-label="설정 열기" title="설정 열기">
-        ⚙️ <span class="btnText">설정</span> <span class="chev">∨</span>
-      </button>
+      <button id="settingsBtn" type="button" title="설정 열기">⚙️ 설정</button>
     </div>
 
     <div class="sub">다정한 친구들의 짝을 찾아 행복을 채워주세요</div>
     
     <div id="streakDisplay" style="margin-top:8px; font-size:13px; color:var(--muted); text-align:center; opacity:0.9;">
       <span id="streakText">🔥 연속 출석 <b id="streakDays">0</b>일</span>
-    </div>
-
-    <div class="settings-row">
-      <button class="settings-btn" id="sfxBtn" title="효과음">🔊 사운드</button>
-      <button class="settings-btn" id="bgmBtn" title="배경음악">🎵 배경음</button>
-      <select class="settings-select" id="themeSelect" title="테마 선택">
-        <option value="warm">🌅 따뜻한</option>
-        <option value="dark">🌙 밤하늘</option>
-        <option value="forest">🌲 숲속</option>
-      </select>
-      <button class="settings-btn" id="howBtn" type="button" title="게임 방법">💡 방법</button>    
     </div>
 
     <div class="controls">
@@ -1360,7 +1282,6 @@ body.peeking .tile{
       </select>
         <button id="peekBtn" type="button">👁️ 살짝 엿보기</button>
       </div>
-      <p class="controls-hint">완벽하면 100% 💎, 리듬을 타면 따뜻함이 회복돼요 ✨</p>
     </div>
 
     <select id="peekSec" style="display:none">
@@ -1410,6 +1331,22 @@ body.peeking .tile{
   </div>
 </div>
 
+<div id="settingsModal" class="settings-modal-backdrop" role="dialog" aria-modal="true" aria-label="설정">
+  <div class="settings-modal">
+    <h3>설정</h3>
+    <div class="settings-group">
+      <select id="themeSelect" title="테마 선택">
+        <option value="warm">🌅 따뜻한</option>
+        <option value="dark">🌙 밤하늘</option>
+        <option value="forest">🌲 숲속</option>
+      </select>
+      <button id="sfxBtn" type="button" title="효과음">🔊 효과</button>
+      <button id="bgmBtn" type="button" title="배경음">🎵 배경음</button>
+    </div>
+    <button id="settingsClose" type="button" class="settings-close">닫기</button>
+  </div>
+</div>
+
 <div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
   <div id="resultModalCard">
     <div class="resultModalTitle" id="resultModalTitle">🎉 완료!</div>
@@ -1444,6 +1381,22 @@ body.peeking .tile{
 
 <!-- JS 로드 -->
 <script src="../core.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const openBtn = document.getElementById('settingsBtn');
+  const modal = document.getElementById('settingsModal');
+  const closeBtn = document.getElementById('settingsClose');
+  if(!openBtn || !modal || !closeBtn) return;
+
+  const open = () => modal.classList.add('isOpen');
+  const close = () => modal.classList.remove('isOpen');
+
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if(e.target === modal) close(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && modal.classList.contains('isOpen')) close(); });
+});
+</script>
 <script src="./main.js?v=7"></script>
 
 </body>

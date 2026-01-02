@@ -32,74 +32,48 @@
 
         header { 
             text-align: center; 
-            margin-bottom: 15px; 
+            margin-bottom: 10px; 
             width: 100%;
-            max-width: 500px;
+            max-width: 520px;
         }
-        .brand { font-size: 1.2rem; font-weight: bold; color: var(--accent); opacity: 0.9; }
-        .tagline { font-size: 0.85rem; opacity: 0.7; margin-top: 5px; }
+        .brand { font-size: 1.2rem; font-weight: bold; color: var(--accent); opacity: 0.95; }
 
-        /* Settings row - original glass style */
-        .settings-row {
+        /* 상단 노출형 설정 바 */
+        .settings-bar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            max-width: 520px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 4px;
-            margin-bottom: 15px;
-            flex-wrap: nowrap;
+            gap: 8px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 20;
         }
 
-        .settings-btn {
-            background: linear-gradient(135deg, rgba(110, 231, 183, 0.15), rgba(110, 231, 183, 0.05));
-            border: 2px solid rgba(110, 231, 183, 0.4);
-            color: var(--text);
-            flex: 1 1 auto;
-            min-width: 0;
-            height: 42px;
-            padding: 0 8px;
+        .settings-bar select,
+        .settings-bar button {
+            height: 36px;
             border-radius: 10px;
-            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            padding: 0 10px;
             font-size: 12px;
-            transition: all 0.2s;
-            backdrop-filter: blur(10px);
-            display: flex;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        .settings-bar button {
+            min-width: 90px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 1;
-            white-space: nowrap;
-            text-decoration: none;
-        }
-
-        .settings-btn:hover {
-            background: linear-gradient(135deg, rgba(110, 231, 183, 0.25), rgba(110, 231, 183, 0.15));
-            border-color: rgba(110, 231, 183, 0.6);
-            transform: translateY(-1px);
-        }
-        
-        .settings-btn:active {
-            transform: translateY(0);
-        }
-
-        #themeSelect {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text);
-            padding: 8px 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 12px;
-            backdrop-filter: blur(10px);
-            flex: 1 1 auto;
-            min-width: 0;
-            white-space: nowrap;
-        }
-
-        #attendance { 
-            margin-bottom: 12px; 
-            font-size: 0.85rem; 
-            background: rgba(255,255,255,0.1); 
-            padding: 5px 15px; 
-            border-radius: 20px; 
         }
 
         .game-container {
@@ -117,9 +91,49 @@
 
         .answer-area {
             display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
-            min-height: 70px; padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 15px; border: 1px dashed rgba(255,255,255,0.15);
+            min-height: 70px; padding: 18px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110, 231, 183, 0.16);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-area::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.14), transparent 45%),
+                        radial-gradient(circle at 80% 10%, rgba(110,231,183,0.12), transparent 40%);
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .answer-area.pulse { animation: glowPulse 0.5s ease; }
+        .answer-area.shake { animation: softShake 0.4s ease; }
+        .answer-area.sparkle { animation: sparkle 0.9s ease; }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110,231,183,0.16); }
+            50% { box-shadow: 0 16px 40px rgba(0,0,0,0.35), 0 0 32px rgba(110,231,183,0.32); }
+            100% { box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110,231,183,0.16); }
+        }
+
+        @keyframes softShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+        }
+
+        @keyframes sparkle {
+            0% { box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110,231,183,0.16); }
+            30% { box-shadow: 0 18px 42px rgba(0,0,0,0.34), 0 0 42px rgba(110,231,183,0.38); }
+            60% { box-shadow: 0 14px 34px rgba(0,0,0,0.3), 0 0 28px rgba(110,231,183,0.22); }
+            100% { box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110,231,183,0.16); }
         }
 
         .tiles-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -305,21 +319,17 @@
 <body>
     <header>
         <div class="brand">하루마음 : 단어 조각</div>
-        <div class="tagline">조각난 단어를 순서대로 맞춰보세요</div>
     </header>
 
-    <div class="settings-row">
-        <a href="../index.html" class="settings-btn" title="홈으로">🏠 홈</a>
-        <button class="settings-btn" id="sfxBtn" title="효과">🔊 효과</button>
-        <button class="settings-btn" id="bgmBtn" title="배경">🎵 배경</button>
-        <select id="themeSelect">
+    <div class="settings-bar">
+        <button id="sfxBtn" title="효과">🔊 효과</button>
+        <button id="bgmBtn" title="배경">🎵 배경</button>
+        <select id="themeSelect" title="테마">
             <option value="warm">🌅 따뜻한</option>
             <option value="dark">🌙 밤하늘</option>
             <option value="forest">🌲 숲속</option>
         </select>
     </div>
-
-    <div id="attendance">🔥 연속 출석 확인 중...</div>
 
     <div class="game-container">
         <div id="hint" class="hint-text">게임을 불러오는 중...</div>

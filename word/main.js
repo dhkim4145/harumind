@@ -126,6 +126,15 @@
         area.innerHTML = userSelection.map(char => `<div class="answer-char">${char}</div>`).join('');
     }
 
+    function pulseAnswerArea(className, duration = 400) {
+        const area = document.getElementById('answer-area');
+        if(!area) return;
+        area.classList.remove(className);
+        void area.offsetWidth;
+        area.classList.add(className);
+        setTimeout(() => area.classList.remove(className), duration);
+    }
+
     function selectChar(char, index) {
         const tile = document.getElementById(`tile-${index}`);
         if (tile.classList.contains('selected')) return;
@@ -134,6 +143,7 @@
         tile.classList.add('selected');
         userSelection.push(char);
         renderAnswer();
+        pulseAnswerArea('pulse');
 
         if (userSelection.length === currentWord.length) {
             if (userSelection.join('') === currentWord) {
@@ -141,6 +151,7 @@
                 tone(523.25, 'sine', 0.3);
                 setTimeout(() => tone(659.25, 'sine', 0.25), 120);
                 launchConfetti();
+                pulseAnswerArea('sparkle', 800);
                 
                 setTimeout(() => {
                     tone(1046.5, 'sine', 0.35);
@@ -150,6 +161,7 @@
             } else {
                 // 틀림
                 tone(200, 'sawtooth', 0.18);
+                pulseAnswerArea('shake');
                 setTimeout(() => {
                     resetCurrentWord();
                 }, 500);
