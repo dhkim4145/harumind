@@ -53,7 +53,6 @@
       SFX: "harumind_sfx",
       BGM: "harumind_bgm",
       BIG: "harumind_bigtext_on",
-      THEME: "harumind_theme",
       DAILY_PREFIX: "harumind_memory_daily_", // + YYYY-MM-DD
       STREAK_DAYS: "harumind_streak_days", // 연속 출석일
       LAST_PLAY_DATE: "harumind_last_play_date", // 마지막 플레이 날짜
@@ -279,61 +278,14 @@
   const themeSelect = document.getElementById("themeSelect");
 
   // 설정 상태
-  let sfxOn = HarumindStorage.getBool(C.KEYS.SFX, true);
   let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
-  let currentTheme = safeGet(C.KEYS.THEME) || "warm"; // warm, dark, forest
+  let baseBackground = document.body.style.background;
+  const tone = (freq, type = 'sine', duration = 0.12) => core.playSfx(freq, type, duration);
 
-  // 테마 정의
-  const themes = {
-    warm: {
-      name: "따뜻한",
-      bg: "#0b1020",
-      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, #0b1020 55%, #050813 100%)",
-      text: "#e8ecff",
-      muted: "#b9c2ff",
-      accent: "#6ee7b7",
-      cardBg: "rgba(255,255,255,.06)",
-      cardBorder: "rgba(255,255,255,.08)"
-    },
-    dark: {
-      name: "밤하늘",
-      bg: "#000000",
-      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a0a2e 0%, #000000 55%, #000000 100%)",
-      text: "#f0f0f0",
-      muted: "#a0a0a0",
-      accent: "#9b59b6",
-      cardBg: "rgba(255,255,255,.04)",
-      cardBorder: "rgba(255,255,255,.06)"
-    },
-    forest: {
-      name: "숲속",
-      bg: "#0a1a0a",
-      bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a3a1a 0%, #0a1a0a 55%, #051005 100%)",
-      text: "#e8ffe8",
-      muted: "#b8ffb8",
-      accent: "#52d452",
-      cardBg: "rgba(255,255,255,.05)",
-      cardBorder: "rgba(255,255,255,.08)"
-    }
-  };
-
-  // 테마 적용 함수
+  // 테마 적용 함수 - core 엔진 사용
   function applyTheme(themeKey){
-    const theme = themes[themeKey] || themes.warm;
-    const root = document.documentElement;
-    
-    root.style.setProperty("--bg", theme.bg);
-    root.style.setProperty("--text", theme.text);
-    root.style.setProperty("--muted", theme.muted);
-    root.style.setProperty("--accent", theme.accent);
-    root.style.setProperty("--card-bg", theme.cardBg);
-    root.style.setProperty("--card-border", theme.cardBorder);
-    
-    // body 배경 그라데이션 직접 적용
-    document.body.style.background = theme.bgGradient;
-    
-    currentTheme = themeKey;
-    safeSet(C.KEYS.THEME, themeKey);
+    core.applyTheme(themeKey);
+    baseBackground = document.body.style.background;
   }
 
   // 마음 따뜻함 지수에 따른 배경색 변경
@@ -356,9 +308,11 @@
 
   // 배경색 원래대로 복구
   function restoreBackground(){
-    const theme = themes[currentTheme] || themes.warm;
-    document.body.style.transition = "background 1.5s ease";
-    document.body.style.background = theme.bgGradient;
+        document.body.style.transition = "background 1.5s ease";
+        if(!baseBackground){
+          baseBackground = document.body.style.background;
+        }
+        document.body.style.background = baseBackground;
   }
 
   // LIVE PILL 대상
@@ -503,200 +457,42 @@
     }
   }
 
-  function setSfx(on){
-    sfxOn = !!on;
-    HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
+  function refreshSfxUi(){
     if(sfxBtn) {
-      sfxBtn.innerHTML = sfxOn ? "🔊 효과" : "🔇 효과";
-      sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
+      sfxBtn.innerHTML = core.isSfxOn ? "🔊 효과" : "🔇 효과";
+      sfxBtn.style.opacity = core.isSfxOn ? '1' : '0.6';
     }
   }
 
-  // 비프음
-  function playBeep(freq=880, ms=70, gain=0.03){
-    if(!sfxOn) return;
-    try{
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if(!AudioCtx) return;
-
-      const ctx = new AudioCtx();
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-
-      osc.type = "sine";
-      osc.frequency.value = freq;
-
-      g.gain.value = 0;
-      osc.connect(g);
-      g.connect(ctx.destination);
-
-      const now = ctx.currentTime;
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(gain, now + 0.01);
-      g.gain.linearRampToValueAtTime(0, now + ms/1000);
-
-      osc.start(now);
-      osc.stop(now + ms/1000 + 0.02);
-      osc.onended = () => ctx.close();
-    }catch(e){}
+  // 비프음 (core 엔진 사용)
+  function playBeep(freq=880, ms=70){
+    tone(freq, 'sine', ms / 1000);
   }
 
-  // 성공음: 맑은 실로폰 느낌 + 0.5초 잔향
+  // 성공음: 가벼운 멜로디 시퀀스
   function playSuccessSound(streak = 1){
-    if(!sfxOn) return;
-    try{
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if(!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const now = ctx.currentTime;
-
-      // base frequency: 맑은 실로폰 느낌 (약간의 스트릭 보정)
-      const baseFreq = 880 + Math.min(streak, 6) * 35;
-
-      // 두 개의 오실레이터로 풍부한 벨(Bell) 톤 생성
-      const osc1 = ctx.createOscillator();
-      osc1.type = "triangle";
-      osc1.frequency.value = baseFreq;
-
-      const osc2 = ctx.createOscillator();
-      osc2.type = "sine";
-      osc2.frequency.value = baseFreq * 2.005; // 약간 비튼 하모닉
-
-      // 톤을 부드럽게 만드는 밴드패스 필터
-      const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = baseFreq * 1.2;
-      filter.Q.value = 6;
-
-      // 잔향/데케이용 게인
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, now);
-
-      // 굵은 어택 -> 0.5초에 걸쳐 지수적으로 사라짐 (잔향)
-      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);   // 빠른 어택
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);   // 0.5초 데케이
-
-      // 연결
-      osc1.connect(filter);
-      osc2.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc1.start(now);
-      osc2.start(now);
-      osc1.stop(now + 0.7);
-      osc2.stop(now + 0.7);
-
-      // 안전하게 컨텍스트 종료
-      setTimeout(()=> {
-        try{ ctx.close(); }catch(e){}
-      }, 800);
-    }catch(e){}
+    const base = 880 + Math.min(streak, 6) * 35;
+    tone(base, 'triangle', 0.18);
+    setTimeout(() => tone(base * 1.5, 'sine', 0.16), 90);
+    setTimeout(() => tone(base * 2, 'sine', 0.14), 180);
   }
 
-  // 실패음: 200Hz 짧은 '툭' (귀 피로 저감)
+  // 실패음
   function playFailSound(){
-    if(!sfxOn) return;
-    try{
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if(!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const now = ctx.currentTime;
-
-      const osc = ctx.createOscillator();
-      osc.type = "square";
-      osc.frequency.value = 200; // 낮고 짧은 '툭' 소리
-
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.06, now + 0.005);   // 짧은 펀치
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12); // 빠른 감쇠
-
-      // 약간의 하이컷(귀 피로 저감)
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.value = 1200;
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.14);
-
-      setTimeout(()=> {
-        try{ ctx.close(); }catch(e){}
-      }, 220);
-    }catch(e){}
+    tone(200, 'square', 0.14);
   }
 
-  // 축하 효과음: 경쾌한 fanfare 사운드
+  // 축하 효과음
   function playFanfare(){
-    if(!sfxOn) return;
-    try{
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if(!AudioCtx) return;
-      const ctx = new AudioCtx();
-      const now = ctx.currentTime;
-
-      // 주요 멜로디: 3개의 톤으로 경쾌한 fanfare 구성
-      const notes = [
-        { freq: 880, time: 0, dur: 0.15 },   // A5
-        { freq: 1046.5, time: 0.2, dur: 0.15 }, // C6
-        { freq: 1318.5, time: 0.4, dur: 0.25 }, // E6
-        { freq: 1046.5, time: 0.7, dur: 0.15 }, // C6
-        { freq: 1318.5, time: 0.9, dur: 0.3 }   // E6 (긴 마무리)
-      ];
-
-      notes.forEach(({ freq, time, dur }) => {
-        const osc1 = ctx.createOscillator();
-        osc1.type = "triangle";
-        osc1.frequency.value = freq;
-
-        const osc2 = ctx.createOscillator();
-        osc2.type = "sine";
-        osc2.frequency.value = freq * 2; // 옥타브 위 하모닉
-
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0, now + time);
-        gain.gain.linearRampToValueAtTime(0.08, now + time + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + time + dur);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc1.start(now + time);
-        osc1.stop(now + time + dur + 0.05);
-        osc2.start(now + time);
-        osc2.stop(now + time + dur + 0.05);
-      });
-
-      // 베이스 톤 추가 (더 풍성하게)
-      const bassOsc = ctx.createOscillator();
-      bassOsc.type = "sawtooth";
-      bassOsc.frequency.value = 220; // A3
-
-      const bassGain = ctx.createGain();
-      bassGain.gain.setValueAtTime(0, now);
-      bassGain.gain.linearRampToValueAtTime(0.04, now + 0.1);
-      bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-
-      const bassFilter = ctx.createBiquadFilter();
-      bassFilter.type = "lowpass";
-      bassFilter.frequency.value = 400;
-
-      bassOsc.connect(bassFilter);
-      bassFilter.connect(bassGain);
-      bassGain.connect(ctx.destination);
-
-      bassOsc.start(now);
-      bassOsc.stop(now + 0.85);
-
-      setTimeout(() => {
-        try{ ctx.close(); }catch(e){}
-      }, 1300);
-    }catch(e){}
+    const notes = [
+      { freq: 880, time: 0, dur: 0.15 },
+      { freq: 1046.5, time: 0.2, dur: 0.15 },
+      { freq: 1318.5, time: 0.4, dur: 0.2 },
+      { freq: 1046.5, time: 0.7, dur: 0.15 },
+      { freq: 1318.5, time: 0.9, dur: 0.22 }
+    ];
+    notes.forEach(({ freq, time, dur }) => setTimeout(() => tone(freq, 'triangle', dur), time * 1000));
+    setTimeout(() => tone(220, 'sawtooth', 0.3), 0);
   }
 
   // +점수 리워드
@@ -1991,7 +1787,7 @@
   renderDaily(dateStr);
   renderStreak(); // 연속 출석일 표시
   setBigMode(bigOn);
-  setSfx(sfxOn);
+  refreshSfxUi();
   updateLevelTextForMobile();
 
   // 리사이즈 및 화면 회전 시에도 모바일/PC 전환 대응
@@ -2009,18 +1805,22 @@
   window.addEventListener("orientationchange", handleResize);
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
-  if(sfxBtn) sfxBtn.onclick = () => setSfx(!sfxOn);
+  if(sfxBtn) sfxBtn.onclick = () => {
+    core.toggleSfx();
+    refreshSfxUi();
+    tone(440, 'sine', 0.05);
+  };
   
   // 테마 선택 이벤트
   if(themeSelect){
-    themeSelect.value = currentTheme;
+    themeSelect.value = core.currentTheme;
     themeSelect.onchange = () => {
       applyTheme(themeSelect.value);
     };
   }
   
   // 초기 테마 적용
-  applyTheme(currentTheme);
+  applyTheme(core.currentTheme);
 
   // UI 초기화
   // initSettingsPanel(); // Not needed - settings-row is always visible

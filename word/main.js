@@ -4,54 +4,17 @@
     // [Config & State]
     // ============================================================
     const STORAGE_KEYS = {
-        SFX: "harumind_sfx",
         BGM: "harumind_bgm",
-        THEME: "harumind_theme",
         LAST_DATE: "harumind_wordfrag_lastDate",
         STREAK: "harumind_wordfrag_streak"
-    };
-
-    // 테마 정의
-    const themes = {
-        warm: {
-            name: "따뜻한",
-            bg: "#0b1020",
-            bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, #0b1020 55%, #050813 100%)",
-            text: "#e8ecff",
-            muted: "#b9c2ff",
-            accent: "#6ee7b7",
-            cardBg: "rgba(255,255,255,.06)",
-            cardBorder: "rgba(255,255,255,.08)"
-        },
-        dark: {
-            name: "밤하늘",
-            bg: "#000000",
-            bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a0a2e 0%, #000000 55%, #000000 100%)",
-            text: "#f0f0f0",
-            muted: "#a0a0a0",
-            accent: "#9b59b6",
-            cardBg: "rgba(255,255,255,.04)",
-            cardBorder: "rgba(255,255,255,.06)"
-        },
-        forest: {
-            name: "숲속",
-            bg: "#0a1a0a",
-            bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a3a1a 0%, #0a1a0a 55%, #051005 100%)",
-            text: "#e8ffe8",
-            muted: "#b8ffb8",
-            accent: "#52d452",
-            cardBg: "rgba(255,255,255,.05)",
-            cardBorder: "rgba(255,255,255,.08)"
-        }
     };
 
     // State
     let currentWord = "";
     let shuffledChars = [];
     let userSelection = [];
-    let sfxOn = true;
     let bgmOn = false;
-    let currentTheme = "warm";
+    const tone = (freq, type = 'sine', duration = 0.1) => core.playSfx(freq, type, duration);
 
     // ============================================================
     // [Storage Helper]
@@ -76,112 +39,6 @@
         safeSet(key, value ? "1" : "0");
     }
 
-    // ============================================================
-    // [Theme System]
-    // ============================================================
-    function applyTheme(themeKey) {
-        const theme = themes[themeKey] || themes.warm;
-        const root = document.documentElement;
-        
-        root.style.setProperty("--bg", theme.bg);
-        root.style.setProperty("--text", theme.text);
-        root.style.setProperty("--muted", theme.muted);
-        root.style.setProperty("--accent", theme.accent);
-        root.style.setProperty("--card-bg", theme.cardBg);
-        root.style.setProperty("--card-border", theme.cardBorder);
-        
-        document.body.style.background = theme.bgGradient;
-        
-        currentTheme = themeKey;
-        safeSet(STORAGE_KEYS.THEME, themeKey);
-    }
-
-    // ============================================================
-    // [Sound System - from memory game]
-    // ============================================================
-    function playBeep(freq=880, ms=70, gain=0.03) {
-        if(!sfxOn) return;
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            
-            osc.type = "sine";
-            osc.frequency.value = freq;
-            g.gain.setValueAtTime(gain, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + ms/1000);
-            
-            osc.connect(g);
-            g.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + ms/1000);
-        } catch(e) {}
-    }
-
-    function playSuccessSound() {
-        if(!sfxOn) return;
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes = [523.25, 659.25, 783.99]; // C-E-G 화음
-            
-            notes.forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const g = ctx.createGain();
-                
-                osc.type = "sine";
-                osc.frequency.value = freq;
-                g.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.1);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5 + i * 0.1);
-                
-                osc.connect(g);
-                g.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.1);
-                osc.stop(ctx.currentTime + 0.5 + i * 0.1);
-            });
-        } catch(e) {}
-    }
-
-    function playFailSound() {
-        if(!sfxOn) return;
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            
-            osc.type = "sawtooth";
-            osc.frequency.value = 200;
-            g.gain.setValueAtTime(0.03, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-            
-            osc.connect(g);
-            g.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.15);
-        } catch(e) {}
-    }
-
-    function playCelebration() {
-        if(!sfxOn) return;
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const notes = [523.25, 659.25, 783.99, 1046.50]; // C-E-G-C
-            
-            notes.forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const g = ctx.createGain();
-                
-                osc.type = "sine";
-                osc.frequency.value = freq;
-                g.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.12);
-                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4 + i * 0.12);
-                
-                osc.connect(g);
-                g.connect(ctx.destination);
-                osc.start(ctx.currentTime + i * 0.12);
-                osc.stop(ctx.currentTime + 0.4 + i * 0.12);
-            });
-        } catch(e) {}
-    }
 
     // ============================================================
     // [Confetti - Enhanced]
@@ -273,7 +130,7 @@
         const tile = document.getElementById(`tile-${index}`);
         if (tile.classList.contains('selected')) return;
 
-        playBeep(880, 50, 0.02);
+        tone(880, 'sine', 0.07);
         tile.classList.add('selected');
         userSelection.push(char);
         renderAnswer();
@@ -281,17 +138,18 @@
         if (userSelection.length === currentWord.length) {
             if (userSelection.join('') === currentWord) {
                 // 정답!
-                playSuccessSound();
+                tone(523.25, 'sine', 0.3);
+                setTimeout(() => tone(659.25, 'sine', 0.25), 120);
                 launchConfetti();
                 
                 setTimeout(() => {
-                    playCelebration();
+                    tone(1046.5, 'sine', 0.35);
                     document.getElementById('modal-word-display').innerText = currentWord;
                     document.getElementById('modal').style.display = 'flex';
                 }, 500);
             } else {
                 // 틀림
-                playFailSound();
+                tone(200, 'sawtooth', 0.18);
                 setTimeout(() => {
                     resetCurrentWord();
                 }, 500);
@@ -314,18 +172,16 @@
     // [UI Controls]
     // ============================================================
     function initControls() {
-        // SFX 버튼
+        // SFX 버튼 - core.js에 위임
         const sfxBtn = document.getElementById('sfxBtn');
         if(sfxBtn) {
             sfxBtn.addEventListener('click', () => {
-                sfxOn = !sfxOn;
-                setBool(STORAGE_KEYS.SFX, sfxOn);
-                sfxBtn.textContent = sfxOn ? '🔊 효과' : '🔇 효과';
-                sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
-                playBeep(440, 50, 0.02);
+                core.toggleSfx();
+                sfxBtn.style.opacity = core.isSfxOn ? '1' : '0.6';
+                tone(440, 'sine', 0.05);
             });
         }
-        
+
         // BGM 버튼
         const bgmBtn = document.getElementById('bgmBtn');
         if(bgmBtn) {
@@ -335,17 +191,17 @@
                 bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
                 bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
                 // BGM 재생/정지 로직은 필요시 추가
-                playBeep(550, 50, 0.02);
+                tone(550, 'sine', 0.05);
             });
         }
 
         // 테마 선택
         const themeSelect = document.getElementById('themeSelect');
         if(themeSelect) {
-            themeSelect.value = currentTheme;
+            themeSelect.value = core.currentTheme;
             themeSelect.addEventListener('change', (e) => {
-                applyTheme(e.target.value);
-                playBeep(660, 50, 0.02);
+                core.applyTheme(e.target.value);
+                sfxBtn && tone(660, 'sine', 0.05);
             });
         }
     }
@@ -355,26 +211,16 @@
     // ============================================================
     document.addEventListener('DOMContentLoaded', () => {
         // Load settings
-        sfxOn = getBool(STORAGE_KEYS.SFX, true);
         bgmOn = getBool(STORAGE_KEYS.BGM, false);
-        currentTheme = safeGet(STORAGE_KEYS.THEME) || "dark";
-        
-        // Apply theme
-        applyTheme(currentTheme);
-        
-        // Update UI
-        const sfxBtn = document.getElementById('sfxBtn');
-        if(sfxBtn) {
-            sfxBtn.textContent = sfxOn ? '🔊 효과' : '🔇 효과';
-            sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
-        }
-        
         const bgmBtn = document.getElementById('bgmBtn');
         if(bgmBtn) {
             bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
             bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
         }
-        
+
+        // 초기 테마 동기화
+        core.applyTheme(core.currentTheme);
+
         // Init controls
         initControls();
         
