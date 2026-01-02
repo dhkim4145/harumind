@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>하루마음 - 숫자 순서터치</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card-bg: rgba(255,255,255,0.06);
+            --text: #e8ecff;
+            --accent: #6ee7b7;
+            --radius: 20px;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; font-family: system-ui, sans-serif;
+            background: var(--bg); color: var(--text);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 20px; transition: background 1.5s ease;
+        }
+
+        /* 헤더 & 네비 */
+        header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .back-btn { background: none; border: none; color: var(--text); font-size: 20px; cursor: pointer; }
+
+        /* 게임 보드 */
+        .game-container { width: 100%; max-width: 400px; text-align: center; }
+        .status-area { background: var(--card-bg); padding: 15px; border-radius: var(--radius); margin-bottom: 20px; display: flex; justify-content: space-around; }
+        .target-box { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+
+        .grid { display: grid; gap: 10px; margin-bottom: 20px; perspective: 1000px; }
+        .num-tile {
+            aspect-ratio: 1/1; background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: bold; color: var(--text); cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .num-tile:active { transform: scale(0.9); }
+        .num-tile.found { opacity: 0.1; transform: scale(0.8); pointer-events: none; }
+        .num-tile.wrong { background: rgba(255, 107, 107, 0.2); animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* 난이도 버튼 */
+        .level-selector { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+        .lv-btn {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid var(--accent);
+            background: none; color: var(--accent); cursor: pointer; transition: 0.3s;
+        }
+        .lv-btn.active { background: var(--accent); color: var(--bg); }
+
+        /* 결과 모달 (Memory Game 스타일) */
+        #modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #1a2236; padding: 40px 30px; border-radius: 30px;
+            text-align: center; width: 85%; max-width: 320px;
+        }
+        .modal-emoji { font-size: 50px; margin-bottom: 15px; }
+        .modal-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+        .modal-score { font-size: 18px; color: var(--accent); margin-bottom: 25px; }
+        .btn-main {
+            width: 100%; padding: 15px; border-radius: 15px; border: none;
+            background: var(--accent); color: var(--bg); font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="back-btn" onclick="location.href='../index.html'">←</button>
+        <div style="font-weight: bold;">숫자 순서터치</div>
+        <div style="width:24px;"></div>
+    </header>
+
+    <div class="game-container">
+        <div class="status-area">
+            <div id="timer">시간: 0초</div>
+            <div class="target-box">찾을 숫자: <span id="next-num">1</span></div>
+        </div>
+
+        <div id="game-board" class="grid"></div>
+
+        <div class="level-selector">
+            <button class="lv-btn active" onclick="startGame('easy')">쉬움</button>
+            <button class="lv-btn" onclick="startGame('normal')">보통</button>
+            <button class="lv-btn" onclick="startGame('hard')">어려움</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <div id="modal-emoji" class="modal-emoji">✨</div>
+            <div class="modal-title">정말 멋져요!</div>
+            <div id="modal-score" class="modal-score">마음 지수: 100점</div>
+            <button class="btn-main" onclick="closeModal()">한 번 더 하기</button>
+        </div>
+    </div>
+
+    <script src="../core.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
