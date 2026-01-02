@@ -81,7 +81,7 @@ body{
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 100vh;
   width: 100%;
   font-size:var(--fs-base);
@@ -125,8 +125,7 @@ body.bigText #hint{
   overflow:hidden;
   contain: layout style;
   will-change: contents;
-  min-height: 100vh;
-  padding-bottom: 72px;
+  padding-bottom: 20px;
 }
 
 .card{
@@ -588,8 +587,6 @@ button.primary{
 
 /* 메시지 */
 .messageCard{ 
-  min-height:220px;
-  height:220px;
   display:flex;
   flex-direction:column;
   contain: layout style;
@@ -652,7 +649,6 @@ button.primary{
   overflow:hidden; 
   touch-action: pan-y;
   padding: 12px;
-  padding-bottom: 64px;
   background: linear-gradient(180deg, rgba(11,16,32,.9), rgba(5,8,19,.95));
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.10);
