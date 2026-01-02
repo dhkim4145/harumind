@@ -54,6 +54,8 @@
       BIG: "harumind_bigtext_on",
       THEME: "harumind_theme",
       DAILY_PREFIX: "harumind_memory_daily_", // + YYYY-MM-DD
+      STREAK_DAYS: "harumind_streak_days", // 연속 출석일
+      LAST_PLAY_DATE: "harumind_last_play_date", // 마지막 플레이 날짜
     }
   };
 
@@ -169,6 +171,68 @@
     }));
   }
 
+  // 연속 출석일 관리
+  function updateStreak(){
+    const today = todayKey(); // "YYYY-MM-DD" 형식
+    const lastPlayDate = safeGet(C.KEYS.LAST_PLAY_DATE);
+    const currentStreak = toNum(safeGet(C.KEYS.STREAK_DAYS)) || 0;
+    
+    let newStreak = 1; // 기본값: 오늘 첫 출석
+    
+    if(lastPlayDate && lastPlayDate === today){
+      // 오늘 이미 플레이했으면 기존 연속일 유지 (중복 업데이트 방지)
+      newStreak = currentStreak > 0 ? currentStreak : 1;
+    } else if(lastPlayDate){
+      // 날짜 문자열을 직접 비교 (YYYY-MM-DD 형식)
+      const lastYear = parseInt(lastPlayDate.substring(0, 4));
+      const lastMonth = parseInt(lastPlayDate.substring(5, 7));
+      const lastDay = parseInt(lastPlayDate.substring(8, 10));
+      
+      const todayYear = parseInt(today.substring(0, 4));
+      const todayMonth = parseInt(today.substring(5, 7));
+      const todayDay = parseInt(today.substring(8, 10));
+      
+      const lastDateObj = new Date(lastYear, lastMonth - 1, lastDay);
+      const todayDateObj = new Date(todayYear, todayMonth - 1, todayDay);
+      
+      const diffTime = todayDateObj - lastDateObj;
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if(diffDays === 1){
+        // 어제 플레이했으면 연속일 +1
+        newStreak = currentStreak + 1;
+      } else if(diffDays > 1){
+        // 연속이 끊겼으면 1일부터 다시 시작
+        newStreak = 1;
+      } else {
+        // 같은 날이면 기존 연속일 유지
+        newStreak = currentStreak > 0 ? currentStreak : 1;
+      }
+    }
+    
+    // 오늘 날짜와 연속일 저장
+    safeSet(C.KEYS.LAST_PLAY_DATE, today);
+    safeSet(C.KEYS.STREAK_DAYS, String(newStreak));
+    
+    // 화면에 표시
+    if(streakDaysEl){
+      streakDaysEl.textContent = newStreak;
+    }
+    
+    return newStreak;
+  }
+
+  function renderStreak(){
+    const streak = toNum(safeGet(C.KEYS.STREAK_DAYS)) || 0;
+    if(streakDaysEl){
+      streakDaysEl.textContent = streak;
+    }
+    // 연속 출석일이 0이면 표시하지 않음
+    if(streakTextEl){
+      streakTextEl.style.display = streak > 0 ? "inline" : "none";
+    }
+  }
+
   window.HarumindStorage = {
     todayKey,
     getBool,
@@ -193,6 +257,8 @@
   const todayKeyEl   = document.getElementById("todayKey");
   const todayClearEl = document.getElementById("todayClear");
   const todayBestEl  = document.getElementById("todayBest");
+  const streakDaysEl = document.getElementById("streakDays");
+  const streakTextEl = document.getElementById("streakText");
 
   const sfxBtn  = document.getElementById("sfxBtn");
   const bigBtn  = document.getElementById("bigBtn");
@@ -1563,6 +1629,9 @@
     
     HarumindStorage.saveDaily(dateStr, d);
     renderDaily(dateStr);
+    
+    // 연속 출석일 업데이트 (게임 완료 시)
+    updateStreak();
 
     clearTempMsgTimer();
     setStateMessage("와! 모든 친구들이 짝꿍을 만나 즐겁게 놀고 있어요! 🎉", "정말 다정한 마음이었어요.");
@@ -1915,6 +1984,7 @@
   if(todayKeyEl) todayKeyEl.textContent = dateStr;
 
   renderDaily(dateStr);
+  renderStreak(); // 연속 출석일 표시
   setBigMode(bigOn);
   setSfx(sfxOn);
   updateLevelTextForMobile();

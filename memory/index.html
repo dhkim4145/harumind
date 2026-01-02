@@ -710,6 +710,13 @@ button.primary{
 .tile.matched{
   border-color:var(--accent);
   box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+  animation: bounceUp 0.2s ease-out;
+}
+
+@keyframes bounceUp{
+  0%{ transform: translateY(0) translateZ(0); }
+  50%{ transform: translateY(-12px) translateZ(0); }
+  100%{ transform: translateY(0) translateZ(0); }
 }
 
 .tile.shake{
@@ -1324,6 +1331,10 @@ body.peeking .tile{
     </div>
 
     <div class="sub">다정한 친구들의 짝을 찾아 행복을 채워주세요</div>
+    
+    <div id="streakDisplay" style="margin-top:8px; font-size:13px; color:var(--muted); text-align:center; opacity:0.9;">
+      <span id="streakText">🔥 연속 출석 <b id="streakDays">0</b>일</span>
+    </div>
 
     <div class="settingsPanel" id="settingsPanel">
       <button id="sfxBtn" type="button">✨ 작은 소리</button>
@@ -1338,11 +1349,11 @@ body.peeking .tile{
 
     <div class="controls">
       <div class="left-controls">
-        <select id="level" title="난이도 선택">
+      <select id="level" title="난이도 선택">
           <option value="3x2" selected>쉬움 (3쌍)</option>
           <option value="4x3">보통 (6쌍)</option>
           <option value="4x4">어려움 (8쌍)</option>
-        </select>
+      </select>
         <button id="peekBtn" type="button">👁️ 살짝 엿보기</button>
       </div>
       <p class="controls-hint">완벽하면 100% 💎, 리듬을 타면 따뜻함이 회복돼요 ✨</p>
