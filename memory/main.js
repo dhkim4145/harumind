@@ -50,7 +50,8 @@
 
     // 로컬 저장 키
     KEYS: {
-      SFX: "harumind_sfx_on",
+      SFX: "harumind_sfx",
+      BGM: "harumind_bgm",
       BIG: "harumind_bigtext_on",
       THEME: "harumind_theme",
       DAILY_PREFIX: "harumind_memory_daily_", // + YYYY-MM-DD
@@ -505,7 +506,10 @@
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔊 사운드" : "🔇 사운드";
+    if(sfxBtn) {
+      sfxBtn.innerHTML = sfxOn ? "🔊 효과" : "🔇 효과";
+      sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
+    }
   }
 
   // 비프음
@@ -1253,8 +1257,8 @@
   }
   
   // BGM 이어듣기
-  const BGM_KEY_ON   = "HARUMIND_BGM_ON";
-  const BGM_KEY_TIME = "HARUMIND_BGM_TIME";
+  const BGM_KEY_ON   = "harumind_bgm";
+  const BGM_KEY_TIME = "harumind_bgm_time";
 
   function initBgm(){
     if(!bgm || !bgmBtn) return;
@@ -1290,7 +1294,8 @@
     }
 
     function setLabel(){
-      bgmBtn.textContent = bgmOn ? "🎵 배경음" : "🔇 배경음";
+      bgmBtn.innerHTML = bgmOn ? "🎵 배경" : "🔇 배경";
+      bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
     }
 
     function saveOn(){

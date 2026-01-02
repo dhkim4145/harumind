@@ -4,8 +4,9 @@
     // [Config & State]
     // ============================================================
     const STORAGE_KEYS = {
-        SFX: "harumind_wordfrag_sfx_on",
-        THEME: "harumind_wordfrag_theme",
+        SFX: "harumind_sfx",
+        BGM: "harumind_bgm",
+        THEME: "harumind_theme",
         LAST_DATE: "harumind_wordfrag_lastDate",
         STREAK: "harumind_wordfrag_streak"
     };
@@ -49,6 +50,7 @@
     let shuffledChars = [];
     let userSelection = [];
     let sfxOn = true;
+    let bgmOn = false;
     let currentTheme = "warm";
 
     // ============================================================
@@ -318,8 +320,22 @@
             sfxBtn.addEventListener('click', () => {
                 sfxOn = !sfxOn;
                 setBool(STORAGE_KEYS.SFX, sfxOn);
-                sfxBtn.textContent = sfxOn ? '🔊 사운드' : '🔇 사운드';
+                sfxBtn.textContent = sfxOn ? '🔊 효과' : '🔇 효과';
+                sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
                 playBeep(440, 50, 0.02);
+            });
+        }
+        
+        // BGM 버튼
+        const bgmBtn = document.getElementById('bgmBtn');
+        if(bgmBtn) {
+            bgmBtn.addEventListener('click', () => {
+                bgmOn = !bgmOn;
+                setBool(STORAGE_KEYS.BGM, bgmOn);
+                bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
+                bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
+                // BGM 재생/정지 로직은 필요시 추가
+                playBeep(550, 50, 0.02);
             });
         }
 
@@ -340,7 +356,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         // Load settings
         sfxOn = getBool(STORAGE_KEYS.SFX, true);
-        currentTheme = safeGet(STORAGE_KEYS.THEME) || "warm";
+        bgmOn = getBool(STORAGE_KEYS.BGM, false);
+        currentTheme = safeGet(STORAGE_KEYS.THEME) || "dark";
         
         // Apply theme
         applyTheme(currentTheme);
@@ -348,7 +365,14 @@
         // Update UI
         const sfxBtn = document.getElementById('sfxBtn');
         if(sfxBtn) {
-            sfxBtn.textContent = sfxOn ? '🔊 사운드' : '🔇 사운드';
+            sfxBtn.textContent = sfxOn ? '🔊 효과' : '🔇 효과';
+            sfxBtn.style.opacity = sfxOn ? '1' : '0.6';
+        }
+        
+        const bgmBtn = document.getElementById('bgmBtn');
+        if(bgmBtn) {
+            bgmBtn.textContent = bgmOn ? '🎵 배경' : '🔇 배경';
+            bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
         }
         
         // Init controls
