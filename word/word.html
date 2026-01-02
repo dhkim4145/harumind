@@ -45,15 +45,33 @@
             width: 100%;
             max-width: 520px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
             gap: 8px;
-            padding: 8px 10px;
+            padding: 5px 10px;
             margin-bottom: 12px;
-            background: rgba(0,0,0,0.35);
+            background: rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 12px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(5px);
             z-index: 20;
+        }
+
+        .settings-group-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .settings-center {
+            font-size: 11px;
+            color: var(--accent);
+            opacity: 0.9;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0 6px;
         }
 
         .settings-bar select,
@@ -70,10 +88,14 @@
         }
 
         .settings-bar button {
-            min-width: 90px;
+            min-width: 78px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .settings-bar select#themeSelect {
+            max-width: 80px;
         }
 
         .game-container {
@@ -322,13 +344,17 @@
     </header>
 
     <div class="settings-bar">
-        <button id="sfxBtn" title="효과">🔊 효과</button>
-        <button id="bgmBtn" title="배경">🎵 배경</button>
-        <select id="themeSelect" title="테마">
-            <option value="warm">🌅 따뜻한</option>
-            <option value="dark">🌙 밤하늘</option>
-            <option value="forest">🌲 숲속</option>
-        </select>
+        <button id="homeBtn" title="홈">🏠 홈</button>
+        <div class="settings-center" id="attendanceInline">🔥 연속 0일</div>
+        <div class="settings-group-right">
+            <button id="sfxBtn" title="효과">🔊 효과</button>
+            <button id="bgmBtn" title="배경">🎵 배경</button>
+            <select id="themeSelect" title="테마">
+                <option value="warm">🌅 따뜻한</option>
+                <option value="dark">🌙 밤하늘</option>
+                <option value="forest">🌲 숲속</option>
+            </select>
+        </div>
     </div>
 
     <div class="game-container">

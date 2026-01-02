@@ -238,6 +238,19 @@ body.bigText #hint{
 .settings-close:hover{
   background:rgba(255,255,255,.12);
 }
+.settings-home{
+  width:100%;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  border-radius:12px;
+  padding:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.settings-home:hover{
+  background:rgba(255,255,255,.12);
+}
 
 /* PC는 항상 보임 */
 @media (min-width:521px){
@@ -1343,6 +1356,7 @@ body.peeking .tile{
       <button id="sfxBtn" type="button" title="효과음">🔊 효과</button>
       <button id="bgmBtn" type="button" title="배경음">🎵 배경음</button>
     </div>
+      <button id="homeBtn" type="button" class="settings-home" title="메인으로">🏠 메인으로</button>
     <button id="settingsClose" type="button" class="settings-close">닫기</button>
   </div>
 </div>
@@ -1386,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const openBtn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
   const closeBtn = document.getElementById('settingsClose');
+  const homeBtn = document.getElementById('homeBtn');
   if(!openBtn || !modal || !closeBtn) return;
 
   const open = () => modal.classList.add('isOpen');
@@ -1393,6 +1408,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   openBtn.addEventListener('click', open);
   closeBtn.addEventListener('click', close);
+  if(homeBtn){
+    homeBtn.addEventListener('click', () => {
+      core.playSfx(520, 'sine', 0.08);
+      window.location.href = '../index.html';
+    });
+  }
   modal.addEventListener('click', (e) => { if(e.target === modal) close(); });
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && modal.classList.contains('isOpen')) close(); });
 });

@@ -85,7 +85,7 @@
             safeSet(STORAGE_KEYS.STREAK, String(streak));
         }
         
-        const attendanceEl = document.getElementById('attendance');
+        const attendanceEl = document.getElementById('attendanceInline');
         if(attendanceEl) {
             attendanceEl.innerText = `🔥 연속 출석 ${streak}일`;
         }
@@ -184,6 +184,14 @@
     // [UI Controls]
     // ============================================================
     function initControls() {
+        const homeBtn = document.getElementById('homeBtn');
+        if(homeBtn) {
+            homeBtn.addEventListener('click', () => {
+                core.playSfx(520, 'sine', 0.08);
+                window.location.href = '../index.html';
+            });
+        }
+
         // SFX 버튼 - core.js에 위임
         const sfxBtn = document.getElementById('sfxBtn');
         if(sfxBtn) {
