@@ -285,7 +285,7 @@
   // 테마 정의
   const themes = {
     warm: {
-      name: "기본(따뜻한)",
+      name: "따뜻한",
       bg: "#0b1020",
       bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, #0b1020 55%, #050813 100%)",
       text: "#e8ecff",
@@ -295,7 +295,7 @@
       cardBorder: "rgba(255,255,255,.08)"
     },
     dark: {
-      name: "다크(밤하늘)",
+      name: "밤하늘",
       bg: "#000000",
       bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a0a2e 0%, #000000 55%, #000000 100%)",
       text: "#f0f0f0",
@@ -305,7 +305,7 @@
       cardBorder: "rgba(255,255,255,.06)"
     },
     forest: {
-      name: "숲속(그린)",
+      name: "숲속",
       bg: "#0a1a0a",
       bgGradient: "radial-gradient(1200px 800px at 30% 10%, #1a3a1a 0%, #0a1a0a 55%, #051005 100%)",
       text: "#e8ffe8",
@@ -505,7 +505,7 @@
   function setSfx(on){
     sfxOn = !!on;
     HarumindStorage.setBool(C.KEYS.SFX, sfxOn);
-    if(sfxBtn) sfxBtn.textContent = sfxOn ? "✨ 맑은 소리" : "🔇 소리 없이";
+    if(sfxBtn) sfxBtn.textContent = sfxOn ? "🔊 사운드" : "🔇 사운드";
   }
 
   // 비프음
@@ -1290,7 +1290,7 @@
     }
 
     function setLabel(){
-      bgmBtn.textContent = bgmOn ? "🎵 따뜻한 멜로디" : "🔇 고요하게";
+      bgmBtn.textContent = bgmOn ? "🎵 배경음" : "🔇 배경음";
     }
 
     function saveOn(){
@@ -2018,7 +2018,7 @@
   applyTheme(currentTheme);
 
   // UI 초기화
-  initSettingsPanel();
+  // initSettingsPanel(); // Not needed - settings-row is always visible
   initStatsToggle();
   initPeekButton();
   initHowModal();

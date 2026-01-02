@@ -74,7 +74,7 @@ html, body {
 body{
   margin: 0;
   padding: 0;
-  padding-top: 20px;
+  padding-top: 15px;
   font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
   background: var(--bg-gradient, radial-gradient(1200px 800px at 30% 10%, #1b2457 0%, var(--bg) 55%, #050813 100%));
   color:var(--text);
@@ -87,7 +87,7 @@ body{
   font-size:var(--fs-base);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background 0.5s ease;
+  transition: background 1.5s ease;
 }
 
 body.bigText{
@@ -121,7 +121,7 @@ body.bigText #hint{
   display:flex;
   flex-direction:column;
   align-items: stretch;
-  gap:12px;
+  gap:10px;
   overflow:hidden;
   contain: layout style;
   will-change: contents;
@@ -131,14 +131,15 @@ body.bigText #hint{
 .card{
   width: 100%;
   box-sizing: border-box;
-  background: var(--card-bg, linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03)));
+  background: var(--card-bg, rgba(255,255,255,.06));
   border:1px solid var(--card-border, rgba(255,255,255,.08));
   border-radius:var(--radius);
   box-shadow:var(--shadow);
-  padding:16px;
+  padding:14px;
   min-width:0;
   overflow-x:visible;
   contain: layout style;
+  backdrop-filter: blur(10px);
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 .footer-card{
@@ -164,6 +165,46 @@ body.bigText #hint{
   line-height:1.35;
 }
 
+/* Settings row - word-fragments style */
+.settings-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+  min-height: 36px;
+}
+
+.settings-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--accent);
+}
+
+.settings-select {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  backdrop-filter: blur(10px);
+  min-height: 36px;
+}
+
 /* ✅ 설정 버튼: PC(웹)에서는 아예 안 보이게 */
 #settingsBtn{
   display:none;
@@ -186,38 +227,28 @@ body.bigText #hint{
 }
 #settingsBtn.isOpen .chev{ transform:rotate(180deg); }
 
-/* 모바일(520px 이하)에서만 설정 버튼 표시 */
+/* 모바일(520px 이하)에서 설정 버튼 스타일 */
 @media (max-width:520px){
   #settingsBtn{ 
-    display:inline-flex;
-    /* 터치 영역 충분히 크게 유지 (최소 44x44px 권장) */
-    padding:12px; 
-    min-width:44px; 
-    min-height:44px; 
-    gap:0; 
-    justify-content:center;
-  }
-  /* 모바일에서는 텍스트 숨기고 아이콘만 표시 */
-  #settingsBtn .btnText{ 
-    display:none; 
+    display:none; /* 설정 버튼 완전히 숨김 - 항상 표시 */
   }
   
-  /* 모바일에서 설정 패널 flex 레이아웃 (한 줄 유지) */
-  .settingsPanel{
+  /* 모바일에서 settings-row 한 줄 유지 */
+  .settings-row{
     display:flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap:6px;
-    padding:8px;
+    padding:0;
   }
   
   /* 모바일에서 설정 버튼 터치 영역 확보 */
-  .settingsPanel button,
-  .settingsPanel select{
-    flex: 1 1 0;
+  .settings-row .settings-btn,
+  .settings-row .settings-select{
+    flex: 1 1 calc(50% - 3px);
     min-width: 0;
-    min-height:44px;
-    padding:10px 8px;
-    font-size:13px;
+    min-height:36px;
+    padding:8px 6px;
+    font-size:12px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -227,27 +258,7 @@ body.bigText #hint{
   }
 }
 
-/* 설정 패널 - Glassmorphism */
-.settingsPanel{
-  margin-top:12px;
-  display:flex;
-  flex-wrap: nowrap;
-  gap:8px;
-  width:100%;
-  padding:10px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.04);
-  backdrop-filter:blur(8px);
-  box-shadow:0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
-  transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease;
-  overflow:hidden;
-  max-height:200px;
-  opacity:1;
-  transform: translateY(0);
-  touch-action: pan-y;
-  contain: layout style;
-}
+/* 설정 패널 제거됨 - settings-row 사용 */
 
 .settingsPanel button,
 .settingsPanel select{
@@ -295,38 +306,24 @@ body.bigText #hint{
   padding: 8px;
 }
 
-.settingsPanel.isClosed{ 
-  opacity:0;
-  max-height:0;
-  margin-top:0;
-  padding-top:0;
-  padding-bottom:0;
-  transform: translateY(-8px);
-  pointer-events:none;
-}
-
 /* PC는 항상 보임 */
 @media (min-width:521px){
-  .settingsPanel{ 
+  .settings-row { 
     display:flex;
     flex-wrap: nowrap;
     gap:10px;
     opacity:1;
     max-height:none;
-    margin-top:12px;
-    padding:12px;
+    margin-top:10px;
     transform:none;
     pointer-events:auto;
   }
-  .settingsPanel button,
-  .settingsPanel select{
+  .settings-row .settings-btn,
+  .settings-row .settings-select{
     flex: 1 1 0;
     min-width: 0;
-    padding:12px 14px;
+    padding:10px 14px;
     font-size:14px;
-  }
-  .controls{
-    flex-direction: row;
   }
 }
 
@@ -1345,15 +1342,15 @@ body.peeking .tile{
       <span id="streakText">🔥 연속 출석 <b id="streakDays">0</b>일</span>
     </div>
 
-    <div class="settingsPanel" id="settingsPanel">
-      <button id="sfxBtn" type="button">✨ 작은 소리</button>
-      <button id="bgmBtn" type="button">🔇 고요하게</button>
-      <select id="themeSelect" title="테마 선택">
-        <option value="warm">🌅 기본(따뜻한)</option>
-        <option value="dark">🌙 다크(밤하늘)</option>
-        <option value="forest">🌲 숲속(그린)</option>
+    <div class="settings-row">
+      <button class="settings-btn" id="sfxBtn" title="효과음">🔊 사운드</button>
+      <button class="settings-btn" id="bgmBtn" title="배경음악">🎵 배경음</button>
+      <select class="settings-select" id="themeSelect" title="테마 선택">
+        <option value="warm">🌅 따뜻한</option>
+        <option value="dark">🌙 밤하늘</option>
+        <option value="forest">🌲 숲속</option>
       </select>
-      <button id="howBtn" type="button">💡 이렇게 놀아요</button>    
+      <button class="settings-btn" id="howBtn" type="button" title="게임 방법">💡 방법</button>    
     </div>
 
     <div class="controls">
