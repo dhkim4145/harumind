@@ -9,17 +9,17 @@
     VERSION: "v1.51",
     TIMEZONE: "Asia/Seoul",
 
-    EMOJIS: [
-      '🍐','🍏', // 초록색 과일 시리즈
-      '🍎','🍓', // 빨간색 과일 시리즈
-      '🍊','🍑', // 주황/분홍 과일 시리즈
-      '🐶','🐹', // 귀여운 동물 시리즈
-      '🐱','🐰', // 귀여운 동물 시리즈 2
-      '🐼','🐻', // 곰돌이 시리즈
-      '🦊','🐺', // 여우와 늑대 (비슷한 동물)
-      '🏐','⚽', // 공 시리즈
-      '👁️','👄'  // 신체 부위 (헷갈림 유발)
-    ],
+ EMOJIS: [
+  '🐶','🐱', // 강아지와 고양이
+  '🐰','🐹', // 토끼와 햄스터
+  '🦊','🐻', // 여우와 곰돌이
+  '🐼','🐨', // 판다와 코알라
+  '🐯','🦁', // 호랑이와 사자
+  '🐮','🐷', // 송아지와 아기돼지
+  '🐸','🐥', // 개구리와 병아리
+  '🐧','🐢', // 펭귄과 거북이
+  '🐝','🦋'  // 꿀벌과 나비
+],
 
     LEVEL_MAP: {
       "3x2": [2,3],   // 3쌍
@@ -68,7 +68,7 @@
   let peekTimer = null;
   let streak = 0;
   let maxStreak = 0; // 최고 콤보
-  let heartIndex = 100; // 마음 선명도 (100%에서 시작)
+  let heartIndex = 100; // 마음 따뜻함 지수 (100%에서 시작)
   let tempMsgTimer = null;
   let currentStateMsg = { msg: "", hint: "" };
   let finishTimer = null;
@@ -269,7 +269,7 @@
     safeSet(C.KEYS.THEME, themeKey);
   }
 
-  // 마음 선명도에 따른 배경색 변경
+  // 마음 따뜻함 지수에 따른 배경색 변경
   function applyHeartBackground(heartIndex){
     let bgColor;
     if(heartIndex >= 90){
@@ -784,7 +784,7 @@
 
   function renderStats({matched, totalPairs}){
     const mStr = String(matched);
-    // 마음 선명도 표시 (퍼센트 단위)
+    // 마음 따뜻함 지수 표시 (퍼센트 단위)
     const heartStr = heartIndex + '%';
 
     if(matchedEl){
@@ -1116,13 +1116,13 @@
     }
 
     peekBtn.addEventListener('click', () => {
-      // 마음 선명도 5% 미만이면 힌트 차단
+      // 마음 따뜻함 지수 5% 미만이면 힌트 차단
       if(heartIndex < 5){
-        setMessage("마음이 흐려져서 지금은 힌트를 볼 수 없어요", "");
+        setMessage("마음이 조금 지쳤나 봐요. 잠시 쉬었다가 다시 시도해볼까요? 😊", "");
         return;
       }
 
-      // 마음 선명도 5% 차감
+      // 마음 따뜻함 지수 5% 차감
       heartIndex = Math.max(0, heartIndex - 5);
       renderStats({ matched, totalPairs });
 
@@ -1386,7 +1386,7 @@
     score = 0;
     streak = 0;
     maxStreak = 0;
-    heartIndex = 100; // 마음 선명도 100%에서 시작
+    heartIndex = 100; // 마음 따뜻함 지수 100%에서 시작
     gameStartTime = Date.now(); // 게임 시작 시간 기록
     
     // 배경색 원래대로 복구
@@ -1398,7 +1398,7 @@
     renderStats({ matched, totalPairs });
     clearFinishState();
     setStatsComplete(false);
-    setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
+    setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "오늘은 어떤 친구들과 인사를 나눠볼까요?");
     
     // 힌트 버튼 리셋
     if(peekBtn){
@@ -1453,8 +1453,8 @@
 
     if(!first){
       first = t;
-      showTempMessage("어디에 있을까요? 마음의 눈으로 슥- 보세요 🧐", "", 800);
-      setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
+      showTempMessage("어디에 있을까요? 친구들의 목소리에 귀를 기울여보세요 👂✨", "", 800);
+      setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "");
       return;
     }
 
@@ -1463,8 +1463,8 @@
 
     // 두 번째 카드 확인 시간을 주기 위해 약간의 지연 (손맛을 위한 미세 조정)
     setTimeout(() => {
-      // 매칭 판정 및 마음 선명도 계산
-      if(first.dataset.emoji === t.dataset.emoji){
+    // 매칭 판정 및 마음 따뜻함 지수 계산
+    if(first.dataset.emoji === t.dataset.emoji){
         // 성공 처리
         first.classList.add("matched");
         t.classList.add("matched");
@@ -1496,13 +1496,13 @@
           playSuccessSound(streak);
 
           if(matched === 1){
-            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 선명도가 회복돼요 ✨");
+            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 따뜻함이 회복돼요 ✨");
           }else if(matched < totalPairs){
             // 연속 매칭 중인지 확인 (streak >= 2)
             if(streak >= 2){
-              setStateMessage("와우! 마음이 척척 통하고 있어요! 😍", "지금 이 리듬을 놓치지 마세요!");
+              setStateMessage(`${streak}번 연속 성공! 친구들이 정말 행복해 보여요! 🐶💖`, "지금 이 리듬을 놓치지 마세요!");
             } else {
-              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 선명도가 회복돼요 ✨");
+              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 따뜻함이 회복돼요 ✨");
             }
           }
         }, 0);
@@ -1526,10 +1526,10 @@
         streak = 0;
         playFailSound();
 
-        // 실시간 마음 선명도 업데이트
+        // 실시간 마음 따뜻함 지수 업데이트
         renderStats({ matched, totalPairs });
 
-        setMessage("조금 수줍음이 많은 친구들이네요. 다시 천천히 찾아봐요 😊", "");
+        setMessage("괜찮아요, 친구들이 조금 부끄러워서 숨었나 봐요. 😊", "");
 
         setTimeout(()=>{
           first.classList.remove("shake");
@@ -1539,7 +1539,7 @@
           first = null;
           lock = false;
           
-          setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "");
+          setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "");
         }, C.MISMATCH_MS);
       }
     }, 100); // 100ms 지연으로 두 번째 카드 확인 시간 제공
@@ -1552,7 +1552,7 @@
     // 게임 시간 계산 (초 단위)
     const gameTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
     
-    // 최고 기록 업데이트 (마음 선명도 기준, heartIndex는 이미 실시간으로 계산됨)
+    // 최고 기록 업데이트 (마음 따뜻함 지수 기준, heartIndex는 이미 실시간으로 계산됨)
     const isNewBestScore = heartIndex > d.best;
     const isNewBestTime = d.bestTime === 0 || (gameTime > 0 && gameTime < d.bestTime);
     
@@ -1565,7 +1565,7 @@
     renderDaily(dateStr);
 
     clearTempMsgTimer();
-    setStateMessage("오늘도 마음의 근육이 한 뼘 더 자라났어요! 🎉", "정말 따뜻한 집중력이었어요.");
+    setStateMessage("와! 모든 친구들이 짝꿍을 만나 즐겁게 놀고 있어요! 🎉", "정말 다정한 마음이었어요.");
 
     setStatsComplete(true);
 
@@ -1584,9 +1584,9 @@
     });
 
     setFinishState({
-      title: "오늘도 마음의 근육이 한 뼘 더 자라났어요! 🎉",
-      message: "정말 따뜻한 집중력이었어요.",
-      buttonText: "🔁 다시 해볼까요?",
+      title: "와! 모든 친구들이 짝꿍을 만나 즐겁게 놀고 있어요! 🎉",
+      message: "정말 다정한 마음이었어요.",
+      buttonText: "다른 친구들 또 만나러 가기 🔁",
       hint: "난이도는 위에서 언제든 바꿀 수 있어요.",
       onRestart: () => build(2)
     });
@@ -1605,27 +1605,27 @@
 
     if(!resultModalBack) return;
 
-    // 마음 선명도에 따른 배경색 변경
+    // 마음 따뜻함 지수에 따른 배경색 변경
     applyHeartBackground(heartIndex);
 
-    // 마음 선명도에 따른 라벨 결정
+    // 마음 따뜻함 지수에 따른 라벨 결정
     let heartLabel, heartEmoji, heartDescription;
     if(heartIndex >= 90){
       heartEmoji = "💎";
-      heartLabel = "보석처럼 단단하고 투명한 마음";
-      heartDescription = "(완벽한 집중력!)";
+      heartLabel = "보석처럼 빛나는 다정한 마음";
+      heartDescription = "(모두가 행복해 보여요!)";
     } else if(heartIndex >= 70){
       heartEmoji = "✨";
-      heartLabel = "반짝이는 윤슬을 닮은 마음";
-      heartDescription = "(기분 좋은 몰입)";
+      heartLabel = "반짝이는 우정을 간직한 마음";
+      heartDescription = "(친구들이 고마워해요)";
     } else if(heartIndex >= 40){
       heartEmoji = "🌿";
       heartLabel = "싱그러운 아침 숲길 같은 마음";
-      heartDescription = "(평온한 상태)";
+      heartDescription = "(차분하고 다정해요)";
     } else {
       heartEmoji = "☁️";
       heartLabel = "안개가 살짝 낀 마음";
-      heartDescription = "(잠시 쉬어가도 좋아요)";
+      heartDescription = "(친구들이 기다리고 있을게요)";
     }
 
     // 이모지 폭죽 효과 (모달이 열리기 전에 실행)
@@ -1662,7 +1662,7 @@
 
     if(resultTime) resultTime.textContent = time;
     if(resultCombo) resultCombo.textContent = combo;
-    // 마음 선명도만 표시 (생 점수 제거)
+    // 마음 따뜻함 지수만 표시
     if(resultScore) resultScore.textContent = heartIndex + '%';
     if(resultMessage) resultMessage.textContent = `${heartEmoji} ${heartLabel} - ${heartDescription}`;
 
@@ -1706,14 +1706,14 @@
         const currentLevel = levelSel?.value || "3x2";
         const levelName = levelMap[currentLevel] || "쉬움 (3쌍)";
         
-        // 마음 선명도에 따른 라벨 결정 (showResultModal에서 이미 계산된 heartIndex 사용)
+        // 마음 따뜻함 지수에 따른 라벨 결정 (showResultModal에서 이미 계산된 heartIndex 사용)
         let heartLabel, heartEmoji;
         if(heartIndex >= 90){
           heartEmoji = "💎";
-          heartLabel = "보석처럼 단단하고 투명한 마음";
+          heartLabel = "보석처럼 빛나는 다정한 마음";
         } else if(heartIndex >= 70){
           heartEmoji = "✨";
-          heartLabel = "반짝이는 윤슬을 닮은 마음";
+          heartLabel = "반짝이는 우정을 간직한 마음";
         } else if(heartIndex >= 40){
           heartEmoji = "🌿";
           heartLabel = "싱그러운 아침 숲길 같은 마음";
@@ -1726,15 +1726,15 @@
         const shareText = `🌿 ${heartLabel} 🌿
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
-✨ 마음 선명도: ${heartIndex}% ✨
+✨ 마음 따뜻함 지수: ${heartIndex}% ✨
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
 완벽하면 100% 💎
-리듬을 타면 선명도가 회복돼요 ✨
+리듬을 타면 따뜻함이 회복돼요 ✨
 
-"당신에게도 이 평온함을 보낼게요 🌿"
+"당신에게도 이 다정함을 보낼게요 🌿"
 
-👉 게임하러 가기: ${window.location.href}`;
+👉 친구들 만나러 가기: ${window.location.href}`;
         
         try {
           // 클립보드 API 사용
@@ -1833,7 +1833,7 @@
           });
           // 원래 뒤집어놓은 카드는 그대로 유지 (already up 상태)
         }
-        setStateMessage("숨어있는 짝꿍들을 하나씩 깨워볼까요? ✨", "카드를 눌러 예쁜 인연을 찾아주세요.");
+        setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "오늘은 어떤 친구들과 인사를 나눠볼까요?");
         lock = false;
         peekTimer = null;
       }, sec * 1000);
@@ -1845,7 +1845,7 @@
       }, sec * 1000);
     }
 
-    setMessage("잠깐 보고 기억해요 🙂", "잠시 후 다시 물음표로 돌아갑니다.");
+    setMessage("잠깐 보고 기억해요 🙂", "친구들이 잠시 인사를 건네고 숨었어요.");
   }
 
   // 하단 토스트 메시지 표시
