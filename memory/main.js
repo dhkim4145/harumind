@@ -495,27 +495,6 @@
     core.playSfx('success');
   }
 
-  // +점수 리워드
-  function showReward(tile, text){
-    const r = document.createElement("div");
-    r.className = "reward";
-    r.textContent = text;
-
-    const rect = tile.getBoundingClientRect();
-    let x = rect.left + rect.width / 2;
-    let y = rect.top  + rect.height / 2;
-
-    const pad = 12;
-    x = Math.max(pad, Math.min(window.innerWidth  - pad, x));
-    y = Math.max(pad, Math.min(window.innerHeight - pad, y));
-
-    r.style.left = x + "px";
-    r.style.top  = y + "px";
-
-    document.body.appendChild(r);
-    setTimeout(()=>r.remove(), 900);
-  }
-
   // 콤보 피드백 애니메이션
   function showComboFeedback(streak){
     if(streak <= 1) return; // 2콤보 이상일 때만 표시
@@ -1265,7 +1244,6 @@
   }
 
   function build(autoPeekSec, useRandomSeed = false){
-    console.log('[DEBUG] build() 호출됨, dateStr:', dateStr, 'board:', board);
     clearPeekTimer();
     clearTempMsgTimer();
     if(board) board.innerHTML = "";
@@ -1288,7 +1266,6 @@
       customSeed = Math.random().toString(36).substring(2, 15) + level;
     }
     const cards = seededCards(level, customSeed);
-    console.log('[DEBUG] cards 생성됨, 개수:', cards.length, 'cards:', cards);
     
     renderStats({ matched, totalPairs });
     clearFinishState();
@@ -1310,7 +1287,6 @@
       t.style.opacity = "0";
       if(board) {
         board.appendChild(t);
-        console.log('[DEBUG] tile 추가됨, index:', index, 'emoji:', emoji);
       } else {
         console.error('[ERROR] board가 null입니다!');
       }
@@ -1424,9 +1400,6 @@
         const currentLevel = levelSel?.value || "3x2";
         const penalty = C.PENALTY_PER_MISTAKE[currentLevel] || 5;
         heartIndex = Math.max(0, heartIndex - penalty); // 최소 0% 보장
-
-        first.classList.add("shake");
-        t.classList.add("shake");
         
         streak = 0;
         playFailSound();
@@ -1437,8 +1410,6 @@
         setMessage("괜찮아요, 천천히 다시 찾아보아요 😊", "");
 
         setTimeout(()=>{
-          first.classList.remove("shake");
-          t.classList.remove("shake");
           first.dataset.state = "down";
           t.dataset.state = "down";
           first = null;
@@ -1574,10 +1545,9 @@
     if(resultScore) resultScore.textContent = heartIndex + '%';
     if(resultMessage){
       if(heartIndex >= 90){
-        // 챌린지 달성 라벨 (💎 대신 ✅로 명확히 구분)
-        resultMessage.textContent = `✅ 오늘 챌린지 달성! ${heartLabel} - ${heartDescription}`;
+        resultMessage.textContent = `🌿 오늘도 마음을 잘 챙겼어요`;
       } else {
-        resultMessage.textContent = `${heartEmoji} ${heartLabel} - ${heartDescription}`;
+        resultMessage.textContent = `${heartEmoji} ${heartLabel}`;
       }
     }
 
@@ -1655,7 +1625,6 @@
           // 클립보드 API 사용
           if(navigator.clipboard && navigator.clipboard.writeText){
             await navigator.clipboard.writeText(shareText);
-            showShareToast();
           } else {
             // fallback: 구식 방법
             const textArea = document.createElement("textarea");
@@ -1667,7 +1636,6 @@
             textArea.select();
             try {
               document.execCommand('copy');
-              showShareToast();
             } catch(err) {
               console.error('복사 실패:', err);
               alert('복사에 실패했습니다. 브라우저를 확인해주세요.');
@@ -1764,53 +1732,15 @@
   }
 
   // 하단 토스트 메시지 표시
-  function showRestartToast(){
-    let toast = document.querySelector(".restartToast");
-    if(!toast){
-      toast = document.createElement("div");
-      toast.className = "restartToast";
-      toast.textContent = "게임이 재시작되었어요";
-      document.body.appendChild(toast);
-    }
-    
-    toast.classList.remove("show");
-    void toast.offsetWidth; // reflow
-    toast.classList.add("show");
-    
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 2000);
-  }
-
-  // 공유 완료 토스트 메시지
-  function showShareToast(){
-    let toast = document.querySelector(".shareToast");
-    if(!toast){
-      toast = document.createElement("div");
-      toast.className = "shareToast";
-      toast.textContent = "오늘의 마음을 복사했습니다. 🌿";
-      document.body.appendChild(toast);
-    }
-    
-    toast.classList.remove("show");
-    void toast.offsetWidth; // reflow
-    toast.classList.add("show");
-    
-    setTimeout(() => {
-      toast.classList.remove("show");
-    }, 3000);
-  }
-
   // 이벤트
   if(levelSel) {
     let previousLevel = levelSel.value; // 이전 난이도 저장
     levelSel.onchange = () => {
       const newLevel = levelSel.value;
-      // 게임 진행 중이면 즉시 재시작 + 메시지
+      // 게임 진행 중이면 즉시 재시작
       if(isGameInProgress()){
         previousLevel = newLevel;
         build(2);
-        showRestartToast();
       } else {
         previousLevel = newLevel;
         build(2);
@@ -1908,7 +1838,6 @@
     renderStats,
     renderDaily,
     playBeep,
-    showReward,
     openModal,
     closeModal,
     setStatsComplete,
