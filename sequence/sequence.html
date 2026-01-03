@@ -345,34 +345,6 @@
         @keyframes modalUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
-        .toast {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 12px;
-            padding: 14px 20px;
-            font-size: 0.95rem;
-            color: #e8ecff;
-            text-align: center;
-            max-width: 280px;
-            z-index: 500;
-            opacity: 0;
-            pointer-events: none;
-            animation: toastFadeIn 0.3s ease forwards;
-        }
-        .toast.show {
-            animation: toastFadeIn 0.3s ease forwards;
-        }
-        .toast.hide {
-            animation: toastFadeOut 0.4s ease forwards;
-        }
-        @keyframes toastFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-        @keyframes toastFadeOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(20px); } }
-
         .attendance-line {
             font-size: 11px;
             color: var(--accent);
@@ -449,8 +421,6 @@
             <div id="game-board" class="grid"></div>
         </section>
     </main>
-
-    <div id="toast" class="toast"></div>
 
     <div id="modal" class="modal-backdrop" aria-hidden="true">
         <div class="modal-content">
