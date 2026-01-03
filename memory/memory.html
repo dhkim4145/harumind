@@ -97,17 +97,13 @@ body.bigText{
   --tile-fs:52px;
   --gap:14px;
 }
-body.bigText .messageCard{
-  min-height:240px;
-  height:240px;
-}
 body.bigText #msg{
-  min-height:88px;
-  max-height:88px;
+  min-height:72px;
+  max-height:72px;
 }
 body.bigText #hint{
-  min-height:48px;
-  max-height:48px;
+  min-height:32px;
+  max-height:32px;
 }
 
 .wrap{
@@ -445,7 +441,7 @@ button.primary{
 
 /* ✅ 메시지 카드 아래에 '맞춘 개수 / 지금 점수'만 */
 .statsArea{
-  margin-top:12px;
+  margin-top:6px;
   transition: all 0.3s ease;
   contain: layout style;
   flex-shrink:0;
@@ -473,7 +469,7 @@ button.primary{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap:10px;
-  margin-top:12px;
+  margin-top:0px;
   contain: layout style;
 }
 
@@ -481,7 +477,7 @@ button.primary{
   background:rgba(255,255,255,.04);
   border:1px solid rgba(255,255,255,.08);
   border-radius:999px;
-  padding:8px 14px;
+  padding:6px 12px;
   font-size:var(--fs-pill);
   display:flex;
   align-items:center;
@@ -609,8 +605,8 @@ button.primary{
   font-weight:900;
   white-space:pre-line;
   line-height:1.5;
-  min-height:72px;
-  max-height:72px;
+  min-height:48px;
+  max-height:48px;
   display:flex;
   align-items:center;
   transition:opacity 0.4s ease;
@@ -624,11 +620,11 @@ button.primary{
 #hint{
   font-size:var(--fs-hint);
   color:var(--muted);
-  margin-top:4px;
+  margin-top:2px;
   white-space:pre-line;
   line-height:1.5;
-  min-height:40px;
-  max-height:40px;
+  min-height:20px;
+  max-height:20px;
   display:flex;
   align-items:center;
   transition:opacity 0.4s ease;
