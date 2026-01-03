@@ -199,6 +199,45 @@ core.getTotalGameCount = function() {
     return 3;
 };
 
+core.getTodayKey = function() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+};
+
+core.markVisit = function() {
+    const today = this.getTodayKey();
+    const key = 'harumind_visit_days';
+    let days = [];
+    try {
+        days = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!Array.isArray(days)) days = [];
+    } catch(e) {
+        days = [];
+    }
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 14);
+    const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
+    const set = new Set(days.filter(d => d >= cutoffKey));
+    set.add(today);
+    const next = Array.from(set).sort();
+    localStorage.setItem(key, JSON.stringify(next));
+};
+
+core.getWeeklyVisitCount = function() {
+    const key = 'harumind_visit_days';
+    let days = [];
+    try {
+        days = JSON.parse(localStorage.getItem(key) || '[]');
+        if (!Array.isArray(days)) days = [];
+    } catch(e) {
+        days = [];
+    }
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 6); // 오늘 포함 7일
+    const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
+    return days.filter(d => d >= cutoffKey).length;
+};
+
 core.getLeastPlayedGame = function() {
     const games = [
         { key: 'memory', name: '같은 그림 찾기', emoji: '🧩', path: 'memory/memory.html' },

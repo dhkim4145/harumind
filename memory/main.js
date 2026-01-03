@@ -216,6 +216,9 @@
     safeSet(C.KEYS.STREAK_DAYS, String(newStreak));
     // 메인 홈 완료 체크용 키 (YYYY-MM-DD)
     safeSet("harumind_memory_lastDate", today);
+    if (window.core && typeof core.markVisit === 'function') {
+      core.markVisit();
+    }
     
     // 화면에 표시
     if(streakDaysEl){

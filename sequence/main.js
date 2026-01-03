@@ -101,6 +101,9 @@ function updateAttendance() {
         }
         safeSet(STORAGE_KEYS.LAST_DATE, today);
         safeSet(STORAGE_KEYS.STREAK, String(streak));
+        if (window.core && typeof core.markVisit === 'function') {
+            core.markVisit();
+        }
     }
     
     const attendanceEl = document.getElementById('attendanceInline');

@@ -152,6 +152,29 @@
       color: var(--muted); 
     }
 
+    /* 누적 통계 - 컴팩트 칩 */
+    .status-meta {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .weekly-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .weekly-chip span:last-child { color: var(--accent); font-size: 18px; }
+    .weekly-note { font-size: 13px; color: var(--muted); }
+
     /* 추천 카드 */
     .recommend-card { 
       background: linear-gradient(135deg, rgba(110, 231, 183, 0.12), rgba(110, 180, 231, 0.12)); 
@@ -210,6 +233,10 @@
           <span>🔢 숫자 순서터치</span>
           <span class="status-badge pending">미완료</span>
         </div>
+      </div>
+      <div class="status-meta" aria-live="polite">
+        <div class="weekly-chip">📅 이번 주 <span><span id="weeklyDays">0</span>/7일</span></div>
+        <div class="weekly-note" id="weeklyNote">이번 주도 함께 걸어요</div>
       </div>
     </div>
 
@@ -289,6 +316,16 @@
         badge.classList.add('pending');
       }
     });
+    const weekly = core.getWeeklyVisitCount ? core.getWeeklyVisitCount() : 0;
+    const weeklyEl = document.getElementById('weeklyDays');
+    const weeklyNote = document.getElementById('weeklyNote');
+    if (weeklyEl) weeklyEl.textContent = weekly;
+    if (weeklyNote) {
+      if (weekly >= 6) weeklyNote.textContent = '거의 매일 함께했어요 ✨';
+      else if (weekly >= 4) weeklyNote.textContent = '꾸준함이 쌓이고 있어요 👍';
+      else if (weekly >= 2) weeklyNote.textContent = '좋은 시작! 조금씩 이어가볼까요?';
+      else weeklyNote.textContent = '오늘 한 번이 큰 시작이에요 💡';
+    }
     
     showRecommendation();
   }

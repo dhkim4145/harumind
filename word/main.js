@@ -90,6 +90,9 @@
                 streak = 1;
             }
             safeSet(STORAGE_KEYS.LAST_DATE, today);
+            if (window.core && typeof core.markVisit === 'function') {
+                core.markVisit();
+            }
             safeSet(STORAGE_KEYS.STREAK, String(streak));
         }
         
