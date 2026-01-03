@@ -126,6 +126,16 @@ body.bigText #hint{
   padding-bottom: 20px;
 }
 
+header {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .card{
   width: 100%;
   box-sizing: border-box;
@@ -1332,8 +1342,6 @@ body.peeking .tile{
 </style>
 </head>
 <body>
-<div class="wrap">
-
   <header>
     <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
     <div class="titleRow">
@@ -1354,6 +1362,7 @@ body.peeking .tile{
     </div>
   </header>
 
+<div class="wrap">
   <div id="gameBoard" class="game-board-wrapper">
     <div class="board" id="board"></div>
   </div>
