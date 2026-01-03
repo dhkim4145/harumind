@@ -292,7 +292,7 @@
   const modalBack = document.getElementById("modalBack");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const modalCard = document.getElementById("modalCard");
-  const bgm = document.getElementById("bgm");
+  const bgm = document.getElementById("bgmAudio");
   const bgmBtn = document.getElementById("bgmBtn");
   const themeSelect = document.getElementById("themeSelect");
 
