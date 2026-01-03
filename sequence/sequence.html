@@ -126,6 +126,17 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            text-align: center;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .pill.update {
+            animation: pillPulse 0.5s ease;
+        }
+        @keyframes pillPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         .pill-title { font-size: 0.9rem; color: var(--muted); letter-spacing: -0.2px; }
         .pill-main { font-size: 1.4rem; font-weight: 800; }
@@ -155,7 +166,11 @@
         .lv-btn:active { transform: scale(0.97); }
 
         .board-card { padding: 16px; }
-        .grid { display: grid; gap: 10px; width: 100%; }
+        .grid { display: grid; gap: 10px; width: 100%; animation: boardFadeIn 0.4s ease; }
+        @keyframes boardFadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
         .num-tile {
             aspect-ratio: 1 / 1;
             border-radius: 14px;
@@ -276,13 +291,24 @@
         }
         @keyframes toastFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
         @keyframes toastFadeOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+
+        .attendance-line {
+            font-size: 11px;
+            color: var(--accent);
+            opacity: 0.9;
+            margin-bottom: 4px;
+            width: 100%;
+            max-width: 560px;
+            text-align: left;
+            padding: 0 2px;
+        }
     </style>
 </head>
 <body>
     <header>
+        <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
         <div class="brand-row">
-            <div class="brand">하루마음 : 숫자 순서터치</div>
-            <div class="subtitle">숫자를 따라가며 집중을 다독여요.</div>
+            <div class="brand" style="text-align: center; width: 100%; flex: 1;">하루마음 : 숫자 순서터치</div>
         </div>
         <div class="settings-bar">
             <button id="homeBtn" title="홈">🏠 홈</button>

@@ -1,6 +1,11 @@
 // 숫자 순서터치 (Sequence Game) - 하루마음 표준 UI 적용
 // 모든 텍스트는 MSGS 객체에서 관리해 수정 용이
 
+const STORAGE_KEYS = {
+    LAST_DATE: "harumind_sequence_lastDate",
+    STREAK: "harumind_sequence_streak"
+};
+
 const MSGS = {
     title: '숫자 순서터치',
     subtitle: '숫자를 따라가며 집중을 다독여요.',
@@ -17,9 +22,7 @@ const MSGS = {
     detail: {
         high: '목표 시간보다 {diff}초나 빠르게 성공하셨어요! 놀라운 몰입도입니다. 💎',
         mid: '차분하게 {time}초 만에 완주하셨네요. 목표에 거의 다 왔어요! ✨',
-        low: '시간에 쫓기지 않고 끝까지 해낸 마음이 중요해요. 수고하셨습니다. 🌿',
-        manyMistakes: '🌿 조금 서둘렀네요. 다음엔 더 차분하게 집중해볼까요?',
-        timeOver: '✨ 끝까지 포기하지 않고 찾아낸 인내심이 멋져요!'
+        low: '시간에 쫓기지 않고 끝까지 해낸 마음이 중요해요. 수고하셨습니다. 🌿'
     },
     modalTitle: '정말 멋져요!',
     modalButton: '다시 도전하기',
@@ -32,18 +35,10 @@ const MSGS = {
         difficulty: '난이도',
         time: '시간',
         target: '찾을 숫자',
-        targetTime: '목표',
         selectDifficulty: '난이도 선택',
         timerHint: '천천히 호흡을 따라가요',
         targetHint: '왼쪽에서 오른쪽으로 차근차근',
-        footer: '하루마음 · 숫자 순서터치'
-    },
-    toasts: {
-        levelEasy: '가벼운 마음으로 시작해볼까요?',
-        levelNormal: '차분하게 집중력을 모아보아요.',
-        levelHard: '깊은 몰입의 즐거움을 느껴보세요.',
-        mistake: '한 번 더 집중해볼까요?',
-        success: '멋져요! 계속 이 속도로!'
+        footer: '하루마음 · harumind.kr'
     }
 };
 
@@ -60,9 +55,47 @@ const state = {
     timerId: null,
     startTime: 0,
     elapsed: 0,
-    isPlaying: false,
-    mistakes: 0
+    isPlaying: false
 };
+
+// ============================================================
+// [Storage Helper]
+// ============================================================
+function safeGet(key) {
+    try { return localStorage.getItem(key); } 
+    catch(e) { return null; }
+}
+
+function safeSet(key, value) {
+    try { localStorage.setItem(key, value); } 
+    catch(e) {}
+}
+
+// ============================================================
+// [Attendance System]
+// ============================================================
+function updateAttendance() {
+    const today = new Date().toLocaleDateString();
+    let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
+    let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
+
+    if (lastDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (lastDate === yesterday.toLocaleDateString()) {
+            streak++;
+        } else {
+            streak = 1;
+        }
+        safeSet(STORAGE_KEYS.LAST_DATE, today);
+        safeSet(STORAGE_KEYS.STREAK, String(streak));
+    }
+    
+    const attendanceEl = document.getElementById('attendanceInline');
+    if(attendanceEl) {
+        attendanceEl.innerText = `🔥 ${streak}일째`;
+    }
+}
 
 function init() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -70,6 +103,7 @@ function init() {
         core.applyTheme(core.currentTheme);
         if (core.isBgmOn) core.ensureBgm();
 
+        updateAttendance();
         bindHeader();
         bindLevels();
         applyStaticCopy();
@@ -114,7 +148,6 @@ function applyStaticCopy() {
         labelDifficulty: MSGS.labels.difficulty,
         labelTime: MSGS.labels.time,
         labelTarget: MSGS.labels.target,
-        labelTargetTime: MSGS.labels.targetTime,
         hintTime: MSGS.labels.timerHint,
         hintTarget: MSGS.labels.targetHint,
         labelSelectDifficulty: MSGS.labels.selectDifficulty
@@ -144,20 +177,19 @@ function startGame(levelKey = 'easy') {
     state.max = cfg.grid * cfg.grid;
     state.isPlaying = true;
     state.elapsed = 0;
-    state.mistakes = 0;
 
     highlightLevel(useLevel);
+    
+    // Add animation to status pills
+    animateStatusUpdate();
+    
     updateStatusTexts(useLevel);
-    updateTargetTime(cfg.limit);
     renderBoard(cfg.grid);
     setNextNum(state.expected);
     resetTimer();
-    startTimer();
-
-    const toastKey = `level${useLevel.charAt(0).toUpperCase() + useLevel.slice(1)}`;
-    if (MSGS.toasts[toastKey]) {
-        showToast(MSGS.toasts[toastKey]);
-    }
+    
+    // Start timer after a small delay for visual effect
+    setTimeout(() => startTimer(), 400);
 
     if (core.isBgmOn) core.ensureBgm();
 }
@@ -168,6 +200,15 @@ function highlightLevel(levelKey) {
     });
 }
 
+function animateStatusUpdate() {
+    const pills = document.querySelectorAll('.pill');
+    pills.forEach((pill) => {
+        pill.classList.remove('update');
+        void pill.offsetWidth; // reflow
+        pill.classList.add('update');
+    });
+}
+
 function updateStatusTexts(levelKey) {
     const levelLabel = document.getElementById('level-label');
     const levelDesc = document.getElementById('level-desc');
@@ -175,11 +216,6 @@ function updateStatusTexts(levelKey) {
     if (levelDesc) levelDesc.innerText = MSGS.levels[levelKey].desc;
     const modalBtn = document.getElementById('modal-action');
     if (modalBtn) modalBtn.innerText = MSGS.modalButton;
-}
-
-function updateTargetTime(limit) {
-    const targetTimeEl = document.getElementById('target-time');
-    if (targetTimeEl) targetTimeEl.innerText = `${limit.toFixed(0)}초`;
 }
 
 function renderBoard(grid) {
@@ -216,11 +252,9 @@ function handleTileClick(tile) {
             finishGame();
         }
     } else {
-        state.mistakes += 1;
         tile.classList.remove('wrong');
         void tile.offsetWidth; // reflow for animation restart
         tile.classList.add('wrong');
-        showToast(MSGS.toasts.mistake, 1500);
         setTimeout(() => tile.classList.remove('wrong'), 350);
     }
 }
@@ -257,26 +291,13 @@ function finishGame() {
     const elapsed = state.elapsed || (performance.now() - state.startTime) / 1000;
 
     const limit = LEVELS[state.level].limit;
-    
-    // 시간 점수 (0~100)
-    const timeScore = Math.min(100, (limit / Math.max(elapsed, 0.1)) * 100);
-    
-    // 정확도 점수 (0~100)
-    const accuracy = Math.max(0, ((state.max - state.mistakes) / state.max) * 100);
-    
-    // 최종 마음 지수: 시간 70% + 정확도 30%
-    const rawScore = (timeScore * 0.7) + (accuracy * 0.3);
-    const mindScore = Math.max(15, Math.min(100, Math.round(rawScore)));
+    const rawScore = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
+    const mindScore = Math.max(15, Math.min(100, rawScore));
 
     core.playSfx('success');
     animateBackground(mindScore);
-    
-    // 90점 이상일 때만 폭죽
-    if (mindScore >= 90) {
-        launchConfetti();
-    }
-    
-    showResult(mindScore, elapsed, accuracy);
+    launchConfetti();
+    showResult(mindScore, elapsed);
 }
 
 function animateBackground(score) {
@@ -297,11 +318,11 @@ function launchConfetti() {
     confetti({ ...base, angle: 120, origin: { x: 0.85, y: 0.6 }, scalar: 1 });
 }
 
-function showResult(score, elapsed, accuracy) {
+function showResult(score, elapsed) {
     const modal = document.getElementById('modal');
     if (!modal) return;
 
-    const { emoji, feedback } = getFeedback(score, state.mistakes);
+    const { emoji, feedback } = getFeedback(score);
     const levelName = MSGS.levels[state.level].name;
     const limit = LEVELS[state.level].limit;
     const diff = limit - elapsed;
@@ -323,27 +344,21 @@ function showResult(score, elapsed, accuracy) {
     if (titleEl) titleEl.innerText = MSGS.modalTitle;
     if (scoreEl) scoreEl.innerText = `${MSGS.meta.score}: ${score}점`;
     if (feedbackEl) feedbackEl.innerText = feedback;
-    if (detailEl) detailEl.innerText = buildDetail(score, elapsed, diff, state.mistakes);
+    if (detailEl) detailEl.innerText = buildDetail(score, elapsed, diff);
     if (metaEl) metaEl.innerText = `${MSGS.meta.time} ${elapsed.toFixed(1)}s · ${MSGS.meta.level} ${levelName}`;
 
     if (timeEl) timeEl.innerText = `${elapsed.toFixed(1)}초`;
-    if (limitEl) limitEl.innerText = `${limit.toFixed(0)}초`;
-    if (accEl) accEl.innerText = `${Math.round(accuracy)}% (실수 ${state.mistakes}회)`;
+    if (limitEl) limitEl.innerText = `${limit.toFixed(1)}초`;
+    if (accEl) accEl.innerText = '100%';
     if (evalEl) {
-        if (diff > 0) {
-            evalEl.innerText = `목표보다 ${diff.toFixed(1)}초 단축!`;
-        } else {
-            evalEl.innerText = `조금 늦었지만 끝까지 해냈어요!`;
-        }
+        const pct = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
+        evalEl.innerText = `목표 대비 ${pct}% 달성!`;
     }
 
+    const faster = Math.max(0, limit - elapsed);
     if (noteEl) {
-        if (score >= 90 && diff > 0) {
-            noteEl.innerText = `목표보다 ${diff.toFixed(1)}초나 더 빠르게 집중하셨네요!`;
-        } else if (state.mistakes > state.max * 0.3) {
-            noteEl.innerText = '조금 서둘렀네요. 다음엔 더 차분하게 집중해볼까요?';
-        } else if (elapsed > limit) {
-            noteEl.innerText = '끝까지 포기하지 않고 찾아낸 인내심이 멋져요!';
+        if (score >= 90) {
+            noteEl.innerText = `목표보다 ${faster.toFixed(1)}초나 더 빠르게 집중하셨네요!`;
         } else {
             noteEl.innerText = '조금 늦어도 괜찮아요. 끝까지 찾아낸 인내심이 멋져요!';
         }
@@ -375,39 +390,22 @@ function closeModal() {
     startGame(state.level);
 }
 
-function getFeedback(score, mistakes) {
+function getFeedback(score) {
     if (score >= 90) return { emoji: '💎', feedback: MSGS.feedback.high };
     if (score >= 70) return { emoji: '✨', feedback: MSGS.feedback.mid };
     return { emoji: '🌿', feedback: MSGS.feedback.low };
 }
 
-function buildDetail(score, elapsed, diff, mistakes) {
+function buildDetail(score, elapsed, diff) {
     const diffAbs = Math.abs(diff).toFixed(1);
-    if (score >= 90 && diff > 0) {
+    if (score >= 90) {
         return MSGS.detail.high.replace('{diff}', diffAbs);
     }
-    if (mistakes > state.max * 0.3) {
-        return MSGS.detail.manyMistakes;
-    }
-    if (elapsed > LEVELS[state.level].limit) {
-        return MSGS.detail.timeOver;
-    }
     if (score >= 70) {
-        return MSGS.detail.mid.replace('{time}', elapsed.toFixed(1));
+        return MSGS.detail.mid
+            .replace('{time}', elapsed.toFixed(1));
     }
     return MSGS.detail.low;
-}
-
-function showToast(message, duration = 2000) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.innerText = message;
-    toast.classList.remove('hide');
-    toast.classList.add('show');
-    setTimeout(() => {
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-    }, duration);
 }
 
 init();
