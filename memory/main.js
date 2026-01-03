@@ -746,9 +746,8 @@
     if(bar) bar.remove();
     
     // 게임 완료 시 힌트 버튼 숨김
-    const peekContainer = document.getElementById("peekContainer");
-    if(peekContainer){
-      peekContainer.style.display = "none";
+    if(peekBtn){
+      peekBtn.style.display = "none";
     }
   }
 
@@ -1267,7 +1266,7 @@
     renderStats({ matched, totalPairs });
     clearFinishState();
     setStatsComplete(false);
-    setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "오늘은 어떤 친구들과 인사를 나눠볼까요?");
+    setStateMessage("소중한 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "천천히 마음을 모아 찾아보세요");
     
     // 힌트 버튼 리셋
     if(peekBtn){
@@ -1299,9 +1298,8 @@
     }
 
     // 게임 진행 중 힌트 버튼 표시
-    const peekContainer = document.getElementById("peekContainer");
-    if(peekContainer){
-      peekContainer.style.display = "";
+    if(peekBtn){
+      peekBtn.style.display = "";
     }
 
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
@@ -1371,13 +1369,13 @@
           playSuccessSound(streak);
 
           if(matched === 1){
-            setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 따뜻함이 회복돼요 ✨");
+            setStateMessage("찾았어요! 두 마음이 하나로 이어졌어요 💛", "연속으로 맞추면 따뜻함이 채워져요 ✨");
           }else if(matched < totalPairs){
             // 연속 매칭 중인지 확인 (streak >= 2)
             if(streak >= 2){
-              setStateMessage(`${streak}번 연속 성공! 친구들이 정말 행복해 보여요! 🐶💖`, "지금 이 리듬을 놓치지 마세요!");
+              setStateMessage(`${streak}번 연속! 마음이 집중되고 있어요 ✨`, "이 흐름을 이어가보세요");
             } else {
-              setStateMessage("찾았다! 두 친구가 드디어 만났네요 💛", "연속으로 맞추면 따뜻함이 회복돼요 ✨");
+              setStateMessage("찾았어요! 두 마음이 하나로 이어졌어요 💛", "연속으로 맞추면 따뜻함이 채워져요 ✨");
             }
           }
         }, 0);
@@ -1404,7 +1402,7 @@
         // 실시간 마음 따뜻함 지수 업데이트
         renderStats({ matched, totalPairs });
 
-        setMessage("괜찮아요, 친구들이 조금 부끄러워서 숨었나 봐요. 😊", "");
+        setMessage("괜찮아요, 천천히 다시 찾아보아요 😊", "");
 
         setTimeout(()=>{
           first.classList.remove("shake");
@@ -1443,7 +1441,7 @@
     updateStreak();
 
     clearTempMsgTimer();
-    setStateMessage("와! 모든 친구들이 짝꿍을 만나 즐겁게 놀고 있어요! 🎉", "정말 다정한 마음이었어요.");
+    setStateMessage("완료! 모든 인연이 이어졌어요 🎉", "집중하신 덕분이에요. 따뜻한 마음이 느껴져요.");
 
     setStatsComplete(true);
 

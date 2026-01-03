@@ -232,6 +232,10 @@ function renderBoard(grid) {
         tile.className = 'num-tile';
         tile.innerText = num;
         tile.dataset.value = String(num);
+        tile.style.listStyle = 'none';
+        tile.style.outline = 'none';
+        tile.style.webkitTapHighlightColor = 'transparent';
+        tile.setAttribute('tabindex', '-1');
         tile.addEventListener('click', () => handleTileClick(tile));
         board.appendChild(tile);
     });
