@@ -201,18 +201,26 @@
                 saveDailyStats(todayKey, { clears, attempts: attemptsTotal });
 
                 const avgAttempts = clears > 0 ? (attemptsTotal / clears).toFixed(1) : '0.0';
+                const challengeHit = clears >= 3 && avgAttempts <= 2;
 
                 setTimeout(() => {
                     document.getElementById('modal-word-display').innerText = currentWord;
                     const todayEl = document.getElementById('modal-today-count');
                     const avgEl = document.getElementById('modal-avg-attempts');
                     const feedbackEl = document.getElementById('modal-feedback');
+                    const emojiEl = document.querySelector('.modal-emoji');
                     if (todayEl) todayEl.innerText = `${clears}개`;
                     if (avgEl) avgEl.innerText = `${avgAttempts}회`;
                     if (feedbackEl) {
-                        if (attemptsForCurrentWord === 1) feedbackEl.innerText = '멋져요! 단어 감각이 좋으시네요!';
+                        if (challengeHit) {
+                            // 챌린지 달성: ✅로 명확히 구분
+                            feedbackEl.innerText = '✅ 오늘의 챌린지 달성! (3회 클리어 · 평균 2회 이하)';
+                        } else if (attemptsForCurrentWord === 1) feedbackEl.innerText = '멋져요! 단어 감각이 좋으시네요!';
                         else if (attemptsForCurrentWord === 2) feedbackEl.innerText = '좋아요! 한 번 더 집중해서 완성했어요.';
                         else feedbackEl.innerText = '꾸준한 집중이 빛났어요. 계속 가볼까요?';
+                    }
+                    if (emojiEl && challengeHit) {
+                        emojiEl.textContent = '✅';
                     }
                     document.getElementById('modal').style.display = 'flex';
                 }, 500);

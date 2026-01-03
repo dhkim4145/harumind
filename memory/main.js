@@ -76,6 +76,7 @@
   let finishTimer = null;
   let gameStartTime = null; // 게임 시작 시간
   let lastWidth = window.innerWidth; // 이전 너비 저장 변수
+  let dateStr = ""; // 오늘 날짜 (초기화 시 설정)
 
   // BGM 관련 전역 변수
   let bgmOn = false;
@@ -1264,6 +1265,7 @@
   }
 
   function build(autoPeekSec, useRandomSeed = false){
+    console.log('[DEBUG] build() 호출됨, dateStr:', dateStr, 'board:', board);
     clearPeekTimer();
     clearTempMsgTimer();
     if(board) board.innerHTML = "";
@@ -1286,6 +1288,7 @@
       customSeed = Math.random().toString(36).substring(2, 15) + level;
     }
     const cards = seededCards(level, customSeed);
+    console.log('[DEBUG] cards 생성됨, 개수:', cards.length, 'cards:', cards);
     
     renderStats({ matched, totalPairs });
     clearFinishState();
@@ -1305,7 +1308,12 @@
       t.onclick = () => clickTile(t);
       // 페이드 인 효과를 위한 초기 투명도
       t.style.opacity = "0";
-      if(board) board.appendChild(t);
+      if(board) {
+        board.appendChild(t);
+        console.log('[DEBUG] tile 추가됨, index:', index, 'emoji:', emoji);
+      } else {
+        console.error('[ERROR] board가 null입니다!');
+      }
       
       // 각 카드에 순차적으로 페이드 인 적용
       setTimeout(() => {
@@ -1564,7 +1572,14 @@
     if(resultCombo) resultCombo.textContent = combo;
     // 마음 따뜻함 지수만 표시
     if(resultScore) resultScore.textContent = heartIndex + '%';
-    if(resultMessage) resultMessage.textContent = `${heartEmoji} ${heartLabel} - ${heartDescription}`;
+    if(resultMessage){
+      if(heartIndex >= 90){
+        // 챌린지 달성 라벨 (💎 대신 ✅로 명확히 구분)
+        resultMessage.textContent = `✅ 오늘 챌린지 달성! ${heartLabel} - ${heartDescription}`;
+      } else {
+        resultMessage.textContent = `${heartEmoji} ${heartLabel} - ${heartDescription}`;
+      }
+    }
 
     resultModalBack.classList.add("isOpen");
 
@@ -1811,7 +1826,7 @@
   // 초기화
   // ============================================================
 
-  const dateStr = HarumindStorage.todayKey();
+  dateStr = HarumindStorage.todayKey();
   if(todayKeyEl) todayKeyEl.textContent = dateStr;
 
   renderDaily(dateStr);

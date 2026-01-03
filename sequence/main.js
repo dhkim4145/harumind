@@ -3,7 +3,8 @@
 
 const STORAGE_KEYS = {
     LAST_DATE: "harumind_sequence_lastDate",
-    STREAK: "harumind_sequence_streak"
+    STREAK: "harumind_sequence_streak",
+    DAILY_PREFIX: "harumind_sequence_daily_"
 };
 
 const MSGS = {
@@ -71,6 +72,23 @@ function safeGet(key) {
 function safeSet(key, value) {
     try { localStorage.setItem(key, value); } 
     catch(e) {}
+}
+
+function loadDailyStats(dateKey) {
+    try {
+        const raw = safeGet(STORAGE_KEYS.DAILY_PREFIX + dateKey);
+        if (!raw) return { clears: 0 };
+        const obj = JSON.parse(raw);
+        return { clears: Number(obj.clears) || 0 };
+    } catch(e) {
+        return { clears: 0 };
+    }
+}
+
+function saveDailyStats(dateKey, data) {
+    safeSet(STORAGE_KEYS.DAILY_PREFIX + dateKey, JSON.stringify({
+        clears: Number(data?.clears) || 0
+    }));
 }
 
 // ============================================================
@@ -317,11 +335,17 @@ function finishGame() {
     const rawScore = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
     const mindScore = Math.max(15, Math.min(100, rawScore));
 
+    // 일일 클리어 횟수 저장
+    const todayKey = getTodayKey();
+    const dailyStats = loadDailyStats(todayKey);
+    dailyStats.clears += 1;
+    saveDailyStats(todayKey, dailyStats);
+
     updateAttendance(); // 출석 기록 업데이트
     core.playSfx('success');
     animateBackground(mindScore);
     launchConfetti();
-    showResult(mindScore, elapsed);
+    showResult(mindScore, elapsed, dailyStats.clears);
 }
 
 function animateBackground(score) {
@@ -342,7 +366,7 @@ function launchConfetti() {
     confetti({ ...base, angle: 120, origin: { x: 0.85, y: 0.6 }, scalar: 1 });
 }
 
-function showResult(score, elapsed) {
+function showResult(score, elapsed, dailyClears) {
     const modal = document.getElementById('modal');
     if (!modal) return;
 
@@ -350,6 +374,8 @@ function showResult(score, elapsed) {
     const levelName = MSGS.levels[state.level].name;
     const limit = LEVELS[state.level].limit;
     const diff = limit - elapsed;
+
+    const challengeHit = dailyClears >= 3;
 
     const emojiEl = document.getElementById('modal-emoji');
     const titleEl = document.getElementById('modal-title');
@@ -364,10 +390,10 @@ function showResult(score, elapsed) {
     const noteEl = document.getElementById('report-note');
     const gaugeEl = document.getElementById('report-gauge');
 
-    if (emojiEl) emojiEl.innerText = emoji;
+    if (emojiEl) emojiEl.innerText = challengeHit ? '✅' : emoji;
     if (titleEl) titleEl.innerText = MSGS.modalTitle;
     if (scoreEl) scoreEl.innerText = `${MSGS.meta.score}: ${score}점`;
-    if (feedbackEl) feedbackEl.innerText = feedback;
+    if (feedbackEl) feedbackEl.innerText = challengeHit ? '✅ 오늘의 챌린지 달성! (3회 클리어)' : feedback;
     if (detailEl) detailEl.innerText = buildDetail(score, elapsed, diff);
     if (metaEl) metaEl.innerText = `${MSGS.meta.time} ${elapsed.toFixed(1)}s · ${MSGS.meta.level} ${levelName}`;
 
