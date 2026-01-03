@@ -148,12 +148,24 @@ body.bigText #hint{
 .titleRow{
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:center;
   gap:12px;
 }
 .title{
-  font-size:var(--fs-title);
-  font-weight:900;
+  font-size: 1.2rem;
+  font-weight: 900;
+  animation: titleFadeIn 0.6s ease-out;
+}
+
+@keyframes titleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .sub{
   font-size:13px;
@@ -227,6 +239,18 @@ body.bigText #hint{
     }
 }
 
+/* ===== Attendance Line ===== */
+.attendance-line {
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.9;
+    margin-bottom: 4px;
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+    padding: 0 2px;
+}
+
 /* ===== Controls Top (힌트, 난이도) ===== */
 .controls-top {
     display: flex;
@@ -252,6 +276,37 @@ body.bigText #hint{
 .controls-top button:active,
 .controls-top select:active {
     transform: scale(0.97);
+}
+
+/* ===== Difficulty Selector Buttons ===== */
+.difficulty-selector {
+    margin-top: 8px;
+}
+
+.difficulty-btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
+}
+
+.difficulty-btn:active {
+    transform: scale(0.97);
+}
+
+.difficulty-btn.active {
+    border-color: rgba(110,231,183,0.6);
+    background: rgba(110,231,183,0.18);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(110,231,183,0.2);
 }
 
 /* (기존 설정 버튼 스타일은 호환성 유지) */
@@ -558,22 +613,28 @@ button.primary{
 }
 
 /* 보드 */
-.game-container{
-  background: radial-gradient(140% 120% at 50% 12%, rgba(255,255,255,.08), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:var(--shadow), inset 0 0 0 1px rgba(255,255,255,.04);
-  padding:14px;
+.game-board-wrapper{
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.35);
+  padding: 14px;
+  margin-bottom: 10px;
 }
 
 .board{ 
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(80px, 1fr);
   width: 100%;
   box-sizing: border-box;
   gap: 6px;
   justify-items: stretch;
   align-items: stretch;
   height: auto;
-  overflow:hidden; 
+  overflow: hidden; 
   touch-action: pan-y;
   padding: 12px;
   background: linear-gradient(180deg, rgba(11,16,32,.9), rgba(5,8,19,.95));
@@ -1271,15 +1332,12 @@ body.peeking .tile{
 <body>
 <div class="wrap">
 
-  <div class="card">
+  <header>
+    <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
     <div class="titleRow">
       <div class="title">🧩 하루마음 : 같은 그림 찾기</div>
     </div>
     
-    <div id="streakDisplay" style="margin-top:8px; font-size:13px; color:var(--muted); text-align:center; opacity:0.9;">
-      <span id="streakText">🔥 연속 출석 <b id="streakDays">0</b>일</span>
-    </div>
-
     <div class="settings-bar">
       <button id="homeBtn" title="홈">🏠 홈</button>
       <div class="settings-group-right">
@@ -1292,21 +1350,10 @@ body.peeking .tile{
         </select>
       </div>
     </div>
+  </header>
 
-    <div class="controls-top">
-      <button id="peekBtn" title="힌트">💡 힌트</button>
-      <select id="level" title="난이도 선택">
-        <option value="3x2" selected>쉬움 (3쌍)</option>
-        <option value="4x3">보통 (6쌍)</option>
-        <option value="4x4">어려움 (8쌍)</option>
-      </select>
-    </div>
-
-    <select id="peekSec" style="display:none">
-      <option value="2">2</option>
-    </select>
-
-    <div style="display:none"><span id="todayKey"></span></div>
+  <div id="gameBoard" class="game-board-wrapper">
+    <div class="board" id="board"></div>
   </div>
 
   <div class="card messageCard">
@@ -1321,12 +1368,22 @@ body.peeking .tile{
     </div>
   </div>
 
-  <div class="card game-container">
-    <div class="board" id="board"></div>
+  <div class="card">
+    <div class="controls-top difficulty-selector">
+      <button class="difficulty-btn" data-level="3x2">쉬움 (3쌍)</button>
+      <button class="difficulty-btn" data-level="4x3">보통 (6쌍)</button>
+      <button class="difficulty-btn" data-level="4x4">어려움 (8쌍)</button>
+    </div>
+
+    <select id="peekSec" style="display:none">
+      <option value="2">2</option>
+    </select>
+
+    <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
-  <div class="card footer-card" style="font-size:12px;color:var(--muted); line-height:1.6;">
-    하루마음 · harumind.kr
+  <div class="card game-container" style="display:none;" id="peekContainer">
+    <button id="peekBtn" style="width: 100%; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s ease;">💡 살짝 엿보기</button>
   </div>
 
 </div>

@@ -34,9 +34,26 @@
             text-align: center; 
             margin-bottom: 10px; 
             width: 100%;
-            max-width: 520px;
+            max-width: 500px;
         }
-        .brand { font-size: 1.2rem; font-weight: bold; color: var(--accent); opacity: 0.95; }
+        .brand { 
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            color: var(--text); 
+            opacity: 0.95;
+            animation: titleFadeIn 0.6s ease-out;
+        }
+
+        @keyframes titleFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .attendance-line {
             font-size: 11px;
@@ -44,7 +61,7 @@
             opacity: 0.9;
             margin-bottom: 4px;
             width: 100%;
-            max-width: 520px;
+            max-width: 500px;
             text-align: left;
             padding: 0 2px;
         }
@@ -52,20 +69,21 @@
         /* 상단 노출형 설정 바 */
         .settings-bar {
             position: sticky;
-            top: 0;
+            top: 8px;
             width: 100%;
-            max-width: 520px;
+            max-width: 500px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            padding: 5px 10px;
-            margin-bottom: 12px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.08);
+            padding: 6px 10px;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 12px;
-            backdrop-filter: blur(5px);
-            z-index: 20;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            z-index: 12;
             box-sizing: border-box;
         }
 
@@ -356,22 +374,22 @@
 </head>
 <body>
     <header>
-        <div class="brand">하루마음 : 단어 조각</div>
-    </header>
-
-    <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
-    <div class="settings-bar">
-        <button id="homeBtn" title="홈">🏠 홈</button>
-        <div class="settings-group-right">
-            <button id="sfxBtn" title="효과">🔊 효과</button>
-            <button id="bgmBtn" title="배경">🎵 배경</button>
-            <select id="themeSelect" title="테마">
-                <option value="warm">🌅 따뜻한</option>
-                <option value="dark">🌙 밤하늘</option>
-                <option value="forest">🌲 숲속</option>
-            </select>
+        <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
+        <div class="brand">✍️ 하루마음 : 단어 조합하기</div>
+        
+        <div class="settings-bar">
+            <button id="homeBtn" title="홈">🏠 홈</button>
+            <div class="settings-group-right">
+                <button id="sfxBtn" title="효과">🔊 효과</button>
+                <button id="bgmBtn" title="배경">🎵 배경</button>
+                <select id="themeSelect" title="테마">
+                    <option value="warm">🌅 따뜻한</option>
+                    <option value="dark">🌙 밤하늘</option>
+                    <option value="forest">🌲 숲속</option>
+                </select>
+            </div>
         </div>
-    </div>
+    </header>
 
     <audio id="bgmAudio" preload="auto" loop src="../memory/assets/audio/piano1.mp3"></audio>
 

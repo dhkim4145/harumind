@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
 };
 
 const MSGS = {
-    title: '숫자 순서터치',
+    title: '🔢 숫자 순서터치',
     subtitle: '숫자를 따라가며 집중을 다독여요.',
     levels: {
         easy: { name: '새싹', desc: '가벼운 마음으로 시작해볼까요?' },
@@ -121,7 +121,7 @@ function bindHeader() {
     }
 
     const brand = document.querySelector('.brand');
-    if (brand) brand.innerText = `하루마음 : ${MSGS.title}`;
+    if (brand) brand.innerText = `🔢 하루마음 : ${MSGS.title.replace('🔢 ', '')}`;
     const subtitle = document.querySelector('.subtitle');
     if (subtitle) subtitle.innerText = MSGS.subtitle;
 

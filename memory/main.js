@@ -219,6 +219,9 @@
     if(streakDaysEl){
       streakDaysEl.textContent = newStreak;
     }
+    if(attendanceEl){
+      attendanceEl.textContent = `🔥 ${newStreak}일째`;
+    }
     
     return newStreak;
   }
@@ -231,6 +234,10 @@
     // 연속 출석일이 0이면 표시하지 않음
     if(streakTextEl){
       streakTextEl.style.display = streak > 0 ? "inline" : "none";
+    }
+    // attendanceInline 업데이트 (숫자 순서터치, 단어 조각과 동일)
+    if(attendanceEl){
+      attendanceEl.textContent = `🔥 ${streak}일째`;
     }
   }
 
@@ -260,6 +267,7 @@
   const todayBestEl  = document.getElementById("todayBest");
   const streakDaysEl = document.getElementById("streakDays");
   const streakTextEl = document.getElementById("streakText");
+  const attendanceEl = document.getElementById("attendanceInline");
 
   const sfxBtn  = document.getElementById("sfxBtn");
   const bigBtn  = document.getElementById("bigBtn");
@@ -736,6 +744,12 @@
   function clearFinishState(){
     const bar = document.getElementById("hmFinishBar");
     if(bar) bar.remove();
+    
+    // 게임 완료 시 힌트 버튼 숨김
+    const peekContainer = document.getElementById("peekContainer");
+    if(peekContainer){
+      peekContainer.style.display = "none";
+    }
   }
 
   // 폭죽 효과
@@ -1185,6 +1199,8 @@
 
   const levelSel = document.getElementById("level");
 
+  let selectedLevel = "4x3"; // 기본값: 보통 (6쌍)
+
   function seededCards(level){
     const map = C.LEVEL_MAP;
     const [r,c] = map[level];
@@ -1245,7 +1261,7 @@
     // 배경색 원래대로 복구
     restoreBackground();
 
-    const level = levelSel.value;
+    const level = selectedLevel;
     const cards = seededCards(level);
     
     renderStats({ matched, totalPairs });
@@ -1280,6 +1296,12 @@
       setTimeout(() => {
         board.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
+    }
+
+    // 게임 진행 중 힌트 버튼 표시
+    const peekContainer = document.getElementById("peekContainer");
+    if(peekContainer){
+      peekContainer.style.display = "";
     }
 
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
@@ -1820,6 +1842,26 @@
   initPeekButton();
   initHowModal();
   initBgm();
+
+  // 난이도 선택 버튼 이벤트 리스너
+  document.querySelectorAll(".difficulty-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      selectedLevel = this.dataset.level;
+      
+      // 활성 상태 업데이트
+      document.querySelectorAll(".difficulty-btn").forEach(b => {
+        b.classList.remove("active");
+      });
+      this.classList.add("active");
+      
+      // 게임 시작
+      core.playSfx('click');
+      build(2);
+    });
+  });
+
+  // 초기 버튼 활성화 (기본값)
+  document.querySelector(".difficulty-btn[data-level=\"4x3\"]")?.classList.add("active");
 
   // HarumindUI export
   window.HarumindUI = {
