@@ -76,15 +76,25 @@ function safeSet(key, value) {
 // ============================================================
 // [Attendance System]
 // ============================================================
+function getTodayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + 
+           String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+           String(d.getDate()).padStart(2, '0');
+}
+
 function updateAttendance() {
-    const today = new Date().toLocaleDateString();
+    const today = getTodayKey();
     let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
     let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
 
     if (lastDate !== today) {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
-        if (lastDate === yesterday.toLocaleDateString()) {
+        const yesterdayKey = yesterday.getFullYear() + '-' + 
+                           String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(yesterday.getDate()).padStart(2, '0');
+        if (lastDate === yesterdayKey) {
             streak++;
         } else {
             streak = 1;

@@ -214,6 +214,8 @@
     // 오늘 날짜와 연속일 저장
     safeSet(C.KEYS.LAST_PLAY_DATE, today);
     safeSet(C.KEYS.STREAK_DAYS, String(newStreak));
+    // 메인 홈 완료 체크용 키 (YYYY-MM-DD)
+    safeSet("harumind_memory_lastDate", today);
     
     // 화면에 표시
     if(streakDaysEl){
