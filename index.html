@@ -152,6 +152,28 @@
       color: var(--muted); 
     }
 
+    /* 상태 카드 토글 */
+    .status-card.collapsed .status-list,
+    .status-card.collapsed .status-meta {
+      display: none;
+    }
+    .status-toggle {
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 8px 0;
+      transition: color 0.2s ease;
+    }
+    .status-toggle:hover {
+      color: var(--text);
+    }
+    .status-card.collapsed .status-toggle::after {
+      content: ' ▼';
+    }
+    .status-card:not(.collapsed) .status-toggle::after {
+      content: ' ▲';
+    }
+
     /* 누적 통계 - 컴팩트 칩 */
     .status-meta {
       margin-top: 10px;
@@ -214,11 +236,37 @@
       오늘은 <span class="highlight">어떤 놀이</span>를 해볼까요?
     </div>
 
+    <div class="game-list">
+      <a href="memory/memory.html" class="game-item">
+        <div class="game-info">
+          <span class="game-name">🧩 같은 그림 찾기</span>
+          <span class="game-desc">기억력과 관찰력을 키워요</span>
+        </div>
+        <span class="start-badge">시작</span>
+      </a>
+
+      <a href="word/word.html" class="game-item">
+        <div class="game-info">
+          <span class="game-name">✍️ 단어 조합하기</span>
+          <span class="game-desc">단어를 조합하며 두뇌를 깨워요</span>
+        </div>
+        <span class="start-badge">시작</span>
+      </a>
+
+      <a href="sequence/sequence.html" class="game-item">
+        <div class="game-info">
+          <span class="game-name">🔢 숫자 순서터치</span>
+          <span class="game-desc">집중력과 순발력을 단련해요</span>
+        </div>
+        <span class="start-badge">시작</span>
+      </a>
+    </div>
+
     <!-- 출석 현황 -->
-    <div class="status-card">
-      <div class="status-title">
-        📊 오늘의 활동
-        <span class="status-count" id="statusCount">0/3</span>
+    <div class="status-card collapsed">
+      <div class="status-title" onclick="document.querySelector('.status-card').classList.toggle('collapsed')">
+        ✅ 오늘 완료: <span class="status-count" id="statusCount">0/3</span>
+        <span class="status-toggle"></span>
       </div>
       <div class="status-list" id="statusList">
         <div class="status-item">
@@ -245,41 +293,11 @@
       <div class="recommend-title">💡 이 게임은 어떠세요?</div>
       <div class="recommend-game" id="recommendGame">-</div>
     </div>
-
-    <div class="game-list">
-      <a href="memory/memory.html" class="game-item">
-        <div class="game-info">
-          <span class="game-name">🧩 같은 그림 찾기</span>
-          <span class="game-desc">기억력과 관찰력을 키워요</span>
-        </div>
-        <span class="start-badge">시작</span>
-      </a>
-
-      <a href="word/word.html" class="game-item">
-        <div class="game-info">
-          <span class="game-name">✍️ 단어 조합하기</span>
-          <span class="game-desc">단어를 조합하며 두뇌를 깨워요</span>
-        </div>
-        <span class="start-badge">시작</span>
-      </a>
-
-      <a href="sequence/sequence.html" class="game-item">
-        <div class="game-info">
-          <span class="game-name">🔢 숫자 순서터치</span>
-          <span class="game-desc">집중력과 순발력을 단련해요</span>
-        </div>
-        <span class="start-badge">시작</span>
-      </a>
-    </div>
   </main>
 
   <div class="footer-note">
-    <div class="info-grid">
-      <div class="info-item">✨ 로그인 없이 바로</div>
-      <div class="info-item">🚫 광고 없이 쾌적하게</div>
-    </div>
-    <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
-      하루마음은 인지 기능 유지에 도움을 주는<br/>쉬운 두뇌 놀이를 지향합니다.
+    <p style="font-size: 13px; color: var(--muted);">
+      🚀 로그인 없이, 광고 없이 지금 바로 시작해보세요
     </p>
   </div>
 
