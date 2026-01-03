@@ -100,6 +100,12 @@ class HaruCore {
     ensureBgm() {
         if (!this.isBgmOn) return;
         
+        // 이전 BGM이 있으면 먼저 멈추기
+        if (this.bgmAudio) {
+            this.bgmAudio.pause();
+            this.bgmAudio.currentTime = 0;
+        }
+        
         if (!this.bgmAudio) {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
