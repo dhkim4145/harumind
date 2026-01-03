@@ -972,56 +972,6 @@ body.peeking .card:not(.messageCard){
 }
 
 /* 상단 오버레이 배너 */
-.hmPeekBanner{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(110,231,183,.3);
-  background: rgba(110,231,183,.08);
-  color: var(--accent);
-
-  box-shadow: 0 4px 12px rgba(110,231,183,.15);
-  backdrop-filter: blur(6px);
-
-  font-weight: 800;
-  font-size: 14px;
-  letter-spacing: -.2px;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s ease, transform .15s ease;
-  height: 0;
-  overflow: hidden;
-}
-
-.hmPeekBanner.show{
-  opacity: 1;
-  height: auto;
-}
-
-.hmPeekBadge{
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(110,231,183,.18);
-  border: 1px solid rgba(110,231,183,.45);
-}
-
-.hmPeekCount{
-  opacity: .9;
-  font-weight: 900;
-}
-
 body.peeking .tile{
   filter: brightness(1.05) saturate(0.95);
 }
@@ -1310,8 +1260,8 @@ body.peeking .tile{
 
     <div class="statsArea">
       <div class="stats">
-        <div class="pill live"><span>찾아준 인연 🤝</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
-        <div class="pill live"><span>마음 따뜻함 지수 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
+        <div class="pill live"><span>찾은 짝 🤝</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
+        <div class="pill live"><span>마음 따뜻함 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
       </div>
     </div>
   </div>
@@ -1339,7 +1289,7 @@ body.peeking .tile{
     <div class="modalTitle">마음을 모으는 시간</div>
     <div class="modalBody">
       <div class="modalStep"><div class="modalNum">1</div><div>짝 찾기: 뒤집힌 카드에서 같은 그림을 찾아 마음을 이어주세요</div></div>
-      <div class="modalStep"><div class="modalNum">2</div><div>집중하기: 연속으로 맞추면 마음 따뜻함 지수가 채워져요</div></div>
+      <div class="modalStep"><div class="modalNum">2</div><div>집중하기: 맞춘 짝이 많을수록 마음이 따뜻해져요</div></div>
       <div class="modalStep"><div class="modalNum">3</div><div>여유롭게: 매일 새로운 배치로 천천히 즐겨보세요</div></div>
       <div style="margin-top:10px;color:var(--muted);font-size:12px;">
         * 천천히 해도 괜찮아요 🙂
@@ -1365,7 +1315,7 @@ body.peeking .tile{
           <span class="resultStatValue" id="resultCombo">0</span>
         </div>
         <div class="resultStatItem">
-          <span class="resultStatLabel">마음 따뜻함 지수</span>
+          <span class="resultStatLabel">마음 따뜻함</span>
           <span class="resultStatValue" id="resultScore">0</span>
         </div>
       </div>

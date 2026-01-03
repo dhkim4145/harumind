@@ -27,11 +27,14 @@
       "4x4": [4,4],   // 8쌍 (9쌍 이모지 중 8쌍 사용)
     },
 
-    // 난이도별 차등 감점 로직 (3-4-5 법칙)
-    PENALTY_PER_MISTAKE: {
-      "3x2": 5,   // 쉬움: 실수 1회당 -5%
-      "4x3": 4,   // 보통: 실수 1회당 -4%
-      "4x4": 3,   // 어려움: 실수 1회당 -3%
+    // 난이도별 초기 마음 따뜻함 감정
+    INITIAL_HEART_INDEX: 80, // 초기값: 80%
+
+    // 난이도별 일쌍당 동 증가율
+    HEART_PER_PAIR: {
+      "3x2": 5,   // 쉬움: 일쌍부 낭낭 +5%
+      "4x3": 2.5, // 보통: 일쌍부 낭낭 +2.5%
+      "4x4": 2,   // 어려움: 일쌍부 낭낭 +2%
     },
 
     // 틀렸을 때 다시 뒤집히는 시간(ms)
@@ -70,7 +73,7 @@
   let peekTimer = null;
   let streak = 0;
   let maxStreak = 0; // 최고 콤보
-  let heartIndex = 100; // 마음 따뜻함 지수 (100%에서 시작)
+  let heartIndex = C.INITIAL_HEART_INDEX; // 마음 따뜻함 지수 (초기값: 80%)
   let tempMsgTimer = null;
   let currentStateMsg = { msg: "", hint: "" };
   let finishTimer = null;
@@ -939,30 +942,11 @@
   function initPeekButton(){
     if(!peekBtn || !peekSel) return;
 
-    // 힌트 배너 1회 생성 - messageCard 안에 삽입
-    const messageCard = document.querySelector(".messageCard");
-    let banner = document.querySelector(".hmPeekBanner");
-    if(!banner && messageCard){
-      banner = document.createElement("div");
-      banner.className = "hmPeekBanner";
-      banner.innerHTML = `
-        <span class="hmPeekBadge">👀</span>
-        <span>힌트시간이에요</span>
-        <span class="hmPeekCount">4</span>
-      `;
-      messageCard.insertBefore(banner, messageCard.firstChild);
-    }
-
-    const countEl = banner.querySelector(".hmPeekCount");
-
     function enterPeekMode(sec){
       document.body.classList.add("peeking");
-      if(countEl) countEl.textContent = String(sec);
-      banner.classList.add("show");
     }
 
     function exitPeekMode(){
-      banner.classList.remove("show");
       document.body.classList.remove("peeking");
     }
 
@@ -973,33 +957,12 @@
         return;
       }
 
-      // 마음 따뜻함 지수 5% 차감
-      heartIndex = Math.max(0, heartIndex - 5);
       renderStats({ matched, totalPairs });
 
       peekBtn.disabled = true;
 
       // 힌트모드 진입(4초)
       enterPeekMode(4);
-
-      // 카운트다운: 4 → 3 → 2 → 1
-      setTimeout(() => {
-        if(document.body.classList.contains("peeking") && countEl){
-          countEl.textContent = "3";
-        }
-      }, 1000);
-      
-      setTimeout(() => {
-        if(document.body.classList.contains("peeking") && countEl){
-          countEl.textContent = "2";
-        }
-      }, 2000);
-      
-      setTimeout(() => {
-        if(document.body.classList.contains("peeking") && countEl){
-          countEl.textContent = "1";
-        }
-      }, 3000);
 
       // 기존 로직 유지: 4초 보기 트리거
       peekSel.value = "4";
@@ -1198,7 +1161,14 @@
 
   let selectedLevel = "4x3"; // 기본값: 보통 (6쌍)
 
-  function seededCards(level, customSeed = null){
+  // 맞춘 쌍 개수 기반으로 heartIndex 계산
+  function calcHeartIndex(matchedCount){
+    const increasePerPair = C.HEART_PER_PAIR[selectedLevel] || 2.5;
+    const calculated = C.INITIAL_HEART_INDEX + (matchedCount * increasePerPair);
+    return Math.min(100, Math.max(0, calculated)); // 0~100 범위 clamp
+  }
+
+  function seededCards(level, customSeed){
     const map = C.LEVEL_MAP;
     const [r,c] = map[level];
     totalPairs = (r*c)/2;
@@ -1253,7 +1223,7 @@
     score = 0;
     streak = 0;
     maxStreak = 0;
-    heartIndex = 100; // 마음 따뜻함 지수 100%에서 시작
+    heartIndex = C.INITIAL_HEART_INDEX; // 초기값: 80%
     gameStartTime = Date.now(); // 게임 시작 시간 기록
     
     // 배경색 원래대로 복구
@@ -1270,7 +1240,7 @@
     renderStats({ matched, totalPairs });
     clearFinishState();
     setStatsComplete(false);
-    setStateMessage("소중한 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "천천히 마음을 모아 찾아보세요");
+    setStateMessage("천천히 찾아보세요", "");
     
     // 힌트 버튼 리셋
     if(peekBtn){
@@ -1334,8 +1304,7 @@
 
     if(!first){
       first = t;
-      showTempMessage("어디에 있을까요? 친구들의 목소리에 귀를 기울여보세요 👂✨", "", 800);
-      setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "");
+      setStateMessage("잘 보고 있어요", "");
       return;
     }
 
@@ -1354,10 +1323,8 @@
         streak++;
         maxStreak = Math.max(maxStreak, streak);
 
-        // 3콤보 달성 시 +1% 회복 (최대 100% 초과 불가)
-        if(streak % 3 === 0){
-          heartIndex = Math.min(100, heartIndex + 1);
-        }
+        // 맞춘 쌍 개수 기반으로 마음 따뜻함 지수 계산
+        heartIndex = calcHeartIndex(matched);
 
         // UI 업데이트도 비동기로 처리
         setTimeout(() => {
@@ -1396,18 +1363,14 @@
         }
 
       }else{
-        // 실패 처리 - 난이도별 차등 감점
-        const currentLevel = levelSel?.value || "3x2";
-        const penalty = C.PENALTY_PER_MISTAKE[currentLevel] || 5;
-        heartIndex = Math.max(0, heartIndex - penalty); // 최소 0% 보장
-        
+        // 실패 처리 - 마음 따뜻함 변화 없음
         streak = 0;
         playFailSound();
 
         // 실시간 마음 따뜻함 지수 업데이트
         renderStats({ matched, totalPairs });
 
-        setMessage("괜찮아요, 천천히 다시 찾아보아요 😊", "");
+        setMessage("괜찮아요", "");
 
         setTimeout(()=>{
           first.dataset.state = "down";
@@ -1415,7 +1378,7 @@
           first = null;
           lock = false;
           
-          setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "");
+          setStateMessage("천천히 찾아보세요", "");
         }, C.MISMATCH_MS);
       }
     }, 100); // 100ms 지연으로 두 번째 카드 확인 시간 제공
@@ -1444,7 +1407,7 @@
     updateStreak();
 
     clearTempMsgTimer();
-    setStateMessage("완료! 모든 인연이 이어졌어요 🎉", "집중하신 덕분이에요. 따뜻한 마음이 느껴져요.");
+    setStateMessage("모든 친구들을 찾았어요 🎉", "");
 
     setStatsComplete(true);
 
@@ -1547,7 +1510,7 @@
       if(heartIndex >= 90){
         resultMessage.textContent = `🌿 오늘도 마음을 잘 챙겼어요`;
       } else {
-        resultMessage.textContent = `${heartEmoji} ${heartLabel}`;
+        resultMessage.textContent = `🌿 오늘도 마음을 잘 챙겼어요`;
       }
     }
 
@@ -1611,7 +1574,7 @@
         const shareText = `🌿 ${heartLabel} 🌿
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
-✨ 마음 따뜻함 지수: ${heartIndex}% ✨
+✨ 마음 따뜻함 · ${heartIndex}% ✨
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
 완벽하면 100% 💎
@@ -1716,7 +1679,7 @@
           });
           // 원래 뒤집어놓은 카드는 그대로 유지 (already up 상태)
         }
-        setStateMessage("귀여운 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨", "오늘은 어떤 친구들과 인사를 나눠볼까요?");
+        setStateMessage("천천히 찾아보세요", "");
         lock = false;
         peekTimer = null;
       }, sec * 1000);
