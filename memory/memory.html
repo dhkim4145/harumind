@@ -1023,23 +1023,20 @@ body.peeking .card:not(.messageCard){
 
 /* 상단 오버레이 배너 */
 .hmPeekBanner{
-  position: fixed;
-  left: 50%;
-  top: 14px;
-  transform: translateX(-50%) translateY(-6px);;
-  z-index: 99999;
-
+  position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 
-  padding: 10px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: rgba(0,0,0,.35);
-  color: var(--text);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(110,231,183,.3);
+  background: rgba(110,231,183,.08);
+  color: var(--accent);
 
-  box-shadow: 0 12px 30px rgba(0,0,0,.45);
+  box-shadow: 0 4px 12px rgba(110,231,183,.15);
   backdrop-filter: blur(6px);
 
   font-weight: 800;
@@ -1049,11 +1046,13 @@ body.peeking .card:not(.messageCard){
   opacity: 0;
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
+  height: 0;
+  overflow: hidden;
 }
 
 .hmPeekBanner.show{
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  height: auto;
 }
 
 .hmPeekBadge{
@@ -1091,15 +1090,15 @@ body.peeking .tile{
     opacity: 1;
   }
   25%{
-    transform: scale(1.08);
-    box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.3);
-    border-color: rgba(110, 231, 183, 0.6);
+    transform: scale(1.03);
+    box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.25), 0 0 12px rgba(110, 231, 183, 0.2);
+    border-color: rgba(110, 231, 183, 0.35);
     opacity: 1;
   }
   75%{
-    transform: scale(1.08);
-    box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.3);
-    border-color: rgba(110, 231, 183, 0.6);
+    transform: scale(1.03);
+    box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.25), 0 0 12px rgba(110, 231, 183, 0.2);
+    border-color: rgba(110, 231, 183, 0.35);
     opacity: 1;
   }
   100%{
@@ -1375,10 +1374,10 @@ body.peeking .tile{
       <button class="difficulty-btn" data-level="4x4">어려움 (8쌍)</button>
     </div>
 
-    <button id="peekBtn" style="display:none; width: 100%; height: 44px; margin-top: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s ease;">💡 살짝 엿보기</button>
+    <button id="peekBtn" style="display:none; width: 100%; height: 44px; margin-top: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s ease;">💡 잠깐 도움받기</button>
 
     <select id="peekSec" style="display:none">
-      <option value="2">2</option>
+      <option value="4">4</option>
     </select>
 
     <div style="display:none"><span id="todayKey"></span></div>

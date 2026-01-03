@@ -954,17 +954,18 @@
   function initPeekButton(){
     if(!peekBtn || !peekSel) return;
 
-    // 힌트 배너 1회 생성
+    // 힌트 배너 1회 생성 - messageCard 안에 삽입
+    const messageCard = document.querySelector(".messageCard");
     let banner = document.querySelector(".hmPeekBanner");
-    if(!banner){
+    if(!banner && messageCard){
       banner = document.createElement("div");
       banner.className = "hmPeekBanner";
       banner.innerHTML = `
         <span class="hmPeekBadge">👀</span>
         <span>힌트시간이에요</span>
-        <span class="hmPeekCount">2</span>
+        <span class="hmPeekCount">4</span>
       `;
-      document.body.appendChild(banner);
+      messageCard.insertBefore(banner, messageCard.firstChild);
     }
 
     const countEl = banner.querySelector(".hmPeekCount");
@@ -993,18 +994,30 @@
 
       peekBtn.disabled = true;
 
-      // 힌트모드 진입(2초)
-      enterPeekMode(2);
+      // 힌트모드 진입(4초)
+      enterPeekMode(4);
 
-      // 1초 뒤 카운트 다운 느낌
+      // 카운트다운: 4 → 3 → 2 → 1
+      setTimeout(() => {
+        if(document.body.classList.contains("peeking") && countEl){
+          countEl.textContent = "3";
+        }
+      }, 1000);
+      
+      setTimeout(() => {
+        if(document.body.classList.contains("peeking") && countEl){
+          countEl.textContent = "2";
+        }
+      }, 2000);
+      
       setTimeout(() => {
         if(document.body.classList.contains("peeking") && countEl){
           countEl.textContent = "1";
         }
-      }, 1100);
+      }, 3000);
 
-      // 기존 로직 유지: 2초 보기 트리거
-      peekSel.value = "2";
+      // 기존 로직 유지: 4초 보기 트리거
+      peekSel.value = "4";
       peekSel.dispatchEvent(new Event('change', { bubbles: true }));
 
       // 끝나면 원복
@@ -1200,14 +1213,15 @@
 
   let selectedLevel = "4x3"; // 기본값: 보통 (6쌍)
 
-  function seededCards(level){
+  function seededCards(level, customSeed = null){
     const map = C.LEVEL_MAP;
     const [r,c] = map[level];
     totalPairs = (r*c)/2;
 
     if(board) board.style.gridTemplateColumns = `repeat(${c},1fr)`;
 
-    const seed = dateStr + level;
+    // customSeed가 있으면 사용, 없으면 dateStr + level 사용 (공식 배치)
+    const seed = customSeed || (dateStr + level);
     let h = 0;
     for(const ch of seed) h = Math.imul(31, h) + ch.charCodeAt(0) | 0;
     const rnd = () => (h = Math.imul(48271, h) & 2147483647) / 2147483647;
@@ -1244,7 +1258,7 @@
     }, duration);
   }
 
-  function build(autoPeekSec){
+  function build(autoPeekSec, useRandomSeed = false){
     clearPeekTimer();
     clearTempMsgTimer();
     if(board) board.innerHTML = "";
@@ -1261,7 +1275,12 @@
     restoreBackground();
 
     const level = selectedLevel;
-    const cards = seededCards(level);
+    // useRandomSeed가 true면 새로운 랜덤 seed 생성, false면 dateStr 기반 공식 배치
+    let customSeed = null;
+    if(useRandomSeed){
+      customSeed = Math.random().toString(36).substring(2, 15) + level;
+    }
+    const cards = seededCards(level, customSeed);
     
     renderStats({ matched, totalPairs });
     clearFinishState();
@@ -1553,9 +1572,9 @@
         resultModalBack.classList.remove("isOpen");
         // 배경색 원래대로 복구
         restoreBackground();
-        // 모달이 완전히 닫힌 후 게임 재시작
+        // 모달이 완전히 닫힌 후 게임 재시작 (useRandomSeed = true로 새로운 배치)
         setTimeout(() => {
-          build(2);
+          build(4, true);
         }, 100);
       };
       
@@ -1779,7 +1798,7 @@
     };
   }
   if(peekSel) peekSel.onchange = () => {
-    doPeek(2);
+    doPeek(4);
     peekSel.value = "";
   };
 
@@ -1854,7 +1873,7 @@
       
       // 게임 시작
       core.playSfx('click');
-      build(2);
+      build(4);
     });
   });
 
@@ -1878,6 +1897,6 @@
   };
 
   // 첫 진입
-  build(2);
+  build(4);
 })();
 
