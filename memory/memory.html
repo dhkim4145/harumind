@@ -190,7 +190,7 @@ header {
     position: sticky;
     top: 8px;
   width: 100%;
-  max-width: 560px;
+  max-width: 500px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -210,14 +210,14 @@ header {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 1;
-    justify-content: flex-end;
 }
 
 .settings-bar button,
 .settings-bar select {
     height: 36px;
     border-radius: 10px;
+    flex: 1 1 0;
+    min-width: 0;
   border: 1px solid rgba(255,255,255,0.16);
   background: rgba(255,255,255,0.08);
     color: var(--text);
@@ -226,7 +226,13 @@ header {
     cursor: pointer;
     backdrop-filter: blur(6px);
     transition: opacity 0.2s ease, transform 0.1s ease;
-    min-width: 0;
+}
+
+.settings-bar button {
+    min-width: 78px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .settings-bar button:active,

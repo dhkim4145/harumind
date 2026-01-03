@@ -94,12 +94,14 @@
             box-sizing: border-box;
         }
 
-        .settings-group-right { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end; }
+        .settings-group-right { display: flex; align-items: center; gap: 6px; }
 
         .settings-bar button,
         .settings-bar select {
             height: 36px;
             border-radius: 10px;
+            flex: 1 1 0;
+            min-width: 0;
             border: 1px solid rgba(255,255,255,0.16);
             background: rgba(255,255,255,0.08);
             color: var(--text);
@@ -108,14 +110,20 @@
             cursor: pointer;
             backdrop-filter: blur(6px);
             transition: opacity 0.2s ease, transform 0.1s ease;
-            min-width: 0;
+        }
+
+        .settings-bar button {
+            min-width: 78px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .settings-bar button:active,
         .settings-bar select:active { transform: scale(0.97); }
         .settings-bar button.off { opacity: 0.5; }
 
-        .settings-bar select#themeSelect { max-width: 92px; }
+        .settings-bar select#themeSelect { max-width: 80px; }
 
         @media (max-width: 520px) {
             .settings-bar { padding: 6px 8px; }
