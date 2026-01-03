@@ -37,6 +37,13 @@ const MSGS = {
         timerHint: '천천히 호흡을 따라가요',
         targetHint: '왼쪽에서 오른쪽으로 차근차근',
         footer: '하루마음 · 숫자 순서터치'
+    },
+    toasts: {
+        levelEasy: '가벼운 마음으로 시작해볼까요?',
+        levelNormal: '차분하게 집중력을 모아보아요.',
+        levelHard: '깊은 몰입의 즐거움을 느껴보세요.',
+        mistake: '한 번 더 집중해볼까요?',
+        success: '멋져요! 계속 이 속도로!'
     }
 };
 
@@ -147,6 +154,11 @@ function startGame(levelKey = 'easy') {
     resetTimer();
     startTimer();
 
+    const toastKey = `level${useLevel.charAt(0).toUpperCase() + useLevel.slice(1)}`;
+    if (MSGS.toasts[toastKey]) {
+        showToast(MSGS.toasts[toastKey]);
+    }
+
     if (core.isBgmOn) core.ensureBgm();
 }
 
@@ -208,6 +220,7 @@ function handleTileClick(tile) {
         tile.classList.remove('wrong');
         void tile.offsetWidth; // reflow for animation restart
         tile.classList.add('wrong');
+        showToast(MSGS.toasts.mistake, 1500);
         setTimeout(() => tile.classList.remove('wrong'), 350);
     }
 }
@@ -383,6 +396,18 @@ function buildDetail(score, elapsed, diff, mistakes) {
         return MSGS.detail.mid.replace('{time}', elapsed.toFixed(1));
     }
     return MSGS.detail.low;
+}
+
+function showToast(message, duration = 2000) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.innerText = message;
+    toast.classList.remove('hide');
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+    }, duration);
 }
 
 init();

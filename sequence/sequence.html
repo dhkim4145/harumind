@@ -126,7 +126,6 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            min-height: 70px;
         }
         .pill-title { font-size: 0.9rem; color: var(--muted); letter-spacing: -0.2px; }
         .pill-main { font-size: 1.4rem; font-weight: 800; }
@@ -250,7 +249,33 @@
         @keyframes modalUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
-        footer { margin-top: 12px; font-size: 0.85rem; color: var(--muted); opacity: 0.65; text-align: center; }
+        .toast {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            color: #e8ecff;
+            text-align: center;
+            max-width: 280px;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            animation: toastFadeIn 0.3s ease forwards;
+        }
+        .toast.show {
+            animation: toastFadeIn 0.3s ease forwards;
+        }
+        .toast.hide {
+            animation: toastFadeOut 0.4s ease forwards;
+        }
+        @keyframes toastFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes toastFadeOut { from { opacity: 1; transform: translateX(-50%) translateY(0); } to { opacity: 0; transform: translateX(-50%) translateY(20px); } }
     </style>
 </head>
 <body>
@@ -281,12 +306,10 @@
                 <div class="pill">
                     <div class="pill-title" data-msg="labelDifficulty">난이도</div>
                     <div id="level-label" class="pill-main">-</div>
-                    <div id="level-desc" class="pill-sub">-</div>
                 </div>
                 <div class="pill">
                     <div class="pill-title" data-msg="labelTime">시간</div>
                     <div id="timer" class="pill-main">0.0s</div>
-                    <div class="pill-sub" data-msg="hintTime">천천히 호흡을 따라가요</div>
                 </div>
                 <div class="pill">
                     <div class="pill-title" data-msg="labelTarget">찾을 숫자</div>
@@ -309,6 +332,8 @@
             <div id="game-board" class="grid"></div>
         </section>
     </main>
+
+    <div id="toast" class="toast"></div>
 
     <div id="modal" class="modal-backdrop" aria-hidden="true">
         <div class="modal-content">
