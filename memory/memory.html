@@ -163,115 +163,99 @@ body.bigText #hint{
   line-height:1.35;
 }
 
-/* Settings row - word-fragments style */
-/* 설정 트리거 버튼 */
-#settingsBtn{
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  padding:8px 12px;
-  cursor:pointer;
-  align-items:center;
-  gap:6px;
-  line-height:1;
-  font-size:14px;
-  white-space:nowrap;
-  display:flex;
-}
-#settingsBtn:hover{
-  background:rgba(255,255,255,.12);
-  border-color:rgba(255,255,255,.28);
+/* ===== Settings Bar (통일된 스타일) ===== */
+.settings-bar {
+    position: sticky;
+    top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    z-index: 12;
+    margin-top: 8px;
 }
 
-/* 설정 모달 */
-.settings-modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:11000;
-  padding:18px;
-  backdrop-filter: blur(6px);
-}
-.settings-modal-backdrop.isOpen{ display:flex; }
-.settings-modal{
-  width:min(360px, 100%);
-  background:rgba(20,27,63,0.9);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:18px;
-  box-shadow:0 20px 60px rgba(0,0,0,.55);
-  padding:20px 18px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.settings-modal h3{
-  margin:0 0 4px 0;
-  font-size:16px;
-  font-weight:800;
-  color:var(--text);
-  text-align:center;
-}
-.settings-group{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.settings-group button,
-.settings-group select{
-  width:100%;
-}
-.settings-close{
-  margin-top:6px;
-  width:100%;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  border-radius:12px;
-  padding:12px;
-  font-weight:800;
-  cursor:pointer;
-}
-.settings-close:hover{
-  background:rgba(255,255,255,.12);
-}
-.settings-home{
-  width:100%;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  border-radius:12px;
-  padding:12px;
-  font-weight:800;
-  cursor:pointer;
-}
-.settings-home:hover{
-  background:rgba(255,255,255,.12);
+.settings-group-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
 }
 
-/* PC는 항상 보임 */
-@media (min-width:521px){
-  .settings-row { 
-    display:flex;
-    flex-wrap: nowrap;
-    gap:10px;
-    opacity:1;
-    max-height:none;
-    margin-top:10px;
-    transform:none;
-    pointer-events:auto;
-  }
-  .settings-row .settings-btn,
-  .settings-row .settings-select{
-    flex: 1 1 0;
+.settings-bar button,
+.settings-bar select {
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    padding: 0 12px;
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: opacity 0.2s ease, transform 0.1s ease;
     min-width: 0;
-    padding:10px 14px;
-    font-size:14px;
-  }
 }
+
+.settings-bar button:active,
+.settings-bar select:active {
+    transform: scale(0.97);
+}
+
+.settings-bar button.off {
+    opacity: 0.5;
+}
+
+.settings-bar select#themeSelect {
+    max-width: 92px;
+}
+
+@media (max-width: 520px) {
+    .settings-bar {
+        padding: 6px 8px;
+    }
+    .settings-bar select#themeSelect {
+        font-size: 11px;
+        max-width: 80px;
+    }
+}
+
+/* ===== Controls Top (힌트, 난이도) ===== */
+.controls-top {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.controls-top button,
+.controls-top select {
+    flex: 1;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    padding: 0 12px;
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.controls-top button:active,
+.controls-top select:active {
+    transform: scale(0.97);
+}
+
+/* (기존 설정 버튼 스타일은 호환성 유지) */
+
 
 /* ===== 컨트롤 - Glassmorphism ===== */
 .controls{
@@ -1041,25 +1025,25 @@ body.peeking .tile{
 @keyframes hintGlow{
   0%{
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);
     border-color: rgba(255,255,255,.12);
     opacity: 1;
   }
   25%{
     transform: scale(1.08);
-    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
-    border-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.3);
+    border-color: rgba(110, 231, 183, 0.6);
     opacity: 1;
   }
   75%{
     transform: scale(1.08);
-    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
-    border-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 0 4px rgba(110, 231, 183, 0.4), 0 0 20px rgba(110, 231, 183, 0.3);
+    border-color: rgba(110, 231, 183, 0.6);
     opacity: 1;
   }
   100%{
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);
     border-color: rgba(255,255,255,.12);
     opacity: 1;
   }
@@ -1247,6 +1231,19 @@ body.peeking .tile{
 
 /* PC 환경에서 조작부 크기 확대 */
 @media (min-width: 768px) {
+  .controls-top {
+    gap: 12px;
+  }
+  .controls-top button,
+  .controls-top select {
+    width: 220px !important;
+    height: 50px !important;
+    padding: 12px 16px;
+    font-size: 1.1rem !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .controls {
     gap: 30px;
   }
@@ -1276,25 +1273,33 @@ body.peeking .tile{
 
   <div class="card">
     <div class="titleRow">
-      <div class="title">🧩 소중한 친구들 찾기</div>
-      <button id="settingsBtn" type="button" title="설정 열기">⚙️ 설정</button>
+      <div class="title">🧩 하루마음 : 같은 그림 찾기</div>
     </div>
-
-    <div class="sub">다정한 친구들의 짝을 찾아 행복을 채워주세요</div>
     
     <div id="streakDisplay" style="margin-top:8px; font-size:13px; color:var(--muted); text-align:center; opacity:0.9;">
       <span id="streakText">🔥 연속 출석 <b id="streakDays">0</b>일</span>
     </div>
 
-    <div class="controls">
-      <div class="left-controls">
-      <select id="level" title="난이도 선택">
-          <option value="3x2" selected>쉬움 (3쌍)</option>
-          <option value="4x3">보통 (6쌍)</option>
-          <option value="4x4">어려움 (8쌍)</option>
-      </select>
-        <button id="peekBtn" type="button">👁️ 살짝 엿보기</button>
+    <div class="settings-bar">
+      <button id="homeBtn" title="홈">🏠 홈</button>
+      <div class="settings-group-right">
+        <button id="sfxBtn" title="효과">🔊 효과</button>
+        <button id="bgmBtn" title="배경">🎵 배경</button>
+        <select id="themeSelect" title="테마">
+          <option value="warm">🌅 따뜻한</option>
+          <option value="dark">🌙 밤하늘</option>
+          <option value="forest">🌲 숲속</option>
+        </select>
       </div>
+    </div>
+
+    <div class="controls-top">
+      <button id="peekBtn" title="힌트">💡 힌트</button>
+      <select id="level" title="난이도 선택">
+        <option value="3x2" selected>쉬움 (3쌍)</option>
+        <option value="4x3">보통 (6쌍)</option>
+        <option value="4x4">어려움 (8쌍)</option>
+      </select>
     </div>
 
     <select id="peekSec" style="display:none">
@@ -1340,23 +1345,6 @@ body.peeking .tile{
     <div class="modalActions">
       <button id="modalCloseBtn" type="button">닫기</button>
     </div>
-  </div>
-</div>
-
-<div id="settingsModal" class="settings-modal-backdrop" role="dialog" aria-modal="true" aria-label="설정">
-  <div class="settings-modal">
-    <h3>설정</h3>
-    <div class="settings-group">
-      <select id="themeSelect" title="테마 선택">
-        <option value="warm">🌅 따뜻한</option>
-        <option value="dark">🌙 밤하늘</option>
-        <option value="forest">🌲 숲속</option>
-      </select>
-      <button id="sfxBtn" type="button" title="효과음">🔊 효과</button>
-      <button id="bgmBtn" type="button" title="배경음">🎵 배경음</button>
-    </div>
-      <button id="homeBtn" type="button" class="settings-home" title="메인으로">🏠 메인으로</button>
-    <button id="settingsClose" type="button" class="settings-close">닫기</button>
   </div>
 </div>
 

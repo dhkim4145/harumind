@@ -263,6 +263,7 @@
 
   const sfxBtn  = document.getElementById("sfxBtn");
   const bigBtn  = document.getElementById("bigBtn");
+  const homeBtn = document.getElementById("homeBtn");
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsPanel = document.getElementById("settingsPanel");
 
@@ -1790,6 +1791,14 @@
   window.addEventListener("orientationchange", handleResize);
 
   if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
+  
+  // Home 버튼
+  if(homeBtn) {
+    homeBtn.addEventListener('click', () => {
+      core.playSfx('click');
+      window.location.href = '../index.html';
+    });
+  }
   
   // SFX/BGM 버튼은 core.js에서 자동 처리됨 (bindUI에서)
   
