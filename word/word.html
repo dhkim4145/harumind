@@ -390,7 +390,15 @@
             transform: translateY(0);
         }
 
-        footer { margin-top: 20px; padding: 20px; text-align: center; font-size: 0.8rem; opacity: 0.5; }
+        .brand-footer { 
+            margin-top: 20px; 
+            padding: 20px; 
+            text-align: center; 
+            font-size: 0.8rem; 
+            opacity: 0.5; 
+            pointer-events: none;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -438,7 +446,7 @@
         </div>
     </div>
 
-    <footer>하루마음 · harumind.kr</footer>
+    <footer class="brand-footer">하루마음 · harumind.kr</footer>
 
     <script src="../core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
