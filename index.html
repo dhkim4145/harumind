@@ -101,15 +101,12 @@
     }
     .info-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
 
-    .coming-soon { opacity: 0.5; border: 1px dashed rgba(255,255,255,0.2); background: none; cursor: default; }
-  /* 기본적으로는 보이다가, 앱(홈 화면 추가 상태)으로 접속하면 숨김 */
-@media (display-mode: standalone) {
-  footer b, 
-  footer br,
-  footer {
-    display: none !important;
-  }
-}
+    /* 앱(홈 화면 추가 상태) 처리 */
+    @media (display-mode: standalone) {
+      footer {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -143,13 +140,13 @@
         <span class="start-badge">시작</span>
       </a>
 
-      <div class="game-item coming-soon">
+      <a href="sequence/sequence.html" class="game-item">
         <div class="game-info">
           <span class="game-name">🔢 숫자 순서터치</span>
           <span class="game-desc">집중력과 순발력을 단련해요</span>
         </div>
-        <span class="start-badge" style="opacity: 0.5;">예정</span>
-      </div>
+        <span class="start-badge">시작</span>
+      </a>
     </div>
   </main>
 
