@@ -78,6 +78,8 @@
         .settings-bar {
             position: sticky;
             top: 8px;
+            width: 100%;
+            max-width: 560px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -89,6 +91,8 @@
             backdrop-filter: blur(8px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.35);
             z-index: 12;
+            margin-top: 8px;
+            box-sizing: border-box;
         }
 
         .settings-group-right { display: flex; align-items: center; gap: 6px; flex: 1; justify-content: flex-end; }
