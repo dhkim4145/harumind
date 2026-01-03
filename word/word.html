@@ -345,6 +345,26 @@
             text-shadow: 0 0 20px rgba(110, 231, 183, 0.5);
         }
 
+        .modal-meta {
+            margin-top: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: grid;
+            gap: 8px;
+        }
+        .meta-row { display: flex; justify-content: space-between; font-size: 0.95rem; color: #dbeafe; }
+        .meta-label { color: #cbd5ff; }
+        .meta-value { font-weight: 800; color: var(--accent); }
+
+        .modal-feedback {
+            margin-top: 12px;
+            font-size: 1rem;
+            color: #e8ecff;
+            line-height: 1.4;
+        }
+
         .modal-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--accent), #52d4a0);
@@ -408,6 +428,11 @@
             <div class="modal-emoji">💎</div>
             <div class="modal-title">참 잘했어요!</div>
             <div id="modal-word-display" class="modal-word"></div>
+            <div class="modal-meta">
+                <div class="meta-row"><span class="meta-label">오늘 완성</span><span class="meta-value" id="modal-today-count">0개</span></div>
+                <div class="meta-row"><span class="meta-label">평균 시도</span><span class="meta-value" id="modal-avg-attempts">0.0회</span></div>
+            </div>
+            <div class="modal-feedback" id="modal-feedback">멋져요! 단어 감각이 좋으시네요!</div>
             <button class="btn modal-btn" onclick="closeModal()">다음 문제로</button>
         </div>
     </div>

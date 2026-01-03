@@ -13,6 +13,9 @@
     let currentWord = "";
     let shuffledChars = [];
     let userSelection = [];
+    let attemptsForCurrentWord = 1;
+
+    const DAILY_STATS_PREFIX = 'harumind_wordfrag_stats_';
 
     // ============================================================
     // [Storage Helper]
@@ -31,6 +34,32 @@
         const v = safeGet(key);
         if(v === null) return defaultValue;
         return v === "1";
+    }
+
+    function getTodayKeySafe() {
+        if (window.core && typeof core.getTodayKey === 'function') return core.getTodayKey();
+        return getTodayKey();
+    }
+
+    function loadDailyStats(dateKey) {
+        try {
+            const raw = safeGet(DAILY_STATS_PREFIX + dateKey);
+            if (!raw) return { clears: 0, attempts: 0 };
+            const obj = JSON.parse(raw);
+            return {
+                clears: Number(obj.clears) || 0,
+                attempts: Number(obj.attempts) || 0
+            };
+        } catch(e) {
+            return { clears: 0, attempts: 0 };
+        }
+    }
+
+    function saveDailyStats(dateKey, data) {
+        safeSet(DAILY_STATS_PREFIX + dateKey, JSON.stringify({
+            clears: Number(data?.clears) || 0,
+            attempts: Number(data?.attempts) || 0
+        }));
     }
 
     function setBool(key, value) {
@@ -114,6 +143,7 @@
         const randomItem = WORD_DATABASE[Math.floor(Math.random() * WORD_DATABASE.length)];
         currentWord = randomItem.word;
         document.getElementById('hint').innerText = randomItem.hint;
+        attemptsForCurrentWord = 1;
         
         let tempChars = currentWord.split('');
         while (tempChars.join('') === currentWord && currentWord.length > 1) {
@@ -164,14 +194,33 @@
                 launchConfetti();
                 pulseAnswerArea('sparkle', 800);
                 
+                const todayKey = getTodayKeySafe();
+                const stats = loadDailyStats(todayKey);
+                const attemptsTotal = stats.attempts + attemptsForCurrentWord;
+                const clears = stats.clears + 1;
+                saveDailyStats(todayKey, { clears, attempts: attemptsTotal });
+
+                const avgAttempts = clears > 0 ? (attemptsTotal / clears).toFixed(1) : '0.0';
+
                 setTimeout(() => {
                     document.getElementById('modal-word-display').innerText = currentWord;
+                    const todayEl = document.getElementById('modal-today-count');
+                    const avgEl = document.getElementById('modal-avg-attempts');
+                    const feedbackEl = document.getElementById('modal-feedback');
+                    if (todayEl) todayEl.innerText = `${clears}개`;
+                    if (avgEl) avgEl.innerText = `${avgAttempts}회`;
+                    if (feedbackEl) {
+                        if (attemptsForCurrentWord === 1) feedbackEl.innerText = '멋져요! 단어 감각이 좋으시네요!';
+                        else if (attemptsForCurrentWord === 2) feedbackEl.innerText = '좋아요! 한 번 더 집중해서 완성했어요.';
+                        else feedbackEl.innerText = '꾸준한 집중이 빛났어요. 계속 가볼까요?';
+                    }
                     document.getElementById('modal').style.display = 'flex';
                 }, 500);
             } else {
                 // 틀림
                 core.playSfx('click');
                 pulseAnswerArea('shake');
+                attemptsForCurrentWord += 1;
                 setTimeout(() => {
                     resetCurrentWord();
                 }, 500);
