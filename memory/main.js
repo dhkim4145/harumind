@@ -1641,43 +1641,22 @@
     }
 
     if(board){
-      // 1단계: 현재 뒤집혀 있는 카드들의 상태 저장 (원래 뒤집어놓은 카드들)
-      const originallyFlipped = new Set();
-      [...board.children].forEach(t => {
-        if(t.dataset.state === "up" && !t.classList.contains("matched")){
-          originallyFlipped.add(t);
-        }
-      });
-
-      // 2단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기
-      const hintCards = [];
-      [...board.children].forEach(t => {
+      // 1단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기
+      const allCards = [...board.children];
+      allCards.forEach(t => {
         if(!t.classList.contains("matched")){
-          // 원래 뒤집혀 있지 않았던 카드만 힌트 카드로 표시
-          if(!originallyFlipped.has(t)){
-            hintCards.push(t);
-          }
           t.dataset.state = "up";
         }
       });
 
-      // 3단계: 힌트 카드들에만 황금빛 광채 효과 적용
-      hintCards.forEach(t => {
-        t.classList.add("hintHighlight");
-        setTimeout(() => {
-          t.classList.remove("hintHighlight");
-        }, sec * 1000);
-      });
-
-      // 4단계: 힌트 시간이 끝나면 힌트 카드만 다시 뒷면으로 닫기
+      // 2단계: 힌트 시간이 끝나면 모든 카드를 일괄 닫기 (사용자가 열어둔 카드도 포함)
       peekTimer = setTimeout(()=>{
         if(board){
-          hintCards.forEach(t => {
+          allCards.forEach(t => {
             if(!t.classList.contains("matched")){
               t.dataset.state = "down";
             }
           });
-          // 원래 뒤집어놓은 카드는 그대로 유지 (already up 상태)
         }
         setStateMessage("천천히 찾아보세요", "");
         lock = false;

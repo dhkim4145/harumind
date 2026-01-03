@@ -644,7 +644,7 @@ button.primary{
   border:1px solid rgba(255,255,255,.08);
   border-radius: 18px;
   box-shadow: 0 10px 25px rgba(0,0,0,.35);
-  padding: 14px;
+  padding: 8px;
   margin-bottom: 10px;
 }
 
@@ -660,10 +660,10 @@ button.primary{
   height: auto;
   overflow: hidden; 
   touch-action: pan-y;
-  padding: 12px;
-  background: linear-gradient(180deg, rgba(11,16,32,.9), rgba(5,8,19,.95));
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.10);
+  padding: 0px;
+  background: transparent;
+  border-radius: 0px;
+  border: none;
   perspective: 1000px;
   contain: layout style;
   will-change: transform;
@@ -729,8 +729,7 @@ button.primary{
 }
 
 .tile.matched{
-  border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(110,231,183,.35) inset;
+  background: rgba(110, 231, 183, .06);
   animation: bounceUp 0.2s ease-out;
 }
 
@@ -969,41 +968,14 @@ body.peeking .card:not(.messageCard){
 
 /* 상단 오버레이 배너 */
 body.peeking .tile{
-  filter: brightness(1.05) saturate(0.95);
+  background: rgba(255,255,255,.02);
 }
 
 /* 힌트 강조 효과 */
 .tile.hintHighlight{
-  animation: hintGlow 2s ease-in-out;
-  z-index: 10;
+  /* 강조 제거 - 열림 상태만 표현 */
 }
 
-@keyframes hintGlow{
-  0%{
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);
-    border-color: rgba(255,255,255,.12);
-    opacity: 1;
-  }
-  25%{
-    transform: scale(1.03);
-    box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.25), 0 0 12px rgba(110, 231, 183, 0.2);
-    border-color: rgba(110, 231, 183, 0.35);
-    opacity: 1;
-  }
-  75%{
-    transform: scale(1.03);
-    box-shadow: 0 0 0 2px rgba(110, 231, 183, 0.25), 0 0 12px rgba(110, 231, 183, 0.2);
-    border-color: rgba(110, 231, 183, 0.35);
-    opacity: 1;
-  }
-  100%{
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(110, 231, 183, 0);
-    border-color: rgba(255,255,255,.12);
-    opacity: 1;
-  }
-}
 
 /* ✅ 완료 바(작게) */
 .hmFinishBar{
