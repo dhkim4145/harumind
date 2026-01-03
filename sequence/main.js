@@ -55,7 +55,9 @@ const state = {
     timerId: null,
     startTime: 0,
     elapsed: 0,
-    isPlaying: false
+    isPlaying: false,
+    wrongCount: 0,
+    totalClicks: 0
 };
 
 // ============================================================
@@ -177,6 +179,8 @@ function startGame(levelKey = 'easy') {
     state.max = cfg.grid * cfg.grid;
     state.isPlaying = true;
     state.elapsed = 0;
+    state.wrongCount = 0;
+    state.totalClicks = 0;
 
     highlightLevel(useLevel);
     
@@ -245,6 +249,7 @@ function handleTileClick(tile) {
     if (!state.isPlaying) return;
 
     const value = Number(tile.dataset.value);
+    state.totalClicks += 1;
     core.playSfx('click');
 
     if (value === state.expected) {
@@ -256,6 +261,7 @@ function handleTileClick(tile) {
             finishGame();
         }
     } else {
+        state.wrongCount += 1;
         tile.classList.remove('wrong');
         void tile.offsetWidth; // reflow for animation restart
         tile.classList.add('wrong');
@@ -298,6 +304,7 @@ function finishGame() {
     const rawScore = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
     const mindScore = Math.max(15, Math.min(100, rawScore));
 
+    updateAttendance(); // 출석 기록 업데이트
     core.playSfx('success');
     animateBackground(mindScore);
     launchConfetti();
@@ -353,7 +360,12 @@ function showResult(score, elapsed) {
 
     if (timeEl) timeEl.innerText = `${elapsed.toFixed(1)}초`;
     if (limitEl) limitEl.innerText = `${limit.toFixed(1)}초`;
-    if (accEl) accEl.innerText = '100%';
+    if (accEl) {
+        const accuracy = state.totalClicks > 0 
+            ? Math.round(((state.totalClicks - state.wrongCount) / state.totalClicks) * 100)
+            : 100;
+        accEl.innerText = `${accuracy}% (${state.wrongCount}번)`;
+    }
     if (evalEl) {
         const pct = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
         evalEl.innerText = `목표 대비 ${pct}% 달성!`;

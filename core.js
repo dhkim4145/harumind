@@ -178,3 +178,39 @@ class HaruCore {
 
 // 전역 객체로 생성 (모든 게임에서 core.playSfx() 식으로 접근)
 const core = new HaruCore();
+
+// 게임 출석 및 추천 기능
+core.getGameAttendance = function(gameType) {
+    const key = `harumind_${gameType}_lastDate`;
+    const lastDate = localStorage.getItem(key);
+    const today = new Date().toISOString().slice(0, 10);
+    return lastDate === today;
+};
+
+core.getTodayGameCount = function() {
+    let count = 0;
+    if (this.getGameAttendance('memory')) count++;
+    if (this.getGameAttendance('wordfrag')) count++;
+    if (this.getGameAttendance('sequence')) count++;
+    return count;
+};
+
+core.getTotalGameCount = function() {
+    return 3;
+};
+
+core.getLeastPlayedGame = function() {
+    const games = [
+        { key: 'memory', name: '같은 그림 찾기', emoji: '🧩', path: 'memory/memory.html' },
+        { key: 'wordfrag', name: '단어 조합하기', emoji: '✍️', path: 'word/word.html' },
+        { key: 'sequence', name: '숫자 순서터치', emoji: '🔢', path: 'sequence/sequence.html' }
+    ];
+    
+    const streaks = games.map(g => ({
+        ...g,
+        streak: parseInt(localStorage.getItem(`harumind_${g.key}_streak`) || '0', 10)
+    }));
+    
+    streaks.sort((a, b) => a.streak - b.streak);
+    return streaks[0];
+};
