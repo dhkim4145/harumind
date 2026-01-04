@@ -18,13 +18,19 @@ class HaruCore {
         window.addEventListener('DOMContentLoaded', () => this.bindUI());
         
         // 첫 사용자 제스처 감지 (자동재생 정책 대응)
-        document.addEventListener('pointerdown', () => this.onFirstInteraction(), { once: true });
-        document.addEventListener('click', () => this.onFirstInteraction(), { once: true });
+        // ⚠️ once: true 제거 → bgmStarted 플래그로 중복 방지
+        document.addEventListener('pointerdown', (e) => this.onFirstInteraction(e));
+        document.addEventListener('click', (e) => this.onFirstInteraction(e));
     }
 
     // 첫 사용자 제스처 후 BGM 재생 시도
+    // bgmOn이 ON인 경우 첫 제스처에만 시작 (한 번만 실행)
     onFirstInteraction() {
-        if (!this.bgmStarted && this.isBgmOn) {
+        // bgmStarted가 이미 true면 무시 (중복 호출 방지)
+        if (this.bgmStarted) return;
+        
+        // isBgmOn이 true일 때만 시작
+        if (this.isBgmOn) {
             this.ensureBgm();
             this.bgmStarted = true;
         }
@@ -272,18 +278,20 @@ class HaruCore {
 
     toggleBgm() {
         this.isBgmOn = !this.isBgmOn;
-        // 📌 반드시 'true' 또는 'false' 문자열로 저장 (JSON 파싱 주의)
+        // 📌 반드시 'true' 또는 'false' 문자열로 저장
         localStorage.setItem('bgmOn', this.isBgmOn ? 'true' : 'false');
         this.updateBgmUi();
         this.updateModalBgmUi();
         
         if (this.isBgmOn) {
-            // BGM 켜기: 제스처 없어도 즉시 재생 시도
+            // BGM 켜기: 사용자가 설정에서 ON 선택한 경우 즉시 재생
+            // (첫 제스처 대기 안 함 - 설정 자체가 명시적 요청)
             this.ensureBgm();
             this.bgmStarted = true;
         } else {
             // BGM 끄기
             this.stopBgm();
+            // bgmStarted는 유지 (다시 ON으로 바꾸기 전까지 재생 안 함)
         }
         // 토글 피드백음
         this.playSfx('click');
