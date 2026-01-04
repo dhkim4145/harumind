@@ -105,7 +105,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     padding: 8px;
     border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.12);
@@ -145,6 +145,12 @@ header {
     opacity: 0.5;
 }
 
+#settingsOpenBtn {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+}
+
 .top-title{
   flex: 1;
   text-align: center;
@@ -160,13 +166,18 @@ header {
 @media (max-width: 520px) {
     .top-bar {
         padding: 6px;
-        gap: 10px;
+        gap: 4px;
     }
     .top-bar button,
     .top-bar select {
         height: 36px;
         width: 36px;
         font-size: 16px;
+    }
+    #settingsOpenBtn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
     }
     .top-title {
         font-size: 0.9rem;
@@ -862,7 +873,7 @@ body.peeking .tile{
     <div class="top-bar">
       <button id="homeBtn" title="홈">🏠</button>
       <div class="top-title">🧩 같은 그림 찾기</div>
-      <button id="settingsOpenBtn" title="설정">⚙</button>
+      <button id="settingsOpenBtn" title="설정">⚙️</button>
     </div>
   </header>
 
