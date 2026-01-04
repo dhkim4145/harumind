@@ -150,7 +150,7 @@
 
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             align-items: center;
         }
@@ -159,10 +159,10 @@
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: 14px;
-            padding: 12px;
+            padding: 18px 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             text-align: center;
             align-items: center;
             transition: all 0.3s ease;
@@ -394,16 +394,11 @@
             <div class="status-grid">
                 <div class="pill">
                     <div class="pill-title" data-msg="labelDifficulty">난이도</div>
-                    <div id="level-label" class="pill-main">-</div>
-                </div>
-                <div class="pill">
-                    <div class="pill-title" data-msg="labelTime">시간</div>
-                    <div id="timer" class="pill-main">0.0s</div>
+                    <div id="level-label" class="pill-main" style="font-size: 2rem;">-</div>
                 </div>
                 <div class="pill">
                     <div class="pill-title" data-msg="labelTarget">찾을 숫자</div>
-                    <div id="next-num" class="pill-main">1</div>
-                    <div class="pill-sub"><span data-msg="labelTargetTime">목표</span>: <span id="target-time">10초</span></div>
+                    <div id="next-num" class="pill-main" style="font-size: 2rem;">1</div>
                 </div>
             </div>
         </section>
@@ -425,28 +420,14 @@
     <div id="modal" class="modal-backdrop" aria-hidden="true">
         <div class="modal-content">
             <div id="modal-emoji" class="modal-emoji">✨</div>
-            <div id="modal-title" class="modal-title">정말 멋져요!</div>
-            <div id="modal-score" class="modal-score">마음 지수: 100점</div>
-            <div id="modal-feedback" class="modal-feedback"></div>
-            <div id="modal-detail" class="modal-detail"></div>
-            <div id="modal-meta" class="modal-meta"></div>
-            <div class="report-box">
-                <div class="report-title">기록 리포트</div>
-                <div class="report-row"><span class="report-label">나의 기록</span><span id="report-time" class="report-value">0.0초</span></div>
-                <div class="report-row"><span class="report-label">목표 시간</span><span id="report-limit" class="report-value">0.0초</span></div>
-                <div class="report-row"><span class="report-label">틀린 횟수</span><span id="report-acc" class="report-value">100%</span></div>
-                <div class="report-row highlight"><span class="report-label">기록 평가</span><span id="report-eval" class="report-value">-</span></div>
-                <div id="report-note" class="report-note"></div>
-                <div class="gauge"><div id="report-gauge" class="gauge-fill"></div></div>
-            </div>
-            <button class="modal-btn" id="modal-action">다시 도전하기</button>
+            <div id="modal-message" class="modal-feedback"></div>
+            <button class="modal-btn" id="modal-action">다시 이어서</button>
         </div>
     </div>
 
     <footer class="brand-footer">하루마음 · harumind.kr</footer>
 
     <script src="../core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

@@ -11,27 +11,17 @@ const MSGS = {
     title: '🔢 숫자 순서터치',
     subtitle: '숫자를 따라가며 집중을 다독여요.',
     levels: {
-        easy: { name: '새싹', desc: '가벼운 마음으로 시작해볼까요?' },
-        normal: { name: '나무', desc: '차분하게 집중력을 모아보아요.' },
-        hard: { name: '숲', desc: '깊은 몰입의 즐거움을 느껴보세요.' }
+        easy: { name: '새싹', desc: '가벼운 마음으로 시작해볼까요?', emoji: '🌱' },
+        normal: { name: '나무', desc: '차분하게 집중력을 모아보아요.', emoji: '🌳' },
+        hard: { name: '숲', desc: '깊은 몰입의 즐거움을 느껴보세요.', emoji: '🌲' }
     },
-    feedback: {
-        high: '💎 맑게 개인 하늘 같은 집중력이에요!',
-        mid: '✨ 차분하게 마음을 잘 모으셨네요.',
-        low: '🌿 괜찮아요, 잠시 쉬어가는 시간이었을 뿐이에요.'
-    },
-    detail: {
-        high: '목표 시간보다 {diff}초나 빠르게 성공하셨어요! 놀라운 몰입도입니다. 💎',
-        mid: '차분하게 {time}초 만에 완주하셨네요. 목표에 거의 다 왔어요! ✨',
-        low: '시간에 쫓기지 않고 끝까지 해낸 마음이 중요해요. 수고하셨습니다. 🌿'
-    },
-    modalTitle: '정말 멋져요!',
-    modalButton: '다시 도전하기',
-    meta: {
-        time: '클리어 타임',
-        level: '선택 난이도',
-        score: '마음 지수'
-    },
+    encouragement: [
+        '괜찮아요, 천천히 찾아가도 돼요.',
+        '여유 있게 이어나가세요.',
+        '충분히 잘하고 있어요.',
+        '시간에 얽매이지 말고 즐겨요.',
+        '깊이 있게 머물러도 괜찮아요.'
+    ],
     labels: {
         difficulty: '난이도',
         time: '시간',
@@ -229,6 +219,17 @@ function startGame(levelKey = 'easy') {
     if (core.isBgmOn) core.ensureBgm();
 }
 
+function initCenterEmoji(levelKey) {
+    const centerEmoji = document.getElementById('center-emoji');
+    const centerMessage = document.getElementById('center-message');
+    if (!centerEmoji || !centerMessage) return;
+    
+    const emoji = MSGS.levels[levelKey]?.emoji || '';
+    centerEmoji.innerText = emoji;
+    centerEmoji.style.opacity = '1';
+    centerMessage.style.opacity = '0';
+}
+
 function highlightLevel(levelKey) {
     document.querySelectorAll('.lv-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.level === levelKey);
@@ -247,10 +248,12 @@ function animateStatusUpdate() {
 function updateStatusTexts(levelKey) {
     const levelLabel = document.getElementById('level-label');
     const levelDesc = document.getElementById('level-desc');
-    if (levelLabel) levelLabel.innerText = MSGS.levels[levelKey].name;
+    if (levelLabel) {
+        const emoji = MSGS.levels[levelKey]?.emoji || '';
+        const name = MSGS.levels[levelKey]?.name || '';
+        levelLabel.innerText = emoji + ' ' + name;
+    }
     if (levelDesc) levelDesc.innerText = MSGS.levels[levelKey].desc;
-    const modalBtn = document.getElementById('modal-action');
-    if (modalBtn) modalBtn.innerText = MSGS.modalButton;
 }
 
 function renderBoard(grid) {
@@ -331,99 +334,32 @@ function finishGame() {
     if (state.timerId) clearInterval(state.timerId);
     const elapsed = state.elapsed || (performance.now() - state.startTime) / 1000;
 
-    const limit = LEVELS[state.level].limit;
-    const rawScore = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
-    const mindScore = Math.max(15, Math.min(100, rawScore));
-
     // 일일 클리어 횟수 저장
     const todayKey = getTodayKey();
     const dailyStats = loadDailyStats(todayKey);
     dailyStats.clears += 1;
     saveDailyStats(todayKey, dailyStats);
 
-    updateAttendance(); // 출석 기록 업데이트
+    updateAttendance();
     core.playSfx('success');
-    animateBackground(mindScore);
-    launchConfetti();
-    showResult(mindScore, elapsed, dailyStats.clears);
+    showResult(elapsed);
 }
 
-function animateBackground(score) {
-    const baseBg = window.getComputedStyle(document.body).background;
-    let target = '#122435';
-    if (score >= 90) target = '#1d325d';
-    else if (score >= 70) target = '#172b4e';
-
-    document.body.style.transition = 'background 1.5s ease';
-    document.body.style.background = target;
-    setTimeout(() => core.applyTheme(core.currentTheme), 1600);
-}
-
-function launchConfetti() {
-    if (typeof confetti === 'undefined') return;
-    const base = { particleCount: 120, spread: 70, origin: { y: 0.6 }, ticks: 70, zIndex: 200 };
-    confetti({ ...base, angle: 60, origin: { x: 0.15, y: 0.6 }, scalar: 0.9 });
-    confetti({ ...base, angle: 120, origin: { x: 0.85, y: 0.6 }, scalar: 1 });
-}
-
-function showResult(score, elapsed, dailyClears) {
+function showResult(elapsed) {
     const modal = document.getElementById('modal');
     if (!modal) return;
 
-    const { emoji, feedback } = getFeedback(score);
-    const levelName = MSGS.levels[state.level].name;
-    const limit = LEVELS[state.level].limit;
-    const diff = limit - elapsed;
-
-    const challengeHit = dailyClears >= 3;
+    // 30% 확률로 위로 문구 표시
+    const showMessage = Math.random() < 0.3;
+    const message = showMessage 
+        ? MSGS.encouragement[Math.floor(Math.random() * MSGS.encouragement.length)]
+        : '';
 
     const emojiEl = document.getElementById('modal-emoji');
-    const titleEl = document.getElementById('modal-title');
-    const scoreEl = document.getElementById('modal-score');
-    const feedbackEl = document.getElementById('modal-feedback');
-    const detailEl = document.getElementById('modal-detail');
-    const metaEl = document.getElementById('modal-meta');
-    const timeEl = document.getElementById('report-time');
-    const limitEl = document.getElementById('report-limit');
-    const accEl = document.getElementById('report-acc');
-    const evalEl = document.getElementById('report-eval');
-    const noteEl = document.getElementById('report-note');
-    const gaugeEl = document.getElementById('report-gauge');
+    const messageEl = document.getElementById('modal-message');
 
-    if (emojiEl) emojiEl.innerText = challengeHit ? '✅' : emoji;
-    if (titleEl) titleEl.innerText = MSGS.modalTitle;
-    if (scoreEl) scoreEl.innerText = `${MSGS.meta.score}: ${score}점`;
-    if (feedbackEl) feedbackEl.innerText = challengeHit ? '✅ 오늘의 챌린지 달성! (3회 클리어)' : feedback;
-    if (detailEl) detailEl.innerText = buildDetail(score, elapsed, diff);
-    if (metaEl) metaEl.innerText = `${MSGS.meta.time} ${elapsed.toFixed(1)}s · ${MSGS.meta.level} ${levelName}`;
-
-    if (timeEl) timeEl.innerText = `${elapsed.toFixed(1)}초`;
-    if (limitEl) limitEl.innerText = `${limit.toFixed(1)}초`;
-    if (accEl) {
-        const accuracy = state.totalClicks > 0 
-            ? Math.round(((state.totalClicks - state.wrongCount) / state.totalClicks) * 100)
-            : 100;
-        accEl.innerText = `${accuracy}% (${state.wrongCount}번)`;
-    }
-    if (evalEl) {
-        const pct = Math.round((limit / Math.max(elapsed, 0.1)) * 100);
-        evalEl.innerText = `목표 대비 ${pct}% 달성!`;
-    }
-
-    const faster = Math.max(0, limit - elapsed);
-    if (noteEl) {
-        if (score >= 90) {
-            noteEl.innerText = `목표보다 ${faster.toFixed(1)}초나 더 빠르게 집중하셨네요!`;
-        } else {
-            noteEl.innerText = '조금 늦어도 괜찮아요. 끝까지 찾아낸 인내심이 멋져요!';
-        }
-    }
-
-    if (gaugeEl) {
-        gaugeEl.style.width = '0%';
-        void gaugeEl.offsetWidth;
-        gaugeEl.style.width = `${score}%`;
-    }
+    if (emojiEl) emojiEl.innerText = '🌿';
+    if (messageEl) messageEl.innerText = message;
 
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
@@ -443,24 +379,6 @@ function closeModal() {
         modal.setAttribute('aria-hidden', 'true');
     }
     startGame(state.level);
-}
-
-function getFeedback(score) {
-    if (score >= 90) return { emoji: '💎', feedback: MSGS.feedback.high };
-    if (score >= 70) return { emoji: '✨', feedback: MSGS.feedback.mid };
-    return { emoji: '🌿', feedback: MSGS.feedback.low };
-}
-
-function buildDetail(score, elapsed, diff) {
-    const diffAbs = Math.abs(diff).toFixed(1);
-    if (score >= 90) {
-        return MSGS.detail.high.replace('{diff}', diffAbs);
-    }
-    if (score >= 70) {
-        return MSGS.detail.mid
-            .replace('{time}', elapsed.toFixed(1));
-    }
-    return MSGS.detail.low;
 }
 
 init();
