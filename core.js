@@ -204,7 +204,7 @@ class HaruCore {
         if (!this.isBgmOn) return;
 
         // 기본 BGM 경로
-        const defaultBgm = '/audio/bgm.mp3';
+        const defaultBgm = '/harumind/audio/bgm.mp3';
         const bodyAttr = (document.body && document.body.dataset && document.body.dataset.bgm) || '';
         const normalizeSrc = (src) => {
             if (!src) return defaultBgm;
