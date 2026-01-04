@@ -16,8 +16,11 @@
     let userSelection = [];
     let attemptsForCurrentWord = 1;
     let modalAutoCloseTimer = null;
+    let pendingNavigation = null; // 배웅 모달 후 실행할 네비게이션
 
     const DAILY_STATS_PREFIX = 'harumind_wordfrag_stats_';
+    const EXIT_PROMPT_COUNT_PREFIX = 'harumind_exit_prompt_count_';
+    const EXIT_PROMPT_LAST_SHOWN = 'harumind_exit_last_shown_meaning';
 
     // ============================================================
     // [Storage Helper]
@@ -66,6 +69,121 @@
 
     function setBool(key, value) {
         safeSet(key, value ? "1" : "0");
+    }
+
+    // ============================================================
+    // [Exit Prompt / Meaning History]
+    // ============================================================
+    function getMeaningHistory() {
+        const items = [];
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('harumind_meaning_')) {
+                    try {
+                        const value = localStorage.getItem(key);
+                        const parsed = JSON.parse(value);
+                        if (parsed && parsed.meaning) {
+                            items.push(parsed);
+                        }
+                    } catch(e) {
+                        // 파싱 실패하면 무시
+                    }
+                }
+            }
+        } catch(e) {}
+        return items;
+    }
+
+    function getExitPromptCountToday() {
+        const today = getTodayKey();
+        const key = EXIT_PROMPT_COUNT_PREFIX + today;
+        const count = parseInt(safeGet(key) || '0');
+        return count;
+    }
+
+    function incrementExitPromptCount() {
+        const today = getTodayKey();
+        const key = EXIT_PROMPT_COUNT_PREFIX + today;
+        const count = getExitPromptCountToday();
+        safeSet(key, String(count + 1));
+    }
+
+    function canShowExitPrompt() {
+        const history = getMeaningHistory();
+        if (history.length < 5) return false;
+        
+        const todayCount = getExitPromptCountToday();
+        if (todayCount >= 2) return false;
+        
+        // 25% 확률
+        if (Math.random() > 0.25) return false;
+        
+        return true;
+    }
+
+    function selectRandomMeaning(history) {
+        if (!history || history.length === 0) return null;
+        
+        const lastShown = safeGet(EXIT_PROMPT_LAST_SHOWN);
+        
+        // 연속 중복 방지: 가능하면 다른 것 선택
+        let candidates = history;
+        if (lastShown && history.length > 1) {
+            candidates = history.filter(item => {
+                const itemId = item.savedAt || item.date || '';
+                return itemId !== lastShown;
+            });
+            if (candidates.length === 0) candidates = history;
+        }
+        
+        const selected = candidates[Math.floor(Math.random() * candidates.length)];
+        
+        // 선택된 항목 기록
+        const selectedId = selected.savedAt || selected.date || String(Date.now());
+        safeSet(EXIT_PROMPT_LAST_SHOWN, selectedId);
+        
+        return selected;
+    }
+
+    function showExitModal(navigationFn) {
+        const history = getMeaningHistory();
+        const selected = selectRandomMeaning(history);
+        
+        if (!selected || !selected.meaning) {
+            // 선택 실패하면 바로 이동
+            navigationFn();
+            return;
+        }
+        
+        pendingNavigation = navigationFn;
+        
+        const meaningEl = document.getElementById('exit-meaning');
+        if (meaningEl) {
+            meaningEl.innerText = selected.meaning;
+            meaningEl.classList.remove('reveal');
+            void meaningEl.offsetWidth;
+            meaningEl.classList.add('reveal');
+        }
+        
+        document.getElementById('exitModal').style.display = 'flex';
+        incrementExitPromptCount();
+    }
+
+    function confirmExit() {
+        document.getElementById('exitModal').style.display = 'none';
+        if (pendingNavigation) {
+            pendingNavigation();
+            pendingNavigation = null;
+        }
+    }
+
+    function handleNavigationAttempt(navigationFn) {
+        if (canShowExitPrompt()) {
+            showExitModal(navigationFn);
+        } else {
+            navigationFn();
+        }
     }
 
 
@@ -232,7 +350,9 @@
         if(homeBtn) {
             homeBtn.addEventListener('click', () => {
                 core.playSfx('click');
-                window.location.href = '../index.html';
+                handleNavigationAttempt(() => {
+                    window.location.href = '../index.html';
+                });
             });
         }
 
@@ -286,4 +406,5 @@
     window.resetCurrentWord = resetCurrentWord;
     window.nextLevel = nextLevel;
     window.closeModal = closeModal;
+    window.confirmExit = confirmExit;
 })();

@@ -287,7 +287,7 @@
         }
 
         /* 결과 모달 - 향상된 디자인 */
-        #modal {
+        #modal, #exitModal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             display: none; justify-content: center; align-items: center; z-index: 100;
             backdrop-filter: blur(5px);
@@ -356,6 +356,17 @@
         .modal-feedback.reveal {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        .exit-modal-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .exit-meaning {
+            margin-top: 10px;
         }
 
         .modal-btn {
@@ -429,7 +440,15 @@
             <div class="modal-emoji" id="modal-emoji-display">💎</div>
             <div id="modal-word-display" class="modal-word"></div>
             <div class="modal-feedback" id="modal-feedback">피드백 영역</div>
-            <button class="btn modal-btn" onclick="closeModal()">다음 문제로</button>
+            <button class="btn modal-btn" onclick="closeModal()">다음으로</button>
+        </div>
+    </div>
+
+    <div id="exitModal">
+        <div class="modal-content">
+            <div class="exit-modal-header">잠깐.</div>
+            <div class="modal-feedback exit-meaning" id="exit-meaning">...</div>
+            <button class="btn modal-btn" onclick="confirmExit()">나가기</button>
         </div>
     </div>
 
