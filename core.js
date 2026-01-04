@@ -196,7 +196,7 @@ class HaruCore {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
                 // bgmAudio 태그가 없으면 동적 생성 (권장하지 않음)
-                this.bgmAudio = new Audio('/audio/piano1.mp3');
+                this.bgmAudio = new Audio('../audio/piano1.mp3');
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
                 document.body.appendChild(this.bgmAudio);
@@ -204,9 +204,9 @@ class HaruCore {
         }
         
         if (this.bgmAudio) {
-            // src 확인 (공통 오디오 위치)
-            const defaultSrc = '/audio/piano1.mp3';
-            if (!this.bgmAudio.src || this.bgmAudio.src.includes('assets/audio')) {
+            // src 확인 (상대 경로: 게임 폴더에서 부모 디렉토리 오른적)
+            const defaultSrc = '../audio/piano1.mp3';
+            if (!this.bgmAudio.src || this.bgmAudio.src.includes('assets/audio') || this.bgmAudio.src.includes('/audio')) {
                 this.bgmAudio.src = defaultSrc;
             }
             this.bgmAudio.volume = 0.25;

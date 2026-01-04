@@ -1,6 +1,7 @@
 // /memory/main.js
 // 모든 게임 로직 통합 파일 (바이브 코딩 최적화)
 
+window.addEventListener('DOMContentLoaded', function() {
 (function(){
   // ============================================================
   // [Config] - 게임 설정값 (원래 config.js에서 통합)
@@ -506,4 +507,5 @@
   // 첫 진입
   build(4);
 })();
+}); // window.addEventListener DOMContentLoaded 닫기
 
