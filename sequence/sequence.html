@@ -368,24 +368,94 @@
         .modal-btn:active { transform: scale(0.98); }
 
         /* Settings Modal */
-        .settings-modal-back {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99;
-            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+        #settingsModalBack{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            z-index:9002;
+            display:none;
+            pointer-events:none;
+            align-items:center;
+            justify-content:center;
+            padding:18px;
         }
-        .settings-modal-back.isOpen { display: flex; }
-        .settings-modal {
-            background: var(--card-bg); padding: 28px; border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 18px;
+        #settingsModalBack.isOpen{
+            display:flex;
+            pointer-events:auto;
         }
-        .settings-section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-        .settings-label { font-size: 14px; font-weight: 600; color: var(--text); min-width: 60px; }
-        .settingsButton, .settingsSelect {
-            padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16);
-            background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; cursor: pointer;
-            transition: opacity 0.2s ease;
+        #settingsModalCard{
+            width:min(420px, 100%);
+            background:#141b3f;
+            border:1px solid rgba(255,255,255,.10);
+            border-radius:20px;
+            box-shadow:0 18px 48px rgba(0,0,0,.45);
+            padding:24px 20px;
+            display:flex;
+            flex-direction:column;
+            gap:16px;
         }
-        .settingsButton.off { opacity: 0.5; }
-        .settingsSelect { min-width: 120px; }
+        .settingsModalTitle{
+            font-size:18px;
+            font-weight:900;
+            color:var(--text);
+        }
+        .settingsSection{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .settingLabel{
+            font-size:12px;
+            color:var(--muted);
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:0.5px;
+            opacity:0.85;
+        }
+        .settingsButton{
+            font-size:16px;
+            font-weight:700;
+            padding:12px 16px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(255,255,255,.08);
+            color:var(--text);
+            cursor:pointer;
+            backdrop-filter:blur(6px);
+            transition:all 0.2s ease;
+            text-align:left;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .settingsButton:active{
+            transform:scale(0.97);
+            background:rgba(255,255,255,.12);
+        }
+        .settingsButton.off{
+            opacity:0.6;
+        }
+        .settingsSelect{
+            font-size:16px;
+            font-weight:700;
+            padding:12px 16px;
+            border-radius:12px;
+            border:1px solid rgba(255,255,255,.16);
+            background:rgba(255,255,255,.08);
+            color:var(--text);
+            cursor:pointer;
+            backdrop-filter:blur(6px);
+            transition:all 0.2s ease;
+            text-align:left;
+        }
+        .settingsSelect:active{
+            transform:scale(0.97);
+            background:rgba(255,255,255,.12);
+        }
+        .settingsSelect option{
+            color:#1f2937;
+            background:#ffffff;
+        }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes modalUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -422,7 +492,7 @@
         </div>
     </header>
 
-    <audio id="bgmAudio" preload="auto" loop src="../memory/assets/audio/piano1.mp3"></audio>
+    <audio id="bgmAudio" preload="auto" loop src="/audio/piano1.mp3"></audio>
 
     <main class="game-wrap">
         <section class="card">
@@ -463,22 +533,29 @@
         </div>
     </div>
 
-    <div id="settingsModalBack" class="settings-modal-back">
-        <div class="settings-modal">
-            <div class="settings-section">
-                <div class="settings-label">효과음</div>
-                <button id="modalSfxBtn" class="settingsButton">🔊 켜짐</button>
+    <div id="settingsModalBack" role="dialog" aria-modal="true" aria-label="게임 설정">
+        <div id="settingsModalCard">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div class="settingsModalTitle">⚙️ 설정</div>
+                <button id="settingsModalClose" type="button" style="background: none; border: none; font-size: 20px; color: var(--text); cursor: pointer; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">✕</button>
             </div>
-            <div class="settings-section">
-                <div class="settings-label">배경음</div>
-                <button id="modalBgmBtn" class="settingsButton">🎵 켜짐</button>
+
+            <div class="settingsSection">
+                <div class="settingLabel">효과음</div>
+                <button id="modalSfxBtn" type="button" class="settingsButton">🔊 효과음 : 켜기</button>
             </div>
-            <div class="settings-section">
-                <div class="settings-label">테마</div>
+
+            <div class="settingsSection">
+                <div class="settingLabel">배경음악</div>
+                <button id="modalBgmBtn" type="button" class="settingsButton">🎵 배경음악 : 끄기</button>
+            </div>
+
+            <div class="settingsSection">
+                <div class="settingLabel">테마</div>
                 <select id="modalThemeSelect" class="settingsSelect">
-                    <option value="warm">🌅 따뜻한</option>
-                    <option value="dark">🌙 밤하늘</option>
-                    <option value="forest">🌲 숲속</option>
+                    <option value="warm">🌅 따뜻한 테마</option>
+                    <option value="dark">🌙 밤하늘 테마</option>
+                    <option value="forest">🌲 숲속 테마</option>
                 </select>
             </div>
         </div>

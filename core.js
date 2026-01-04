@@ -195,19 +195,43 @@ class HaruCore {
         if (!this.bgmAudio) {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
-                // bgmAudio 태그가 없으면 동적 생성
-                this.bgmAudio = new Audio('../audio/piano1.mp3');
+                // bgmAudio 태그가 없으면 동적 생성 (권장하지 않음)
+                this.bgmAudio = new Audio('/audio/piano1.mp3');
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
+                document.body.appendChild(this.bgmAudio);
             }
         }
         
         if (this.bgmAudio) {
+            // src 확인 (공통 오디오 위치)
+            const defaultSrc = '/audio/piano1.mp3';
+            if (!this.bgmAudio.src || this.bgmAudio.src.includes('assets/audio')) {
+                this.bgmAudio.src = defaultSrc;
+            }
             this.bgmAudio.volume = 0.25;
+            this.bgmAudio.currentTime = 0;
+            
+            // 재생 시도 (Promise 기반)
             try {
-                this.bgmAudio.play().catch(e => console.warn('BGM 재생 차단:', e));
+                const playPromise = this.bgmAudio.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => console.log('🎵 BGM 재생 중'))
+                        .catch(e => {
+                            console.warn('⚠️ BGM 재생 실패:', e.name, e.message);
+                            // 권한 문제 시 음소거 자동 재생 시도
+                            if (e.name === 'NotAllowedError') {
+                                this.bgmAudio.muted = true;
+                                this.bgmAudio.play().catch(e2 => console.warn('음소거 재생도 실패'));
+                            }
+                        });
+                } else {
+                    // 구형 브라우저 (Promise 미반환)
+                    console.log('🎵 BGM 재생 (구형 방식)');
+                }
             } catch(e) {
-                console.warn('BGM play error:', e);
+                console.warn('⚠️ BGM play 예외:', e.message);
             }
         }
     }
@@ -223,6 +247,7 @@ class HaruCore {
         this.isSfxOn = !this.isSfxOn;
         localStorage.setItem('sfxOn', this.isSfxOn);
         this.updateSfxUi();
+        this.updateModalSfxUi();
         // 토글 피드백음
         if (this.isSfxOn) this.playSfx('click');
     }
@@ -231,6 +256,7 @@ class HaruCore {
         this.isBgmOn = !this.isBgmOn;
         localStorage.setItem('bgmOn', this.isBgmOn);
         this.updateBgmUi();
+        this.updateModalBgmUi();
         
         if (this.isBgmOn) {
             this.ensureBgm();

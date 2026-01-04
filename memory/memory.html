@@ -948,35 +948,13 @@ body.peeking .tile{
 </div>
 
 <audio id="bgmAudio"
-       loop
-       preload="auto"
-       playsinline></audio>
+  loop
+  preload="auto"
+  src="/audio/piano1.mp3"
+  playsinline></audio>
 
 <!-- JS 로드 -->
 <script src="../core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const openBtn = document.getElementById('settingsBtn');
-  const modal = document.getElementById('settingsModal');
-  const closeBtn = document.getElementById('settingsClose');
-  const homeBtn = document.getElementById('homeBtn');
-  if(!openBtn || !modal || !closeBtn) return;
-
-  const open = () => modal.classList.add('isOpen');
-  const close = () => modal.classList.remove('isOpen');
-
-  openBtn.addEventListener('click', open);
-  closeBtn.addEventListener('click', close);
-  if(homeBtn){
-    homeBtn.addEventListener('click', () => {
-      core.playSfx(520, 'sine', 0.08);
-      window.location.href = '../index.html';
-    });
-  }
-  modal.addEventListener('click', (e) => { if(e.target === modal) close(); });
-  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && modal.classList.contains('isOpen')) close(); });
-});
-</script>
 <script src="./main.js?v=7"></script>
 
 <footer class="brand-footer">하루마음 · harumind.kr</footer>
