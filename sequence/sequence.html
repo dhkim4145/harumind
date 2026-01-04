@@ -48,33 +48,8 @@
             margin-bottom: 16px;
         }
 
-        .brand-row {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 10px;
-        }
-        .brand {
-            font-size: 1.2rem;
-            font-weight: 900;
-            color: var(--text);
-            letter-spacing: -0.2px;
-            text-align: center;
-            animation: titleFadeIn 0.6s ease-out;
-        }
-
-        @keyframes titleFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .subtitle { font-size: 0.95rem; color: var(--muted); opacity: 0.9; }
-        .settings-bar {
+        /* ===== Top Bar (홈/타이틀/설정) ===== */
+        .top-bar {
             position: sticky;
             top: 8px;
             width: 100%;
@@ -82,8 +57,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
-            padding: 6px 10px;
+            gap: 6px;
+            padding: 8px;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.12);
             background: rgba(255,255,255,0.06);
@@ -94,40 +69,67 @@
             box-sizing: border-box;
         }
 
-        .settings-group-right { display: flex; align-items: center; gap: 6px; }
-
-        .settings-bar button,
-        .settings-bar select {
-            height: 36px;
+        .top-bar button,
+        .top-bar select {
+            height: 40px;
+            width: 40px;
             border-radius: 10px;
-            flex: 1 1 0;
-            min-width: 0;
+            flex: 0 0 auto;
             border: 1px solid rgba(255,255,255,0.16);
             background: rgba(255,255,255,0.08);
             color: var(--text);
-            padding: 0 12px;
-            font-size: 12px;
+            padding: 0;
+            font-size: 18px;
             cursor: pointer;
             backdrop-filter: blur(6px);
             transition: opacity 0.2s ease, transform 0.1s ease;
-        }
-
-        .settings-bar button {
-            min-width: 78px;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .settings-bar button:active,
-        .settings-bar select:active { transform: scale(0.97); }
-        .settings-bar button.off { opacity: 0.5; }
+        .top-bar button:active,
+        .top-bar select:active {
+            transform: scale(0.97);
+        }
 
-        .settings-bar select#themeSelect { max-width: 80px; }
+        .top-bar button.off {
+            opacity: 0.5;
+        }
+
+        #settingsOpenBtn {
+            font-size: 21px;
+        }
+
+        .top-title{
+            flex: 1;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--text);
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         @media (max-width: 520px) {
-            .settings-bar { padding: 6px 8px; }
-            .settings-bar select#themeSelect { font-size: 11px; max-width: 80px; }
+            .top-bar {
+                padding: 6px;
+                gap: 4px;
+            }
+            .top-bar button,
+            .top-bar select {
+                height: 36px;
+                width: 36px;
+                font-size: 16px;
+            }
+            #settingsOpenBtn {
+                font-size: 19px;
+            }
+            .top-title {
+                font-size: 0.9rem;
+            }
         }
 
         .game-wrap {
@@ -365,6 +367,26 @@
         }
         .modal-btn:active { transform: scale(0.98); }
 
+        /* Settings Modal */
+        .settings-modal-back {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99;
+            background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+        }
+        .settings-modal-back.isOpen { display: flex; }
+        .settings-modal {
+            background: var(--card-bg); padding: 28px; border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 18px;
+        }
+        .settings-section { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .settings-label { font-size: 14px; font-weight: 600; color: var(--text); min-width: 60px; }
+        .settingsButton, .settingsSelect {
+            padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        .settingsButton.off { opacity: 0.5; }
+        .settingsSelect { min-width: 120px; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes modalUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
@@ -393,21 +415,10 @@
 </head>
 <body>
     <header>
-        <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
-        <div class="brand-row">
-            <div class="brand">🔢 하루마음 : 숫자 순서터치</div>
-        </div>
-        <div class="settings-bar">
-            <button id="homeBtn" title="홈">🏠 홈</button>
-            <div class="settings-group-right">
-                <button id="sfxBtn" title="효과">🔊 효과</button>
-                <button id="bgmBtn" title="배경">🎵 배경</button>
-                <select id="themeSelect" title="테마">
-                    <option value="warm">🌅 따뜻한</option>
-                    <option value="dark">🌙 밤하늘</option>
-                    <option value="forest">🌲 숲속</option>
-                </select>
-            </div>
+        <div class="top-bar">
+            <button id="homeBtn" title="홈으로">🏠</button>
+            <div class="top-title">🔢 숫자 순서터치</div>
+            <button id="settingsOpenBtn" title="설정">⚙️</button>
         </div>
     </header>
 
@@ -449,6 +460,27 @@
             <div id="modal-emoji" class="modal-emoji">✨</div>
             <div id="modal-message" class="modal-feedback"></div>
             <button class="modal-btn" id="modal-action">다시 이어서</button>
+        </div>
+    </div>
+
+    <div id="settingsModalBack" class="settings-modal-back">
+        <div class="settings-modal">
+            <div class="settings-section">
+                <div class="settings-label">효과음</div>
+                <button id="modalSfxBtn" class="settingsButton">🔊 켜짐</button>
+            </div>
+            <div class="settings-section">
+                <div class="settings-label">배경음</div>
+                <button id="modalBgmBtn" class="settingsButton">🎵 켜짐</button>
+            </div>
+            <div class="settings-section">
+                <div class="settings-label">테마</div>
+                <select id="modalThemeSelect" class="settingsSelect">
+                    <option value="warm">🌅 따뜻한</option>
+                    <option value="dark">🌙 밤하늘</option>
+                    <option value="forest">🌲 숲속</option>
+                </select>
+            </div>
         </div>
     </div>
 

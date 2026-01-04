@@ -356,23 +356,6 @@
             });
         }
 
-        // 테마 선택
-        const themeSelect = document.getElementById('themeSelect');
-        if(themeSelect) {
-            themeSelect.value = core.currentTheme;
-            themeSelect.addEventListener('change', (e) => {
-                core.applyTheme(e.target.value);
-                core.playSfx('click');
-            });
-        }
-    }
-
-    function updateSfxUi() {
-        core.updateSfxUi();
-    }
-
-    function updateBgmUi() {
-        core.updateBgmUi();
     }
 
     // ============================================================

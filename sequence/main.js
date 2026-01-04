@@ -142,19 +142,6 @@ function bindHeader() {
             window.location.href = '../index.html';
         });
     }
-
-    const brand = document.querySelector('.brand');
-    if (brand) brand.innerText = `🔢 하루마음 : ${MSGS.title.replace('🔢 ', '')}`;
-    const subtitle = document.querySelector('.subtitle');
-    if (subtitle) subtitle.innerText = MSGS.subtitle;
-
-    const themeSelect = document.getElementById('themeSelect');
-    if (themeSelect) {
-        themeSelect.value = core.currentTheme;
-        themeSelect.addEventListener('change', (e) => {
-            core.playSfx('click');
-        });
-    }
 }
 
 function bindLevels() {
