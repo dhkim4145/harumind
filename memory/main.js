@@ -69,7 +69,7 @@
   };
 
   // ============================================================
-  // [UI/Effects] - UI 공통, 설정, 효과음, 토스트, 폭죽, BGM 등
+  // [UI/Effects] - UI 공통, 효과음, 메시지 등
   // ============================================================
 
   // DOM 요소
@@ -77,55 +77,21 @@
   const msgEl = document.getElementById("msg");
   const hintEl = document.getElementById("hint");
 
-  const sfxBtn  = document.getElementById("sfxBtn");
-  const bigBtn  = document.getElementById("bigBtn");
   const homeBtn = document.getElementById("homeBtn");
-  const settingsBtn = document.getElementById("settingsBtn");
-  const settingsPanel = document.getElementById("settingsPanel");
-  const mq = window.matchMedia("(max-width: 640px)");
-
   const peekBtn = document.getElementById("peekBtn");
   const peekSel = document.getElementById("peekSec");
   const howBtn   = document.getElementById("howBtn");
   const modalBack = document.getElementById("modalBack");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const modalCard = document.getElementById("modalCard");
-  const bgm = document.getElementById("bgmAudio");
-  const bgmBtn = document.getElementById("bgmBtn");
-  const themeSelect = document.getElementById("themeSelect");
 
   // 설정 상태
-  let bigOn = HarumindStorage.getBool(C.KEYS.BIG, false);
-  let bgmOn = false;
   let currentStateMsg = { msg: "", hint: "" };
   
-  // tone 함수 통합: core.playSfx() 호출로 단순화
+  // 효과음 재생 (core 엔진 사용)
   const tone = (type = 'click') => core.playSfx(type);
 
-  // 테마 적용 함수 - core 엔진 사용
-  function applyTheme(themeKey){
-    core.applyTheme(themeKey);
-  }
-
-  // 설정 함수
-  function setBigMode(on){
-    bigOn = !!on;
-    HarumindStorage.setBool(C.KEYS.BIG, bigOn);
-    document.body.classList.toggle("bigText", bigOn);
-
-    if(bigBtn){
-      bigBtn.textContent = bigOn ? "🔠 큰 글씨" : "🔡 작은 글씨";
-      bigBtn.classList.toggle("bigOn", bigOn);
-      bigBtn.classList.toggle("bigOff", !bigOn);
-    }
-  }
-
-  // 비프음 (core 엔진 사용)
-  function playBeep(freq=880, ms=70){
-    core.playSfx('click');
-  }
-
-  // 메시지/통계
+  // 메시지 업데이트
   function setMessage(msg, hint){
     // 페이드 아웃
     if(msgEl){
@@ -148,7 +114,8 @@
     }, 200);
   }
 
-  // 모달
+
+  // 모달 (How-to 모달만 유지)
   function openModal(){
     const modalBack = document.getElementById("modalBack");
     if(modalBack) modalBack.style.display = "flex";
@@ -157,54 +124,6 @@
     const modalBack = document.getElementById("modalBack");
     if(modalBack) modalBack.style.display = "none";
   }
-
-  // 모바일에서 설정 패널 열고 닫기
-  function setMobileOpen(open){
-    if(!settingsPanel || !settingsBtn) return;
-
-    if(open){
-      settingsPanel.classList.remove("isClosed");
-      settingsBtn.classList.add("isOpen");
-      settingsBtn.setAttribute("aria-expanded","true");
-      settingsBtn.setAttribute("aria-label","설정 닫기");
-      settingsBtn.setAttribute("title","설정 닫기");
-    }else{
-      settingsPanel.classList.add("isClosed");
-      settingsBtn.classList.remove("isOpen");
-      settingsBtn.setAttribute("aria-expanded","false");
-      settingsBtn.setAttribute("aria-label","설정 열기");
-      settingsBtn.setAttribute("title","설정 열기");
-    }
-  }
-
-  function syncViewport(){
-    if(!settingsPanel) return;
-
-    if(mq.matches){
-      settingsPanel.classList.add("isClosed");
-      if(settingsBtn){
-        settingsBtn.classList.remove("isOpen");
-        settingsBtn.setAttribute("aria-expanded","false");
-        settingsBtn.setAttribute("aria-label","설정 열기");
-        settingsBtn.setAttribute("title","설정 열기");
-      }
-    }else{
-      settingsPanel.classList.remove("isClosed");
-    }
-  }
-
-  if(settingsBtn){
-    settingsBtn.addEventListener("click", function(){
-      if(!mq.matches) return;
-      const isClosed = settingsPanel.classList.contains("isClosed");
-      setMobileOpen(isClosed);
-    });
-  }
-
-  if(mq.addEventListener) mq.addEventListener("change", syncViewport);
-  else if(mq.addListener) mq.addListener(syncViewport);
-
-  syncViewport();
 
   // 잠깐보기 버튼
   function initPeekButton(){
@@ -271,170 +190,7 @@
       if(e.key === "Escape" && mBack.style.display === "flex") close();
     });
   }
-  
-  // BGM 이어듣기
-  const BGM_KEY_ON   = "harumind_bgm";
-  const BGM_KEY_TIME = "harumind_bgm_time";
 
-  // 배경음악 트랙을 랜덤으로 선택
-  function selectRandomTrack(){
-    const tracks = [
-      "./assets/audio/piano1.mp3",
-      "./assets/audio/piano2.mp3",
-      "./assets/audio/piano3.mp3",
-      "./assets/audio/acoustic1.mp3",
-      "./assets/audio/acoustic2.mp3",
-      "./assets/audio/acoustic3.mp3",
-      "./assets/audio/bgm.mp3",
-    ];
-    if(!tracks.length) return "";
-    const idx = Math.floor(Math.random() * tracks.length);
-    return tracks[idx];
-  }
-
-  // 배경음악 재생 함수
-  async function playBgm(){
-    if(!bgm) return;
-    try{
-      bgm.play().catch((e) => {
-        console.log("BGM play error:", e.message);
-      });
-    }catch(e){
-      console.log("BGM play error:", e);
-    }
-  }
-
-  // 성공 효과음
-  function playSuccessSound(){
-    core.playSfx('ding');
-  }
-
-  // 실패 효과음
-  function playFailSound(){
-    core.playSfx('error');
-  }
-
-  function initBgm(){
-    if(!bgm || !bgmBtn) return;
-
-    bgm.volume = 0.15;
-    bgm.loop = false; // 한 곡만 반복되지 않도록 false로 설정
-    bgm.muted = false;
-
-    // 기본 곡 설정 (랜덤 선택)
-    bgm.src = selectRandomTrack();
-
-    // 디폴트는 무조건 꺼짐
-    bgmOn = false;
-    bgm.pause(); // 명시적으로 일시정지하여 자동 재생 방지
-    let loadedOnce = false;
-
-    // 로컬 스토리지에서 불러오지 않고, 무조건 꺼짐 상태 유지
-    // 사용자가 버튼을 눌렀을 때만 저장됨
-
-    function restoreTimeIfAny(){
-      try{
-        const t = parseFloat(localStorage.getItem(BGM_KEY_TIME) || "0");
-        if(Number.isFinite(t) && t > 0){
-          if(bgm.readyState >= 1){
-            bgm.currentTime = Math.max(0, t);
-          }else{
-            bgm.addEventListener("loadedmetadata", () => {
-              try{ bgm.currentTime = Math.max(0, t); }catch(e){}
-            }, { once:true });
-          }
-        }
-      }catch(e){}
-    }
-
-    function setLabel(){
-      bgmBtn.innerHTML = bgmOn ? "🎵 배경" : "🔇 배경";
-      bgmBtn.style.opacity = bgmOn ? '1' : '0.6';
-    }
-
-    function saveOn(){
-      try{ localStorage.setItem(BGM_KEY_ON, bgmOn ? "1" : "0"); }catch(e){}
-    }
-
-    let timeSaveTimer = null;
-    function startTimeSaver(){
-      stopTimeSaver();
-      timeSaveTimer = setInterval(() => {
-        if(!bgmOn) return;
-        if(!bgm || bgm.paused) return;
-        try{ localStorage.setItem(BGM_KEY_TIME, String(bgm.currentTime || 0)); }catch(e){}
-      }, 1000);
-    }
-    function stopTimeSaver(){
-      if(timeSaveTimer){ clearInterval(timeSaveTimer); timeSaveTimer = null; }
-    }
-
-    async function safePlay(){
-      if(!loadedOnce){
-        try{ bgm.load(); }catch(e){}
-        loadedOnce = true;
-      }
-
-      restoreTimeIfAny();
-
-      await playBgm();
-    }
-
-    function stop(){
-      try{
-        localStorage.setItem(BGM_KEY_TIME, String(bgm.currentTime || 0));
-      }catch(e){}
-      bgm.pause();
-      stopTimeSaver();
-    }
-
-    bgmBtn.addEventListener("click", async () => {
-      if(!bgmOn){
-        bgmOn = true;
-        saveOn();
-        setLabel();
-        try{
-          await safePlay();
-          startTimeSaver();
-        }catch(e){
-          bgmOn = false;
-          saveOn();
-          setLabel();
-          console.log("BGM play error:", e);
-          alert("배경음악 재생이 막혔거나 로딩에 실패했어요.\n(휴대폰 무음/블루투스/브라우저 정책/네트워크 확인)");
-        }
-      }else{
-        bgmOn = false;
-        saveOn();
-        setLabel();
-        stop();
-      }
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if(document.hidden && bgmOn){
-        stop();
-      }
-    });
-
-    bgm.addEventListener("ended", () => {
-      if(bgmOn){
-        bgm.src = selectRandomTrack();
-        playBgm();
-      }
-    });
-
-    bgm.addEventListener("error", () => {
-      if(bgmOn){
-        bgmOn = false;
-        saveOn();
-        setLabel();
-        stopTimeSaver();
-      }
-    });
-
-    setLabel();
-  }
 
   // ============================================================
   // [Logic] - 게임 로직 (카드 생성/클릭/매칭/콤보/기록 저장)
@@ -554,12 +310,6 @@
     if(typeof autoPeekSec === "number" && autoPeekSec > 0){
       doPeek(autoPeekSec);
     }
-
-    // 랜덤 BGM 선택 및 재생
-    bgm.src = selectRandomTrack();
-    if(bgmOn){
-      playBgm();
-    }
   }
 
   // 게임 진행 중인지 확인
@@ -591,7 +341,7 @@
         matched++;
 
         // 맑은 실로폰 느낌의 성공음 재생
-        playSuccessSound();
+        core.playSfx('success');
 
         if(matched < totalPairs){
           setStateMessage("조용히 잘 이어가고 있어요", "천천히 이어가면 돼요");
@@ -605,7 +355,7 @@
         }
 
       }else{
-        playFailSound();
+        core.playSfx('click');
         setMessage("괜찮아요", "");
 
         setTimeout(()=>{
@@ -731,11 +481,6 @@
   // ============================================================
 
   dateStr = HarumindStorage.todayKey();
-
-  setBigMode(bigOn);
-  core.updateSfxUi(); // core에서 UI 동기화
-
-  if(bigBtn) bigBtn.onclick = () => setBigMode(!bigOn);
   
   // Home 버튼
   if(homeBtn) {
@@ -744,34 +489,16 @@
       window.location.href = '../index.html';
     });
   }
-  
-  // SFX/BGM 버튼은 core.js에서 자동 처리됨 (bindUI에서)
-  
-  // 테마 선택 이벤트
-  if(themeSelect){
-    themeSelect.value = core.currentTheme;
-    themeSelect.onchange = () => {
-      applyTheme(themeSelect.value);
-      core.playSfx('click');
-    };
-  }
-  
-  // 초기 테마 적용
-  applyTheme(core.currentTheme);
 
   // UI 초기화
   initPeekButton();
   initHowModal();
-  initBgm();
-
-  // 난이도 선택 UI 제거: 단일 난이도(4x3)로 자동 시작
 
   // HarumindUI export
   window.HarumindUI = {
     board,
     dateStr,
     setMessage,
-    playBeep,
     openModal,
     closeModal,
   };

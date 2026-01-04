@@ -15,7 +15,10 @@ class HaruCore {
     }
 
     bindUI() {
-        // 공통 UI 요소 연결
+        // 공통 UI 요소 연결 (설정 모달용)
+        this.bindSettingsModal();
+        
+        // 기존: 상단 바의 버튼들도 지원
         const sfxBtn = document.getElementById('sfxBtn');
         if (sfxBtn) {
             this.updateSfxUi();
@@ -32,6 +35,89 @@ class HaruCore {
         if (themeSel) {
             themeSel.value = this.currentTheme;
             themeSel.addEventListener('change', (e) => this.applyTheme(e.target.value));
+        }
+    }
+
+    bindSettingsModal() {
+        // 설정 모달 열기 버튼
+        const settingsOpenBtn = document.getElementById('settingsOpenBtn');
+        if (settingsOpenBtn) {
+            settingsOpenBtn.addEventListener('click', () => this.openSettingsModal());
+        }
+
+        // 설정 모달 닫기
+        const settingsModalBack = document.getElementById('settingsModalBack');
+        const settingsModalClose = document.getElementById('settingsModalClose');
+        
+        if (settingsModalClose) {
+            settingsModalClose.addEventListener('click', () => this.closeSettingsModal());
+        }
+        
+        if (settingsModalBack) {
+            settingsModalBack.addEventListener('click', (e) => {
+                if (e.target === settingsModalBack) this.closeSettingsModal();
+            });
+        }
+
+        // 모달 내부의 버튼들
+        const modalSfxBtn = document.getElementById('modalSfxBtn');
+        if (modalSfxBtn) {
+            this.updateModalSfxUi();
+            modalSfxBtn.addEventListener('click', () => this.toggleSfx());
+        }
+
+        const modalBgmBtn = document.getElementById('modalBgmBtn');
+        if (modalBgmBtn) {
+            this.updateModalBgmUi();
+            modalBgmBtn.addEventListener('click', () => this.toggleBgm());
+        }
+
+        const modalThemeSel = document.getElementById('modalThemeSelect');
+        if (modalThemeSel) {
+            modalThemeSel.value = this.currentTheme;
+            modalThemeSel.addEventListener('change', (e) => this.applyTheme(e.target.value));
+        }
+    }
+
+    openSettingsModal() {
+        const modal = document.getElementById('settingsModalBack');
+        if (modal) {
+            modal.classList.add('isOpen');
+            modal.style.display = 'flex';
+        }
+    }
+
+    closeSettingsModal() {
+        const modal = document.getElementById('settingsModalBack');
+        if (modal) {
+            modal.classList.remove('isOpen');
+            modal.style.display = 'none';
+        }
+    }
+
+    updateModalSfxUi() {
+        const btn = document.getElementById('modalSfxBtn');
+        if (btn) {
+            if (this.isSfxOn) {
+                btn.textContent = '🔊 효과음 : 켜기';
+                btn.classList.remove('off');
+            } else {
+                btn.textContent = '🔇 효과음 : 끄기';
+                btn.classList.add('off');
+            }
+        }
+    }
+
+    updateModalBgmUi() {
+        const btn = document.getElementById('modalBgmBtn');
+        if (btn) {
+            if (this.isBgmOn) {
+                btn.textContent = '🎵 배경음악 : 켜기';
+                btn.classList.remove('off');
+            } else {
+                btn.textContent = '🔇 배경음악 : 끄기';
+                btn.classList.add('off');
+            }
         }
     }
 
@@ -110,7 +196,7 @@ class HaruCore {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
                 // bgmAudio 태그가 없으면 동적 생성
-                this.bgmAudio = new Audio('../memory/assets/audio/piano1.mp3');
+                this.bgmAudio = new Audio('../audio/piano1.mp3');
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
             }
