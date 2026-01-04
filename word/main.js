@@ -364,11 +364,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         // 초기 테마 동기화
         core.applyTheme(core.currentTheme);
-
-        // BGM 상태 복원 후 필요 시 재생 시도
-        if(core.isBgmOn) {
-            core.ensureBgm();
-        }
+        // ✅ BGM은 core.js의 제스처 감지로 자동 재생
 
         // Init controls
         initControls();

@@ -124,7 +124,7 @@ function init() {
     document.addEventListener('DOMContentLoaded', () => {
         // 테마 반영 및 공통 바인딩
         core.applyTheme(core.currentTheme);
-        if (core.isBgmOn) core.ensureBgm();
+        // ✅ BGM은 core.js의 제스처 감지로 자동 재생
 
         updateAttendance();
         bindHeader();

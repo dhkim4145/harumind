@@ -3,9 +3,12 @@ class HaruCore {
     constructor() {
         this.audioCtx = null;
         this.bgmAudio = null;
+        this.bgmStarted = false; // 제스처 후 BGM 시작 여부 추적
+        
+        // 기본값: SFX ON, BGM OFF (사용자가 명시적으로 ON 해야함)
         this.isSfxOn = localStorage.getItem('sfxOn') !== 'false';
-        // 기본값 ON (값이 없을 땐 true, 'false'로 저장된 경우만 OFF)
-        this.isBgmOn = localStorage.getItem('bgmOn') !== 'true';
+        this.isBgmOn = localStorage.getItem('bgmOn') === 'true'; // 명시적으로 'true'일 때만 ON
+        
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.init();
     }
@@ -13,13 +16,25 @@ class HaruCore {
     init() {
         this.applyTheme(this.currentTheme);
         window.addEventListener('DOMContentLoaded', () => this.bindUI());
+        
+        // 첫 사용자 제스처 감지 (자동재생 정책 대응)
+        document.addEventListener('pointerdown', () => this.onFirstInteraction(), { once: true });
+        document.addEventListener('click', () => this.onFirstInteraction(), { once: true });
+    }
+
+    // 첫 사용자 제스처 후 BGM 재생 시도
+    onFirstInteraction() {
+        if (!this.bgmStarted && this.isBgmOn) {
+            this.ensureBgm();
+            this.bgmStarted = true;
+        }
     }
 
     bindUI() {
         // 공통 UI 요소 연결 (설정 모달용)
         this.bindSettingsModal();
         
-        // 기존: 상단 바의 버튼들도 지원
+        // 상단 바의 버튼들 (있으면 연결)
         const sfxBtn = document.getElementById('sfxBtn');
         if (sfxBtn) {
             this.updateSfxUi();
@@ -184,16 +199,16 @@ class HaruCore {
     }
 
     // 배경음 재생 (MP3 파일)
+    // ⚠️ 직접 호출하지 말 것. toggleBgm() 또는 onFirstInteraction()에서만 호출
     ensureBgm() {
         if (!this.isBgmOn) return;
 
-        // 기본 BGM 경로: /audio/bgm.mp3 (body data-bgm로 오버라이드 가능)
-        const defaultBgm = '/harumind/audio/bgm.mp3';
+        // 기본 BGM 경로
+        const defaultBgm = '/audio/bgm.mp3';
         const bodyAttr = (document.body && document.body.dataset && document.body.dataset.bgm) || '';
         const normalizeSrc = (src) => {
             if (!src) return defaultBgm;
-            if (/^https?:\/\//.test(src) || src.startsWith('/')) return src; // 이미 절대경로
-            // 상대경로면 루트 기준으로 정규화
+            if (/^https?:\/\//.test(src) || src.startsWith('/')) return src;
             return '/' + src.replace(/^\.?(\/)+/, '');
         };
         const targetSrc = normalizeSrc(bodyAttr) || defaultBgm;
@@ -202,7 +217,6 @@ class HaruCore {
         if (!this.bgmAudio) {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
-                // bgmAudio 태그가 없으면 동적 생성
                 this.bgmAudio = new Audio();
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
@@ -211,31 +225,29 @@ class HaruCore {
             }
         }
 
-        // src 설정 (빈 태그거나 다른 경로면 갱신)
-        const currentSrc = this.bgmAudio.getAttribute('src') || '';
+        // src 설정
+        const currentSrc = this.bgmAudio.src || '';
         if (!currentSrc || currentSrc !== targetSrc) {
             this.bgmAudio.src = targetSrc;
-            this.bgmAudio.load(); // 명시적으로 로드
+            this.bgmAudio.load();
         }
 
         // 재생 설정
         this.bgmAudio.loop = true;
         this.bgmAudio.volume = 0.25;
 
-        // 재생 시도 (Promise 기반)
+        // 재생 시도
         try {
             const playPromise = this.bgmAudio.play();
             if (playPromise !== undefined) {
                 playPromise
-                    .then(() => console.log('🎵 BGM 재생 중:', targetSrc))
+                    .then(() => {
+                        console.log('🎵 BGM 재생 중:', targetSrc);
+                        this.bgmStarted = true;
+                    })
                     .catch(e => {
                         console.warn('⚠️ BGM 재생 실패:', e.name, e.message);
-                        if (e.name === 'NotAllowedError') {
-                            console.log('→ 사용자 인터랙션 후 재시도 필요');
-                        }
                     });
-            } else {
-                console.log('🎵 BGM 재생 (구형 방식)');
             }
         } catch(e) {
             console.warn('⚠️ BGM play 예외:', e.message);
@@ -260,13 +272,17 @@ class HaruCore {
 
     toggleBgm() {
         this.isBgmOn = !this.isBgmOn;
-        localStorage.setItem('bgmOn', this.isBgmOn);
+        // 📌 반드시 'true' 또는 'false' 문자열로 저장 (JSON 파싱 주의)
+        localStorage.setItem('bgmOn', this.isBgmOn ? 'true' : 'false');
         this.updateBgmUi();
         this.updateModalBgmUi();
         
         if (this.isBgmOn) {
+            // BGM 켜기: 제스처 없어도 즉시 재생 시도
             this.ensureBgm();
+            this.bgmStarted = true;
         } else {
+            // BGM 끄기
             this.stopBgm();
         }
         // 토글 피드백음

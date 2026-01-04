@@ -484,11 +484,7 @@ window.addEventListener('DOMContentLoaded', function() {
   // UI 초기화
   initPeekButton();
   initHowModal();
-
-  // BGM 상태 복원 후 필요 시 재생 시도
-  if (window.core && window.core.isBgmOn) {
-    window.core.ensureBgm();
-  }
+  // ✅ BGM은 core.js의 제스처 감지로 자동 재생
 
   // HarumindUI export
   window.HarumindUI = {
