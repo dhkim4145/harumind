@@ -4,7 +4,8 @@ class HaruCore {
         this.audioCtx = null;
         this.bgmAudio = null;
         this.isSfxOn = localStorage.getItem('sfxOn') !== 'false';
-        this.isBgmOn = localStorage.getItem('bgmOn') === 'true';
+        // 기본값 ON (값이 없을 땐 true, 'false'로 저장된 경우만 OFF)
+        this.isBgmOn = localStorage.getItem('bgmOn') !== 'false';
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.init();
     }
@@ -185,33 +186,45 @@ class HaruCore {
     // 배경음 재생 (MP3 파일)
     ensureBgm() {
         if (!this.isBgmOn) return;
-        
-        // 이전 BGM이 있으면 먼저 멈추기
+
+        // 기본 BGM 경로: /harumind/audio/bgm.mp3 (body data-bgm로 오버라이드 가능)
+        const defaultBgm = '/harumind/audio/bgm.mp3';
+        const bodyAttr = (document.body && document.body.dataset && document.body.dataset.bgm) || '';
+        const normalizeSrc = (src) => {
+            if (!src) return defaultBgm;
+            if (/^https?:\/\//.test(src) || src.startsWith('/')) return src; // 이미 절대경로
+            // 상대경로면 루트 기준으로 정규화 (/audio/.. 형태)
+            return '/' + src.replace(/^\.?(\/)+/, '');
+        };
+        const targetSrc = normalizeSrc(bodyAttr) || defaultBgm;
+
+        // 이전 BGM 정지 후 재생 준비
         if (this.bgmAudio) {
             this.bgmAudio.pause();
             this.bgmAudio.currentTime = 0;
         }
-        
+
         if (!this.bgmAudio) {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
-                // bgmAudio 태그가 없으면 동적 생성 (권장하지 않음)
-                this.bgmAudio = new Audio('../audio/piano1.mp3');
+                // bgmAudio 태그가 없으면 동적 생성 (최후 수단)
+                this.bgmAudio = new Audio(targetSrc);
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
                 document.body.appendChild(this.bgmAudio);
             }
         }
-        
+
         if (this.bgmAudio) {
-            // src 확인 (상대 경로: 게임 폴더에서 부모 디렉토리 오른적)
-            const defaultSrc = '../audio/piano1.mp3';
-            if (!this.bgmAudio.src || this.bgmAudio.src.includes('assets/audio') || this.bgmAudio.src.includes('/audio')) {
-                this.bgmAudio.src = defaultSrc;
+            // 필요 시 src를 갱신 (HTML에 하드코딩된 경로를 덮어씀)
+            const currentAttr = this.bgmAudio.getAttribute('src');
+            if (currentAttr !== targetSrc) {
+                this.bgmAudio.setAttribute('src', targetSrc);
             }
+            this.bgmAudio.loop = true;
             this.bgmAudio.volume = 0.25;
             this.bgmAudio.currentTime = 0;
-            
+
             // 재생 시도 (Promise 기반)
             try {
                 const playPromise = this.bgmAudio.play();
@@ -220,14 +233,12 @@ class HaruCore {
                         .then(() => console.log('🎵 BGM 재생 중'))
                         .catch(e => {
                             console.warn('⚠️ BGM 재생 실패:', e.name, e.message);
-                            // 권한 문제 시 음소거 자동 재생 시도
                             if (e.name === 'NotAllowedError') {
                                 this.bgmAudio.muted = true;
                                 this.bgmAudio.play().catch(e2 => console.warn('음소거 재생도 실패'));
                             }
                         });
                 } else {
-                    // 구형 브라우저 (Promise 미반환)
                     console.log('🎵 BGM 재생 (구형 방식)');
                 }
             } catch(e) {
