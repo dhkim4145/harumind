@@ -881,6 +881,11 @@ body.peeking .tile{
   </header>
 
 <div class="wrap">
+  <div style="margin: 20px auto; max-width: 420px; text-align: center;">
+    <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
+    <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
+  </div>
+
   <div id="gameBoard" class="game-board-wrapper">
     <div class="board" id="board"></div>
   </div>
@@ -967,6 +972,23 @@ window.addEventListener('DOMContentLoaded', function() {
   if (!window.core && typeof HaruCore === 'function') {
     window.core = new HaruCore();
   }
+
+  // 시간대별 문구 적용
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  const copies = [
+    { line1: '천천히 찾아도 괜찮아요', line2: '한 번만 맞춰도 충분해요' },
+    { line1: '눈이 편한 속도로 해요', line2: '서두르지 않아도 돼요' },
+    { line1: '오늘은 가볍게 시작해요', line2: '천천히 이어가도 좋아요' }
+  ];
+
+  const copy = pick(copies);
+  const line1El = document.getElementById('greetLine1');
+  const line2El = document.getElementById('greetLine2');
+  if (line1El) line1El.textContent = copy.line1;
+  if (line2El) line2El.textContent = copy.line2;
 });
 </script>
 

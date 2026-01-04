@@ -439,6 +439,11 @@
 
     <audio id="bgmAudio" preload="auto" loop src="../audio/piano1.mp3"></audio>
 
+    <div style="margin: 20px auto; max-width: 420px; text-align: center; padding: 0 20px;">
+        <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
+        <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
+    </div>
+
     <div class="game-container">
         <div id="hint" class="hint-text">게임을 불러오는 중...</div>
         <div class="answer-area" id="answer-area"></div>
@@ -497,8 +502,26 @@
 
     <footer class="brand-footer">하루마음 · harumind.kr</footer>
 
-    <script src="../core.js"></script>
-    <script src="data.js"></script>
+    <script src="../core.js"></script>    <script>
+        // 시간대별 문구 적용
+        function pick(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        const copies = [
+            { line1: '마음에 드는 단어부터 골라요', line2: '틀려도 괜찮아요, 다시 하면 돼요' },
+            { line1: '조용히 이어가도 좋아요', line2: '가볍게 조합해볼까요' },
+            { line1: '오늘은 한 단어만으로도 좋아요', line2: '천천히 만들어봐요' }
+        ];
+
+        const copy = pick(copies);
+        document.addEventListener('DOMContentLoaded', function() {
+            const line1El = document.getElementById('greetLine1');
+            const line2El = document.getElementById('greetLine2');
+            if (line1El) line1El.textContent = copy.line1;
+            if (line2El) line2El.textContent = copy.line2;
+        });
+    </script>    <script src="data.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

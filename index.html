@@ -231,9 +231,9 @@
   </header>
 
   <main class="card">
-    <div class="hero-title">
-      반가워요!<br/>
-      오늘은 <span class="highlight">어떤 놀이</span>를 해볼까요?
+    <div style="margin-bottom: 28px;">
+      <div id="greetLine1" style="font-size: 22px; font-weight: 800; line-height: 1.4; margin-bottom: 8px;"></div>
+      <div id="greetLine2" style="font-size: 16px; color: var(--muted); line-height: 1.5;"></div>
     </div>
 
     <div class="game-list">
@@ -261,43 +261,10 @@
         <span class="start-badge">시작</span>
       </a>
     </div>
-
-    <!-- 출석 현황 -->
-    <div class="status-card collapsed">
-      <div class="status-title" onclick="document.querySelector('.status-card').classList.toggle('collapsed')">
-        ✅ 오늘 완료: <span class="status-count" id="statusCount">0/3</span>
-        <span class="status-toggle"></span>
-      </div>
-      <div class="status-list" id="statusList">
-        <div class="status-item">
-          <span>🧩 같은 그림 찾기</span>
-          <span class="status-badge pending">미완료</span>
-        </div>
-        <div class="status-item">
-          <span>✍️ 단어 조합하기</span>
-          <span class="status-badge pending">미완료</span>
-        </div>
-        <div class="status-item">
-          <span>🔢 숫자 순서터치</span>
-          <span class="status-badge pending">미완료</span>
-        </div>
-      </div>
-      <div class="status-meta" aria-live="polite">
-        <div class="weekly-chip">📅 이번 주 <span><span id="weeklyDays">0</span>/7일</span></div>
-        <div class="weekly-note" id="weeklyNote">이번 주도 함께 걸어요</div>
-      </div>
-    </div>
-
-    <!-- 추천 게임 -->
-    <div class="recommend-card" id="recommendCard" style="display: none;">
-      <div class="recommend-title">💡 이 게임은 어떠세요?</div>
-      <div class="recommend-game" id="recommendGame">-</div>
-    </div>
   </main>
 
   <div class="footer-note">
-    <p style="font-size: 13px; color: var(--muted);">
-      🚀 로그인 없이, 광고 없이 지금 바로 시작해보세요
+    <p id="footerLine" style="font-size: 14px; color: var(--muted); line-height: 1.6;">
     </p>
   </div>
 
@@ -309,64 +276,64 @@
 
 <script src="core.js"></script>
 <script>
-  function updateAttendanceStatus() {
-    const memoryDone = core.getGameAttendance('memory');
-    const wordDone = core.getGameAttendance('wordfrag');
-    const sequenceDone = core.getGameAttendance('sequence');
-    
-    const count = core.getTodayGameCount();
-    const total = core.getTotalGameCount();
-    
-    document.getElementById('statusCount').textContent = `${count}/${total}`;
-    
-    const statusItems = document.querySelectorAll('.status-item');
-    const statuses = [memoryDone, wordDone, sequenceDone];
-    
-    statusItems.forEach((item, idx) => {
-      const badge = item.querySelector('.status-badge');
-      if (statuses[idx]) {
-        badge.textContent = '✅ 완료';
-        badge.classList.remove('pending');
-        badge.classList.add('done');
-      } else {
-        badge.textContent = '미완료';
-        badge.classList.remove('done');
-        badge.classList.add('pending');
-      }
-    });
-    const weekly = core.getWeeklyVisitCount ? core.getWeeklyVisitCount() : 0;
-    const weeklyEl = document.getElementById('weeklyDays');
-    const weeklyNote = document.getElementById('weeklyNote');
-    if (weeklyEl) weeklyEl.textContent = weekly;
-    if (weeklyNote) {
-      if (weekly >= 6) weeklyNote.textContent = '거의 매일 함께했어요 ✨';
-      else if (weekly >= 4) weeklyNote.textContent = '꾸준함이 쌓이고 있어요 👍';
-      else if (weekly >= 2) weeklyNote.textContent = '좋은 시작! 조금씩 이어가볼까요?';
-      else weeklyNote.textContent = '오늘 한 번이 큰 시작이에요 💡';
-    }
-    
-    showRecommendation();
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
   }
-  
-  function showRecommendation() {
-    const count = core.getTodayGameCount();
-    const total = core.getTotalGameCount();
-    
-    if (count < total) {
-      const leastPlayed = core.getLeastPlayedGame();
-      const recommendCard = document.getElementById('recommendCard');
-      const recommendGame = document.getElementById('recommendGame');
-      
-      recommendGame.textContent = `${leastPlayed.emoji} ${leastPlayed.name}`;
-      recommendCard.style.display = 'block';
-      recommendCard.onclick = () => window.location.href = leastPlayed.path;
-      recommendCard.style.cursor = 'pointer';
-    }
+
+  function getTimeBucket(hour) {
+    if (hour >= 5 && hour <= 10) return 'morning';
+    if (hour >= 11 && hour <= 16) return 'day';
+    if (hour >= 17 && hour <= 20) return 'evening';
+    return 'night';
   }
-  
-  // 페이지 로드 시 및 5초마다 업데이트
-  updateAttendanceStatus();
-  setInterval(updateAttendanceStatus, 5000);
+
+  function getCopySet() {
+    const hour = new Date().getHours();
+    const bucket = getTimeBucket(hour);
+    
+    const copies = {
+      morning: [
+        { line1: '오늘도 여기까지 와줘서 고마워요', line2: '천천히 시작해볼까요' },
+        { line1: '가볍게 시작해도 괜찮아요', line2: '오늘은 한 번만 해도 충분해요' },
+        { line1: '마음이 깨어나는 시간이에요', line2: '부담 없이 하나만 골라봐요' }
+      ],
+      day: [
+        { line1: '잠시 숨 고르고 가도 괜찮아요', line2: '지금 이 정도면 충분해요' },
+        { line1: '바쁜 하루 중 잠깐의 쉼표예요', line2: '천천히 이어가볼까요' },
+        { line1: '서두르지 않아도 돼요', line2: '작은 리듬만 만들어봐요' }
+      ],
+      evening: [
+        { line1: '오늘 하루 수고 많았어요', line2: '편하게 하나만 해봐요' },
+        { line1: '마음도 두뇌도 쉬어가야 해요', line2: '무리하지 말고 천천히요' },
+        { line1: '여기까지 온 것만으로도 좋아요', line2: '오늘은 부드럽게 마무리해요' }
+      ],
+      night: [
+        { line1: '오늘도 잘 버텼어요', line2: '조용히 하나만 해도 돼요' },
+        { line1: '잘하려고 하지 않아도 괜찮아요', line2: '마음이 편한 걸로 골라봐요' },
+        { line1: '오늘은 이 정도면 충분해요', line2: '내일의 나에게 맡겨도 돼요' }
+      ]
+    };
+
+    const footers = [
+      '로그인 없이, 광고 없이 — 필요할 때만 들러도 괜찮아요',
+      '천천히, 편하게 — 오늘은 이 정도면 충분해요',
+      '잘하려고 말고, 그냥 해도 괜찮아요'
+    ];
+
+    return {
+      ...pick(copies[bucket]),
+      footer: pick(footers)
+    };
+  }
+
+  function applyTimeCopy() {
+    const copy = getCopySet();
+    document.getElementById('greetLine1').textContent = copy.line1;
+    document.getElementById('greetLine2').textContent = copy.line2;
+    document.getElementById('footerLine').textContent = copy.footer;
+  }
+
+  applyTimeCopy();
 </script>
 
 </body>
