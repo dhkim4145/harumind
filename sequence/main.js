@@ -203,7 +203,6 @@ function startGame(levelKey = 'easy') {
     // Start timer after a small delay for visual effect
     setTimeout(() => startTimer(), 400);
 
-    if (core.isBgmOn) core.ensureBgm();
 }
 
 function initCenterEmoji(levelKey) {
