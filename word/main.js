@@ -11,9 +11,11 @@
 
     // State
     let currentWord = "";
+    let currentWordData = null;
     let shuffledChars = [];
     let userSelection = [];
     let attemptsForCurrentWord = 1;
+    let modalAutoCloseTimer = null;
 
     const DAILY_STATS_PREFIX = 'harumind_wordfrag_stats_';
 
@@ -68,31 +70,6 @@
 
 
     // ============================================================
-    // [Confetti - Enhanced]
-    // ============================================================
-    function launchConfetti() {
-        if(typeof confetti === 'undefined') return;
-        
-        const count = 150;
-        const defaults = {
-            origin: { y: 0.6 },
-            zIndex: 200
-        };
-
-        function fire(particleRatio, opts) {
-            confetti(Object.assign({}, defaults, opts, {
-                particleCount: Math.floor(count * particleRatio)
-            }));
-        }
-
-        fire(0.25, { spread: 26, startVelocity: 55 });
-        fire(0.2, { spread: 60 });
-        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-        fire(0.1, { spread: 120, startVelocity: 45 });
-    }
-
-    // ============================================================
     // [Attendance System]
     // ============================================================
     function getTodayKey() {
@@ -142,6 +119,7 @@
 
         const randomItem = WORD_DATABASE[Math.floor(Math.random() * WORD_DATABASE.length)];
         currentWord = randomItem.word;
+        currentWordData = randomItem;
         document.getElementById('hint').innerText = randomItem.hint;
         attemptsForCurrentWord = 1;
         
@@ -188,41 +166,34 @@
 
         if (userSelection.length === currentWord.length) {
             if (userSelection.join('') === currentWord) {
-                // 정답! 아르페지오 효과음
-                core.playSfx('success');
-                
-                launchConfetti();
-                pulseAnswerArea('sparkle', 800);
-                
+                // 정답!
                 const todayKey = getTodayKeySafe();
                 const stats = loadDailyStats(todayKey);
                 const attemptsTotal = stats.attempts + attemptsForCurrentWord;
                 const clears = stats.clears + 1;
                 saveDailyStats(todayKey, { clears, attempts: attemptsTotal });
 
-                const avgAttempts = clears > 0 ? (attemptsTotal / clears).toFixed(1) : '0.0';
-                const challengeHit = clears >= 3 && avgAttempts <= 2;
-
                 setTimeout(() => {
                     document.getElementById('modal-word-display').innerText = currentWord;
-                    const todayEl = document.getElementById('modal-today-count');
-                    const avgEl = document.getElementById('modal-avg-attempts');
                     const feedbackEl = document.getElementById('modal-feedback');
-                    const emojiEl = document.querySelector('.modal-emoji');
-                    if (todayEl) todayEl.innerText = `${clears}개`;
-                    if (avgEl) avgEl.innerText = `${avgAttempts}회`;
-                    if (feedbackEl) {
-                        if (challengeHit) {
-                            // 챌린지 달성: ✅로 명확히 구분
-                            feedbackEl.innerText = `✅ 오늘의 챌린지 달성! (${clears}개 완성)`;
-                        } else if (attemptsForCurrentWord === 1) feedbackEl.innerText = '멋져요! 단어 감각이 좋으시네요!';
-                        else if (attemptsForCurrentWord === 2) feedbackEl.innerText = '좋아요! 한 번 더 집중해서 완성했어요.';
-                        else feedbackEl.innerText = '꾸준한 집중이 빛났어요. 계속 가볼까요?';
+                    const emojiEl = document.getElementById('modal-emoji-display');
+                    if (emojiEl && currentWordData?.emoji) {
+                        emojiEl.textContent = currentWordData.emoji;
                     }
-                    if (emojiEl && challengeHit) {
-                        emojiEl.textContent = '✅';
+                    if (feedbackEl && currentWordData?.meaning) {
+                        feedbackEl.innerText = currentWordData.meaning;
+                        // meaning 카드 페이드인 트리거
+                        feedbackEl.classList.remove('reveal');
+                        void feedbackEl.offsetWidth;
+                        feedbackEl.classList.add('reveal');
                     }
                     document.getElementById('modal').style.display = 'flex';
+                    
+                    // 2초 후 자동 닫힘
+                    if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
+                    modalAutoCloseTimer = setTimeout(() => {
+                        autoCloseModal();
+                    }, 2000);
                 }, 500);
             } else {
                 // 틀림
@@ -243,6 +214,12 @@
     }
 
     function closeModal() {
+        if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
+        document.getElementById('modal').style.display = 'none';
+        nextLevel();
+    }
+
+    function autoCloseModal() {
         document.getElementById('modal').style.display = 'none';
         nextLevel();
     }
