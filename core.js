@@ -5,7 +5,7 @@ class HaruCore {
         this.bgmAudio = null;
         this.isSfxOn = localStorage.getItem('sfxOn') !== 'false';
         // 기본값 ON (값이 없을 땐 true, 'false'로 저장된 경우만 OFF)
-        this.isBgmOn = localStorage.getItem('bgmOn') !== 'false';
+        this.isBgmOn = localStorage.getItem('bgmOn') !== 'true';
         this.currentTheme = localStorage.getItem('theme') || 'dark';
         this.init();
     }
