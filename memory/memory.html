@@ -25,169 +25,75 @@
 <meta property="og:image" content="https://harumind.kr/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="🧩 소중한 친구들 찾기" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:image" content="https://harumind.kr/og.png" />
-<meta name="twitter:title" content="🧩 소중한 친구들 찾기 | 하루마음" />
-<meta name="twitter:description" content="강아지부터 나비까지, 우리 곁의 소중한 친구들과 함께하는 따뜻한 두뇌 놀이" />
-
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-JX8PENN22H');
-</script>
-
 <style>
-:root{
-  --bg:#0b1020;
-  --text:#e8ecff;
-  --muted:#b9c2ff;
-  --accent:#6ee7b7;
-  --shadow:0 10px 25px rgba(0,0,0,.35);
-  --radius:18px;
-
-  --fs-base:16px;
-  --fs-title:20px; 
-  --fs-msg:18px;
-  --fs-hint:14px;
-  --fs-pill:14px;
-
-  --tile-h:90px;
-  --tile-fs:42px;
-  --gap:12px;
+:root {
+    --bg: #0b1020;
+    --card-bg: rgba(255,255,255,.06);
+    --card-border: rgba(255,255,255,.08);
+    --text: #e8ecff;
+    --muted: #b9c2ff;
+    --accent: #6ee7b7;
+    --radius: 20px;
 }
 
-*{box-sizing:border-box;}
-html, body { 
-  overflow-x:hidden; 
-  overscroll-behavior-y: none;
-  scrollbar-gutter: stable;
-  min-height: 100%;
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+    transition: background 1.5s ease;
 }
 
-body{
-  margin: 0;
-  padding: 20px;
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;
-  color:var(--text);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  width: 100%;
-  font-size:var(--fs-base);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  transition: background 1.5s ease;
-}
-
-body.bigText{
-  --fs-base:18px;
-  --fs-title:24px;
-  --fs-msg:22px;
-  --fs-hint:16px;
-  --fs-pill:16px;
-  --tile-h:104px;
-  --tile-fs:52px;
-  --gap:14px;
-}
-body.bigText #msg{
-  min-height:72px;
-  max-height:72px;
-}
-body.bigText #hint{
-  min-height:32px;
-  max-height:32px;
-}
-
-.wrap{
-  width: 100%;
-  max-width: 500px;
-  box-sizing: border-box;
-  margin: 0 auto;
-  display:flex;
-  flex-direction:column;
-  align-items: stretch;
-  gap:10px;
-  overflow:hidden;
-  contain: layout style;
-  will-change: contents;
-  padding-bottom: 20px;
-}
-
-header {
-  width: 100%;
-  max-width: 500px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.card{
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--card-bg, rgba(255,255,255,.06));
-  border:1px solid var(--card-border, rgba(255,255,255,.08));
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  padding:14px;
-  min-width:0;
-  overflow-x:visible;
-  contain: layout style;
-  backdrop-filter: blur(10px);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-.brand-footer { 
-  margin-top: 20px; 
-  padding: 20px; 
-  text-align: center; 
-  font-size: 0.8rem; 
-  opacity: 0.5; 
-  pointer-events: none;
-  user-select: none;
-}
-
-.footer-card{
-  margin-top:-4px;
-}
-
-/* ===== 상단(추천 구조) ===== */
-.titleRow{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-}
-.title{
-  font-size: 1.2rem;
-  font-weight: 900;
-  animation: titleFadeIn 0.6s ease-out;
-}
-
-@keyframes titleFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 .sub{
   font-size:13px;
   color:var(--muted);
   margin-top:8px;
   opacity:.95;
   line-height:1.35;
+}
+
+header { 
+    text-align: center; 
+    margin-bottom: 10px; 
+    width: 100%;
+    max-width: 500px;
+}
+.brand { 
+    font-size: 1.2rem; 
+    font-weight: 900; 
+    color: var(--text); 
+    opacity: 0.95;
+    animation: titleFadeIn 0.6s ease-out;
+}
+
+@keyframes titleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.attendance-line {
+    font-size: 11px;
+    color: var(--accent);
+    opacity: 0.9;
+    margin-bottom: 4px;
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+    padding: 0 2px;
 }
 
 /* ===== Settings Bar (통일된 스타일) ===== */
@@ -261,18 +167,6 @@ header {
         font-size: 11px;
         max-width: 80px;
     }
-}
-
-/* ===== Attendance Line ===== */
-.attendance-line {
-    font-size: 11px;
-    color: var(--accent);
-    opacity: 0.9;
-    margin-bottom: 4px;
-    width: 100%;
-    max-width: 500px;
-    text-align: left;
-    padding: 0 2px;
 }
 
 /* ===== Controls Top (힌트, 난이도) ===== */
@@ -440,156 +334,6 @@ button.primary{
 }
 
 /* ✅ 메시지 카드 아래에 '맞춘 개수 / 지금 점수'만 */
-.statsArea{
-  margin-top:6px;
-  transition: all 0.3s ease;
-  contain: layout style;
-  flex-shrink:0;
-}
-
-/* 게임 완료 시 점수판 스타일 */
-.statsArea.isComplete .pill{
-  background: rgba(110,231,183,.15);
-  border-color: rgba(110,231,183,.5);
-  animation: statsCompletePulse 1.5s ease;
-}
-
-.statsArea.isComplete .pill.live::before{
-  opacity: 0.6;
-  animation: liveSpinOnce 0.6s linear infinite;
-}
-
-@keyframes statsCompletePulse{
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
-/* ===== 상태(맞춘 개수 / 지금 점수) ===== */
-.stats{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap:10px;
-  margin-top:0px;
-  contain: layout style;
-}
-
-.pill{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:999px;
-  padding:6px 12px;
-  font-size:var(--fs-pill);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  min-width:0;
-  position:relative;
-  flex-wrap:wrap;
-  box-shadow:0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
-  backdrop-filter:blur(8px);
-  contain: layout style;
-  transition: box-shadow 0.5s ease;
-}
-
-.pill.perfect{
-  box-shadow: 0 4px 20px rgba(227, 242, 253, 0.4), 0 2px 10px rgba(227, 242, 253, 0.3), 0 0 0 2px rgba(227, 242, 253, 0.2), 0 4px 12px rgba(138, 43, 226, 0.15), 0 2px 6px rgba(138, 43, 226, 0.1);
-}
-
-.pill > span:first-child{
-  white-space:nowrap;
-  flex-shrink:0;
-  margin-right: 4px;
-  display: inline-block;
-  line-height: 1;
-}
-
-.pill > span:first-child::first-letter{
-  display: inline-block;
-  animation: emojiBreathing 4.5s ease-in-out infinite;
-}
-
-@keyframes emojiBreathing{
-  0%, 100%{ transform: scale(1); }
-  50%{ transform: scale(1.08); }
-}
-
-.pill b{
-  white-space:nowrap;
-  font-weight:700;
-  flex-shrink:0;
-  transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display:inline-block;
-  font-variant-numeric: tabular-nums; /* 숫자 폭 고정으로 박스 크기 변화 방지 */
-}
-.pill b.numberPop{
-  animation: numberPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes numberPop{
-  0%{ transform: scale(1); }
-  50%{ transform: scale(1.3); }
-  100%{ transform: scale(1); }
-}
-
-.pill .totalPairs{
-  color:var(--muted);
-  font-size:0.9em;
-  opacity:0.8;
-  white-space:nowrap;
-  flex-shrink:0;
-}
-
-.pill .scoreHint{
-  color:var(--muted);
-  font-size:0.75em;
-  opacity:0.7;
-  white-space:nowrap;
-  flex-shrink:0;
-}
-
-/* =========================
-   LIVE PILL (살아있는 테두리)
-   - '맞춘 개수' / '지금 점수' 2개만 적용
-   - ✅ 평소엔 정지, 값 변경 시만 1~2초 회전(1회)
-   ========================= */
-.pill.live{
-  position:relative;
-  overflow:hidden;
-  background: rgba(110,231,183,.10);
-  border: 1px solid rgba(110,231,183,.35);
-}
-
-/* 회전 링 레이어: 기본은 숨김(정지 상태) */
-.pill.live::before{
-  content:"";
-  position:absolute;
-  inset:-2px;
-  border-radius:999px;
-  background: conic-gradient(
-    from 0deg,
-    rgba(110,231,183,0.0),
-    rgba(110,231,183,0.55),
-    rgba(110,231,183,0.0)
-  );
-  opacity:0;
-  z-index:0;
-}
-
-/* ✅ 값이 바뀔 때 ui.js가 .spin을 잠깐 붙여서 1회 회전 */
-.pill.live.spin::before{
-  opacity:1;
-  animation: liveSpinOnce 0.6s linear;
-}
-
-.pill.live > *{
-  position:relative;
-  z-index:1;
-}
-
-@keyframes liveSpinOnce{
-  from{ transform: rotate(0deg); }
-  to  { transform: rotate(360deg); }
-}
 
 /* 메시지 */
 .messageCard{ 
@@ -681,7 +425,8 @@ button.primary{
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:var(--tile-fs);
+  font-size:2.2rem;
+  font-weight:900;
   cursor:pointer;
   user-select:none;
   position:relative;
@@ -827,125 +572,38 @@ button.primary{
   pointer-events:auto;
 }
 #resultModalCard{
-  width:min(520px, 100%);
+  width:min(420px, 100%);
   background:#141b3f;
   border:1px solid rgba(255,255,255,.10);
-  border-radius:22px;
-  box-shadow:0 18px 48px rgba(0,0,0,.55);
-  padding:24px 20px 20px;
-}
-.resultModalTitle{
-  font-weight:900;
-  font-size:24px;
-  text-align:center;
-  margin-bottom:20px;
-  color:var(--text);
-}
-.resultModalBody{
-  margin-top:10px;
-}
-.resultStats{
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap:12px;
-  margin-bottom:20px;
-}
-.resultStatItem{
+  border-radius:20px;
+  box-shadow:0 18px 48px rgba(0,0,0,.45);
+  padding:24px 20px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:6px;
-  padding:12px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;
-  position:relative;
+  gap:12px;
+  text-align:center;
 }
-.resultStatLabel{
-  font-size:12px;
-  color:var(--muted);
-  font-weight:600;
-}
-.resultStatValue{
-  font-size:20px;
-  font-weight:900;
-  color:var(--text);
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-.resultRecordBadge{
-  font-size:11px;
-  font-weight:800;
-  color:#fde68a;
-  background:rgba(253,230,138,.15);
-  border:1px solid rgba(253,230,138,.4);
-  border-radius:8px;
-  padding:4px 8px;
-  white-space:nowrap;
-  animation: recordGlow 2s ease-in-out infinite;
-  box-shadow:0 0 12px rgba(253,230,138,.3), 0 0 24px rgba(253,230,138,.15);
-}
-@keyframes recordGlow{
-  0%, 100%{
-    box-shadow:0 0 12px rgba(253,230,138,.3), 0 0 24px rgba(253,230,138,.15);
-    transform:scale(1);
-  }
-  50%{
-    box-shadow:0 0 20px rgba(253,230,138,.5), 0 0 40px rgba(253,230,138,.3);
-    transform:scale(1.05);
-  }
+.resultEmoji{
+  font-size:48px;
+  margin-bottom:4px;
 }
 .resultMessage{
-  text-align:center;
   font-size:16px;
   color:var(--muted);
-  line-height:1.6;
-  margin-top:16px;
-  padding:12px;
-  background:rgba(110,231,183,.08);
-  border:1px solid rgba(110,231,183,.2);
-  border-radius:12px;
+  line-height:1.5;
 }
-.resultModalActions{
-  margin-top:20px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  align-items:center;
-}
-.resultShareBtn,
 .resultRestartBtn{
-  font-size:18px;
+  font-size:16px;
   font-weight:800;
-  border-radius:999px;
+  border-radius:12px;
   color:var(--text);
-  padding:14px 28px;
+  padding:12px 20px;
   cursor:pointer;
-  min-width:200px;
-  transition: all 0.2s ease;
-  border:none;
-}
-.resultShareBtn{
-  border:1px solid rgba(253,230,138,.45);
-  background:rgba(253,230,138,.18);
-}
-.resultShareBtn:hover{
-  background:rgba(253,230,138,.25);
-  transform: scale(1.02);
-}
-.resultShareBtn:active{
-  transform: scale(0.98);
-}
-.resultRestartBtn{
+  min-width:180px;
+  transition: all 0.15s ease;
   border:1px solid rgba(110,231,183,.45);
   background:rgba(110,231,183,.18);
-}
-.resultRestartBtn:hover{
-  background:rgba(110,231,183,.25);
-  transform: scale(1.02);
 }
 .resultRestartBtn:active{
   transform: scale(0.98);
@@ -971,95 +629,9 @@ body.peeking .tile{
   background: rgba(255,255,255,.02);
 }
 
-/* ✅ 완료 바(작게) */
-.hmFinishBar{
-  margin-top: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.05);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.hmFinishBar .txt{
-  font-weight: 800;
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-.hmFinishBar .sub{
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
-.hmFinishBar .btn{
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.16);
-  color: var(--text);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-/* ✅ 완료 바 텍스트 영역 */
-.hmFinishText{
-  flex: 1;
-  min-width: 0; /* 텍스트 줄바꿈 허용 */
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.hmFinishTitle{
-  font-weight: 800;
-  font-size: 14px;
-  line-height: 1.4;
-  word-wrap: break-word;
-  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
-}
-
-.hmFinishSub{
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.4;
-  word-wrap: break-word;
-  word-break: keep-all; /* 한글 줄바꿈 자연스럽게 */
-}
-
-.hmFinishBtn{
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.16);
-  color: var(--text);
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0; /* 버튼 크기 고정 */
-}
 
 /* 모바일에서 pill 레이아웃 개선 및 여백 조정 */
 @media (max-width: 520px){
-  .pill{
-    padding:6px 10px;
-    gap:6px;
-    font-size:calc(var(--fs-pill) * 0.95);
-  }
-  
-  .pill > span:first-child{
-    font-size:0.9em;
-  }
-  
-  .pill .totalPairs{
-    font-size:0.85em;
-  }
-  
   /* 모바일 여백 미세 조정 */
   .wrap{
     gap:16px; /* 14px → 16px (+2px) */
@@ -1126,29 +698,6 @@ body.peeking .tile{
     }
   }
   
-  .hmFinishBar{
-    flex-direction: column; /* 세로 배치로 변경 */
-    align-items: stretch; /* 전체 너비 사용 */
-    margin-top:14px; /* 10px → 14px (+4px) */
-    padding:14px 16px; /* 10px 12px → 14px 16px (+4px) */
-    gap:12px; /* 텍스트와 버튼 사이 간격 (10px → 12px) */
-  }
-  
-  .hmFinishText{
-    width: 100%; /* 모바일에서 텍스트 영역 전체 너비 */
-    gap:6px; /* 4px → 6px (+2px) */
-  }
-  
-  .hmFinishSub{
-    margin-top:4px; /* 2px → 4px (+2px) */
-  }
-  
-  .hmFinishBtn{
-    width: 100%; /* 모바일에서 버튼 전체 너비 */
-    display: flex;
-    justify-content: center; /* 버튼 텍스트 중앙 정렬 */
-    align-items: center;
-  }
 }
 
 /* PC 환경에서 조작부 크기 확대 */
@@ -1188,14 +737,22 @@ body.peeking .tile{
     font-size: 1rem;
   }
 }
+
+.brand-footer { 
+    margin-top: 20px; 
+    padding: 20px; 
+    text-align: center; 
+    font-size: 0.8rem; 
+    opacity: 0.5; 
+    pointer-events: none;
+    user-select: none;
+}
 </style>
 </head>
 <body>
   <header>
     <div class="attendance-line" id="attendanceInline">🔥 0일째</div>
-    <div class="titleRow">
-      <div class="title">🧩 하루마음 : 같은 그림 찾기</div>
-    </div>
+    <div class="brand">🧩 하루마음 : 같은 그림 찾기</div>
     
     <div class="settings-bar">
       <button id="homeBtn" title="홈">🏠 홈</button>
@@ -1210,6 +767,7 @@ body.peeking .tile{
       </div>
     </div>
   </header>
+  </header>
 
 <div class="wrap">
   <div id="gameBoard" class="game-board-wrapper">
@@ -1219,29 +777,14 @@ body.peeking .tile{
   <div class="card messageCard">
     <div id="msg">소중한 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨</div>
     <div id="hint">천천히 마음을 모아 찾아보세요</div>
-
-    <div class="statsArea">
-      <div class="stats">
-        <div class="pill live"><span>찾은 짝 🤝</span> <b id="matched">0</b><span id="totalPairs" class="totalPairs"></span></div>
-        <div class="pill live"><span>마음 따뜻함 ❤️</span> <b id="score">0</b><span id="scoreHint" class="scoreHint"></span></div>
-      </div>
-    </div>
   </div>
 
   <div class="card">
-    <div class="controls-top difficulty-selector">
-      <button class="difficulty-btn" data-level="3x2">쉬움 (3쌍)</button>
-      <button class="difficulty-btn" data-level="4x3">보통 (6쌍)</button>
-      <button class="difficulty-btn" data-level="4x4">어려움 (8쌍)</button>
-    </div>
-
     <button id="peekBtn" style="display:none; width: 100%; height: 44px; margin-top: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s ease;">💡 잠깐 도움받기</button>
 
     <select id="peekSec" style="display:none">
       <option value="4">4</option>
     </select>
-
-    <div style="display:none"><span id="todayKey"></span></div>
   </div>
 
 </div>
@@ -1265,28 +808,9 @@ body.peeking .tile{
 
 <div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
   <div id="resultModalCard">
-    <div class="resultModalTitle" id="resultModalTitle">🎉 완료!</div>
-    <div class="resultModalBody" id="resultModalBody">
-      <div class="resultStats">
-        <div class="resultStatItem">
-          <span class="resultStatLabel">소요 시간</span>
-          <span class="resultStatValue" id="resultTime">0초</span>
-        </div>
-        <div class="resultStatItem">
-          <span class="resultStatLabel">최고 콤보</span>
-          <span class="resultStatValue" id="resultCombo">0</span>
-        </div>
-        <div class="resultStatItem">
-          <span class="resultStatLabel">마음 따뜻함</span>
-          <span class="resultStatValue" id="resultScore">0</span>
-        </div>
-      </div>
-      <div class="resultMessage" id="resultMessage">정말 잘하셨어요! 🎊</div>
-    </div>
-    <div class="resultModalActions">
-      <button id="resultShareBtn" type="button" class="resultShareBtn">오늘의 기록 공유하기 💌</button>
-      <button id="resultRestartBtn" type="button" class="resultRestartBtn">🔁 다시 하기</button>
-    </div>
+    <div class="resultEmoji" id="resultEmoji">🌿</div>
+    <div class="resultMessage" id="resultMessage">차분하게 마무리했어요.</div>
+    <button id="resultRestartBtn" type="button" class="resultRestartBtn">다시 이어가기</button>
   </div>
 </div>
 
