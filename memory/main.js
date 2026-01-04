@@ -296,12 +296,7 @@ window.addEventListener('DOMContentLoaded', function() {
       }, index * 10); // 10ms씩 간격을 두어 자연스럽게
     });
 
-    // 게임 보드 위치로 부드럽게 스크롤
-    if(board){
-      setTimeout(() => {
-        board.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
+    // 게임 보드 위치로 스크롤 (제거됨 - 시니어 친화적)
 
     // 게임 진행 중 힌트 버튼 표시
     if(peekBtn){
@@ -431,11 +426,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
     lock = true; // 힌트 중에는 다른 카드 클릭 막기
     clearPeekTimer();
-
-    // 게임 보드 위치로 스크롤
-    if(board){
-      board.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
 
     if(board){
       // 1단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기

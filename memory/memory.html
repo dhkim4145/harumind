@@ -452,7 +452,7 @@ button.primary{
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
-  transition: transform 0.15s ease-out;
+  transition: transform 0.3s ease-out;
 }
 
 /* 클릭 시 눌리는 느낌 */
@@ -479,7 +479,7 @@ button.primary{
 .tile[data-state="up"]::after{
   content:attr(data-emoji);
   opacity:1;
-  animation: cardFlip 0.2s ease-out forwards;
+  animation: cardFlip 0.4s ease-out forwards;
 }
 
 @keyframes cardFlip{
