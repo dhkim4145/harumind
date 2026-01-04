@@ -485,6 +485,11 @@ window.addEventListener('DOMContentLoaded', function() {
   initPeekButton();
   initHowModal();
 
+  // BGM 상태 복원 후 필요 시 재생 시도
+  if (window.core && window.core.isBgmOn) {
+    window.core.ensureBgm();
+  }
+
   // HarumindUI export
   window.HarumindUI = {
     board,
