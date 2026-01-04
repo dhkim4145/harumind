@@ -294,8 +294,8 @@ class HaruCore {
     }
 }
 
-// 전역 객체로 생성 (모든 게임에서 core.playSfx() 식으로 접근)
-const core = new HaruCore();
+// 전역 객체로 생성 (모든 게임에서 window.core.playSfx() 식으로 접근)
+window.core = new HaruCore();
 
 // 게임 출석 및 추천 기능
 core.getGameAttendance = function(gameType) {

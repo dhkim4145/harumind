@@ -49,6 +49,7 @@ body {
     justify-content: flex-start;
     min-height: 100vh;
     padding: 20px;
+    padding-top: 80px;
     transition: background 1.5s ease;
 }
 
@@ -99,8 +100,10 @@ header {
 
 /* ===== Top Bar (홈/타이틀/설정) ===== */
 .top-bar {
-    position: sticky;
+    position: fixed;
     top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
     max-width: 500px;
     display: flex;
@@ -114,7 +117,6 @@ header {
     backdrop-filter: blur(8px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     z-index: 10000;
-    margin-top: 8px;
     box-sizing: border-box;
 }
 
@@ -868,9 +870,9 @@ body.peeking .tile{
 <body>
   <header>
     <div class="top-bar">
-      <button id="homeBtn" title="홀" onclick="if(core) { core.playSfx('click'); setTimeout(() => window.location.href = '../index.html', 100); }">🏠</button>
+      <button id="homeBtn" title="홀" onclick="if(window.core) { window.core.playSfx('click'); setTimeout(() => window.location.href = '../index.html', 100); }">🏠</button>
       <div class="top-title">🧩 같은 그림 찾기</div>
-      <button id="settingsOpenBtn" title="설정" onclick="if(core) core.openSettingsModal();">⚙️</button>
+      <button id="settingsOpenBtn" title="설정" onclick="if(window.core) window.core.openSettingsModal();">⚙️</button>
     </div>
   </header>
 
@@ -951,9 +953,18 @@ body.peeking .tile{
 <audio id="bgmAudio"
   loop
   preload="auto"
-       src="../audio/piano1.mp3"
+       src="../audio/piano1.mp3"></audio>
+
 <script src="../core.js"></script>
 <script src="./main.js?v=7"></script>
+<script>
+// 안전장치: core 전역이 없다면 생성 (메모리 게임 전용 가드)
+window.addEventListener('DOMContentLoaded', function() {
+  if (!window.core && typeof HaruCore === 'function') {
+    window.core = new HaruCore();
+  }
+});
+</script>
 
 <footer class="brand-footer">하루마음 · harumind.kr</footer>
 

@@ -90,7 +90,7 @@ window.addEventListener('DOMContentLoaded', function() {
   let currentStateMsg = { msg: "", hint: "" };
   
   // 효과음 재생 (core 엔진 사용)
-  const tone = (type = 'click') => core.playSfx(type);
+  const tone = (type = 'click') => { if(window.core) window.core.playSfx(type); };
 
   // 메시지 업데이트
   function setMessage(msg, hint){
@@ -342,7 +342,7 @@ window.addEventListener('DOMContentLoaded', function() {
         matched++;
 
         // 맑은 실로폰 느낌의 성공음 재생
-        core.playSfx('success');
+          if(window.core) window.core.playSfx('success');
 
         if(matched < totalPairs){
           setStateMessage("조용히 잘 이어가고 있어요", "천천히 이어가면 돼요");
@@ -356,7 +356,7 @@ window.addEventListener('DOMContentLoaded', function() {
         }
 
       }else{
-        core.playSfx('click');
+          if(window.core) window.core.playSfx('click');
         setMessage("괜찮아요", "");
 
         setTimeout(()=>{
@@ -486,7 +486,7 @@ window.addEventListener('DOMContentLoaded', function() {
   // Home 버튼
   if(homeBtn) {
     homeBtn.addEventListener('click', () => {
-      core.playSfx('click');
+      if(window.core) window.core.playSfx('click');
       window.location.href = '../index.html';
     });
   }
