@@ -251,7 +251,10 @@ function updateStatusTexts(levelKey) {
     if (levelLabel) {
         const emoji = MSGS.levels[levelKey]?.emoji || '';
         const name = MSGS.levels[levelKey]?.name || '';
-        levelLabel.innerText = emoji + ' ' + name;
+        const emojiSpan = levelLabel.querySelector('.level-emoji');
+        const nameSpan = levelLabel.querySelector('.level-name');
+        if (emojiSpan) emojiSpan.innerText = emoji;
+        if (nameSpan) nameSpan.innerText = name;
     }
     if (levelDesc) levelDesc.innerText = MSGS.levels[levelKey].desc;
 }

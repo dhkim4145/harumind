@@ -179,6 +179,30 @@
         .pill-main { font-size: 1.4rem; font-weight: 800; }
         .pill-sub { font-size: 0.92rem; color: var(--muted); line-height: 1.35; }
 
+        .level-label-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .level-emoji {
+            flex-shrink: 0;
+        }
+
+        .level-name {
+            min-width: fit-content;
+        }
+
+        @media (max-width: 380px) {
+            .level-name {
+                display: none;
+            }
+            .level-label-wrapper {
+                gap: 0;
+            }
+        }
+
         .level-selector { display: flex; gap: 8px; flex-wrap: wrap; }
         .lv-btn {
             flex: 1 1 0;
@@ -394,7 +418,10 @@
             <div class="status-grid">
                 <div class="pill">
                     <div class="pill-title" data-msg="labelDifficulty">난이도</div>
-                    <div id="level-label" class="pill-main" style="font-size: 2rem;">-</div>
+                    <div id="level-label" class="level-label-wrapper">
+                        <span class="level-emoji" style="font-size: 2rem;">-</span>
+                        <span class="level-name" style="font-size: 1.3rem; font-weight: 800;">-</span>
+                    </div>
                 </div>
                 <div class="pill">
                     <div class="pill-title" data-msg="labelTarget">찾을 숫자</div>
