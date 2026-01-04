@@ -193,57 +193,52 @@ class HaruCore {
         const normalizeSrc = (src) => {
             if (!src) return defaultBgm;
             if (/^https?:\/\//.test(src) || src.startsWith('/')) return src; // 이미 절대경로
-            // 상대경로면 루트 기준으로 정규화 (/audio/.. 형태)
+            // 상대경로면 루트 기준으로 정규화
             return '/' + src.replace(/^\.?(\/)+/, '');
         };
         const targetSrc = normalizeSrc(bodyAttr) || defaultBgm;
 
-        // 이전 BGM 정지 후 재생 준비
-        if (this.bgmAudio) {
-            this.bgmAudio.pause();
-            this.bgmAudio.currentTime = 0;
-        }
-
+        // Audio 요소 찾기 또는 생성
         if (!this.bgmAudio) {
             this.bgmAudio = document.getElementById('bgmAudio');
             if (!this.bgmAudio) {
-                // bgmAudio 태그가 없으면 동적 생성 (최후 수단)
-                this.bgmAudio = new Audio(targetSrc);
+                // bgmAudio 태그가 없으면 동적 생성
+                this.bgmAudio = new Audio();
                 this.bgmAudio.loop = true;
                 this.bgmAudio.id = 'bgmAudio';
+                this.bgmAudio.preload = 'auto';
                 document.body.appendChild(this.bgmAudio);
             }
         }
 
-        if (this.bgmAudio) {
-            // 필요 시 src를 갱신 (HTML에 하드코딩된 경로를 덮어씀)
-            const currentAttr = this.bgmAudio.getAttribute('src');
-            if (currentAttr !== targetSrc) {
-                this.bgmAudio.setAttribute('src', targetSrc);
-            }
-            this.bgmAudio.loop = true;
-            this.bgmAudio.volume = 0.25;
-            this.bgmAudio.currentTime = 0;
+        // src 설정 (빈 태그거나 다른 경로면 갱신)
+        const currentSrc = this.bgmAudio.getAttribute('src') || '';
+        if (!currentSrc || currentSrc !== targetSrc) {
+            this.bgmAudio.src = targetSrc;
+            this.bgmAudio.load(); // 명시적으로 로드
+        }
 
-            // 재생 시도 (Promise 기반)
-            try {
-                const playPromise = this.bgmAudio.play();
-                if (playPromise !== undefined) {
-                    playPromise
-                        .then(() => console.log('🎵 BGM 재생 중'))
-                        .catch(e => {
-                            console.warn('⚠️ BGM 재생 실패:', e.name, e.message);
-                            if (e.name === 'NotAllowedError') {
-                                this.bgmAudio.muted = true;
-                                this.bgmAudio.play().catch(e2 => console.warn('음소거 재생도 실패'));
-                            }
-                        });
-                } else {
-                    console.log('🎵 BGM 재생 (구형 방식)');
-                }
-            } catch(e) {
-                console.warn('⚠️ BGM play 예외:', e.message);
+        // 재생 설정
+        this.bgmAudio.loop = true;
+        this.bgmAudio.volume = 0.25;
+
+        // 재생 시도 (Promise 기반)
+        try {
+            const playPromise = this.bgmAudio.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => console.log('🎵 BGM 재생 중:', targetSrc))
+                    .catch(e => {
+                        console.warn('⚠️ BGM 재생 실패:', e.name, e.message);
+                        if (e.name === 'NotAllowedError') {
+                            console.log('→ 사용자 인터랙션 후 재시도 필요');
+                        }
+                    });
+            } else {
+                console.log('🎵 BGM 재생 (구형 방식)');
             }
+        } catch(e) {
+            console.warn('⚠️ BGM play 예외:', e.message);
         }
     }
 
