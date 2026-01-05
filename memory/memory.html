@@ -443,8 +443,8 @@ button.primary{
   width: 100%;
   min-width: 0;
   border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.15), rgba(110, 231, 183, 0.05));
+  border: 2px solid rgba(110, 231, 183, 0.4);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -461,6 +461,21 @@ button.primary{
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
   transition: transform 0.3s ease-out;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+  pointer-events: none;
 }
 
 /* 클릭 시 눌리는 느낌 */
@@ -471,8 +486,13 @@ button.primary{
 /* 호버 효과 (PC용) */
 @media (hover: hover){
   .tile:not(.matched):not([data-state="up"]):hover{
-    border-color:rgba(255,255,255,.20);
-    box-shadow:0 2px 8px rgba(0,0,0,.2);
+    background: linear-gradient(135deg, rgba(110, 231, 183, 0.25), rgba(110, 231, 183, 0.15));
+    border-color: rgba(110, 231, 183, 0.6);
+    box-shadow: 0 6px 20px rgba(110, 231, 183, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px) translateZ(0);
+  }
+  .tile:not(.matched):not([data-state="up"]):hover::before{
+    left: 100%;
   }
 }
 
@@ -497,7 +517,9 @@ button.primary{
 }
 
 .tile.matched{
-  background: rgba(110, 231, 183, .06);
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.3), rgba(110, 231, 183, 0.2));
+  border-color: rgba(110, 231, 183, 0.7);
+  box-shadow: 0 8px 25px rgba(110, 231, 183, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   animation: bounceUp 0.2s ease-out;
 }
 
@@ -755,6 +777,52 @@ body.peeking .tile{
   background: rgba(255,255,255,.02);
 }
 
+/* ===== 잠깐 도움받기 버튼 - 보라색 글래스모피즘 ===== */
+.peek-btn {
+  width: 100%;
+  height: 44px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.12), rgba(138, 43, 226, 0.04));
+  border: 2px solid rgba(138, 43, 226, 0.35);
+  color: var(--text);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.peek-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(186, 130, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.peek-btn:hover::before {
+  left: 100%;
+}
+
+.peek-btn:hover {
+  background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(138, 43, 226, 0.1));
+  border-color: rgba(138, 43, 226, 0.5);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.peek-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 10px rgba(138, 43, 226, 0.25);
+}
+
 
 /* 모바일에서 pill 레이아웃 개선 및 여백 조정 */
 @media (max-width: 520px){
@@ -948,7 +1016,7 @@ body.peeking .tile{
   </div>
 
   <div class="card">
-    <button id="peekBtn" style="display:none; width: 100%; height: 44px; margin-top: 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.08); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; backdrop-filter: blur(6px); transition: all 0.2s ease;">💡 잠깐 도움받기</button>
+    <button id="peekBtn" class="peek-btn" style="display:none;">💡 잠깐 도움받기</button>
 
     <select id="peekSec" style="display:none">
       <option value="4">4</option>

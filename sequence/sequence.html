@@ -158,8 +158,8 @@
         }
 
         .pill {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 14px;
             padding: 18px 16px;
             display: flex;
@@ -253,8 +253,8 @@
         .num-tile {
             aspect-ratio: 1 / 1;
             border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+            border: 2px solid rgba(110, 231, 183, 0.4);
+            background: linear-gradient(135deg, rgba(110, 231, 183, 0.15), rgba(110, 231, 183, 0.05));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -263,7 +263,8 @@
             color: var(--text);
             cursor: pointer;
             transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease, background 0.25s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+            box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
             outline: none !important;
             -webkit-tap-highlight-color: transparent !important;
             user-select: none;
@@ -271,10 +272,26 @@
             -webkit-appearance: none;
             appearance: none;
             -webkit-focus-ring-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        .num-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+            pointer-events: none;
+        }
+        .num-tile:hover::before {
+            left: 100%;
         }
         .num-tile:focus {
             outline: none !important;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.28) !important;
+            box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
         }
         .num-tile::-moz-focus-inner {
             border: none !important;
@@ -282,11 +299,23 @@
         }
         .num-tile:active { transform: scale(0.94); }
         .num-tile.found {
-            opacity: 0;
-            transform: scale(0.8);
+            opacity: 0.25;
+            transform: scale(0.92);
             pointer-events: none;
+            background: linear-gradient(135deg, rgba(110, 231, 183, 0.08), rgba(110, 231, 183, 0.02));
+            border-color: rgba(110, 231, 183, 0.2);
+            animation: fadeOutTile 0.4s ease-out;
         }
-        .num-tile.wrong { animation: shake 0.35s ease; background: rgba(255, 107, 107, 0.24); }
+        @keyframes fadeOutTile {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+            100% { opacity: 0.25; transform: scale(0.92); }
+        }
+        .num-tile.wrong { 
+            animation: shake 0.35s ease; 
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3), rgba(255, 107, 107, 0.15));
+            border-color: rgba(255, 107, 107, 0.5);
+        }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
