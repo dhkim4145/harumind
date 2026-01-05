@@ -883,6 +883,42 @@ body.peeking .tile{
     pointer-events: none;
     user-select: none;
 }
+/* 상단 퍼즐 심볼 – 하루마음 표준 */
+.top-title {
+  font-size: 28px;          /* 기존보다 한 단계 크게 (≈1.25x) */
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 애니메이션 */
+  animation:
+    puzzleEnter 0.6s ease-out forwards,
+    puzzleBreath 4s ease-in-out infinite;
+  animation-delay: 0s, 0.8s;
+
+  /* 존재감만 살짝 */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));
+}
+
+/* 첫 등장 */
+@keyframes puzzleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 미세 호흡 */
+@keyframes puzzleBreath {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
 </style>
 </head>
 <body>
