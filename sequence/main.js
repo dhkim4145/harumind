@@ -295,7 +295,16 @@ function handleTileClick(tile) {
 function setNextNum(num) {
     const nextNum = document.getElementById('next-num');
     if (!nextNum) return;
+    
+    // 애니메이션 클래스 제거 후 다시 추가 (reflow로 애니메이션 재시작)
+    nextNum.classList.remove('numChange');
+    void nextNum.offsetWidth; // reflow trigger
+    
     nextNum.innerText = num > state.max ? '-' : num;
+    nextNum.classList.add('numChange');
+    
+    // 애니메이션 완료 후 클래스 제거
+    setTimeout(() => nextNum.classList.remove('numChange'), 500);
 }
 
 function resetTimer() {
