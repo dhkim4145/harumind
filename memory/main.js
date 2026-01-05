@@ -448,11 +448,11 @@ window.addEventListener('DOMContentLoaded', function() {
               // opening 클래스 제거 후 closing 클래스 추가로 애니메이션 시작
               t.classList.remove("opening");
               t.classList.add("closing");
-              // 애니메이션 완료 후에만 상태 변경 (300ms 후)
+              // 애니메이션 완료 후에만 상태 변경 (350ms = 0.35s 애니메이션)
               setTimeout(() => {
                 t.dataset.state = "down";
                 t.classList.remove("closing");
-              }, 300);
+              }, 350);
             }
           });
         }
