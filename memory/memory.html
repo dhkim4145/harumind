@@ -456,14 +456,21 @@ button.primary{
   box-sizing:border-box;
   touch-action: none;
   contain: layout style paint;
-  will-change: transform, opacity;
+  will-change: transform, opacity, background, border-color, box-shadow;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   transform: translateZ(0);
-  transition: transform 0.3s ease-out;
+  transition: background 0.25s ease-out, border-color 0.25s ease-out, box-shadow 0.25s ease-out;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   overflow: hidden;
+}
+
+/* 카드 열린 상태 - 강조된 스타일 */
+.tile[data-state="up"] {
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.25), rgba(110, 231, 183, 0.15));
+  border-color: rgba(110, 231, 183, 0.6);
+  box-shadow: 0 6px 20px rgba(110, 231, 183, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .tile::before {
@@ -501,16 +508,33 @@ button.primary{
   font-weight:900;
   opacity:1;
   transform: scaleX(1);
-  transition: transform 0.2s ease-out;
 }
 
 .tile[data-state="up"]::after{
   content:attr(data-emoji);
   opacity:1;
-  animation: cardFlip 0.4s ease-out forwards;
+  animation: cardFlipOpen 0.3s ease-out forwards;
 }
 
-@keyframes cardFlip{
+/* 카드가 열릴 때 이모지 회전 애니메이션 */
+@keyframes cardFlipOpen{
+  0%{ transform: scaleX(1); }
+  50%{ transform: scaleX(0); }
+  100%{ transform: scaleX(1); }
+}
+
+/* 카드 닫힐 때 애니메이션 */
+.tile.closing {
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.15), rgba(110, 231, 183, 0.05)) !important;
+  border-color: rgba(110, 231, 183, 0.4) !important;
+  box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.tile.closing::after {
+  animation: cardFlipClose 0.3s ease-out forwards;
+}
+
+@keyframes cardFlipClose {
   0%{ transform: scaleX(1); }
   50%{ transform: scaleX(0); }
   100%{ transform: scaleX(1); }

@@ -441,7 +441,13 @@ window.addEventListener('DOMContentLoaded', function() {
         if(board){
           allCards.forEach(t => {
             if(!t.classList.contains("matched")){
-              t.dataset.state = "down";
+              // closing 클래스 추가로 애니메이션 시작
+              t.classList.add("closing");
+              // 애니메이션 완료 후 상태 변경 및 클래스 제거
+              setTimeout(() => {
+                t.dataset.state = "down";
+                t.classList.remove("closing");
+              }, 300);
             }
           });
         }
