@@ -31,5 +31,27 @@ const WORD_DATABASE = [
   { word: "자람", emoji: "🌿", hint: "조용한 성장", meaning: "눈에 안 보여도 자라고 있어요" },
   { word: "돌봄", emoji: "🫖", hint: "스스로를 챙김", meaning: "오늘의 나를 먼저" },
   { word: "정돈", emoji: "🧺", hint: "마음의 정리", meaning: "어지러워도 괜찮아요" },
-  { word: "한숨", emoji: "💭", hint: "내려놓는 숨", meaning: "내쉬는 것만으로도 충분해요" }
+  { word: "한숨", emoji: "💭", hint: "내려놓는 숨", meaning: "내쉬는 것만으로도 충분해요" },
+
+  // ===== 3글자 단어 추가 =====
+  { word: "고요함", emoji: "🌙", hint: "소리 없는 평온", meaning: "가만히 있어도 평화로워요" },
+  { word: "따뜻함", emoji: "☀️", hint: "온기 있는 마음", meaning: "차갑지 않아도 괜찮아요" },
+  { word: "편안함", emoji: "🛏️", hint: "긴장이 풀린 상태", meaning: "꾸밀 필요 없는 자리" },
+  { word: "가벼움", emoji: "🪶", hint: "무겁지 않은 감각", meaning: "놓아버린 후의 홀가분함" },
+  { word: "다정함", emoji: "🤝", hint: "따뜻한 손길", meaning: "작은 관심도 큰 위로가 돼요" },
+  { word: "소중함", emoji: "💎", hint: "귀한 것", meaning: "당신이 있어서 감사해요" },
+  { word: "넉넉함", emoji: "🏡", hint: "충분한 공간", meaning: "자리가 있으니 와도 괜찮아요" },
+  { word: "부드러움", emoji: "☁️", hint: "부드러운 감촉", meaning: "날카롭지 않은 말 한마디" },
+  { word: "깊이감", emoji: "🌊", hint: "깊은 수심", meaning: "표면 아래 있는 진심" },
+  { word: "희망찬", emoji: "🌅", hint: "밝은 앞날", meaning: "내일도 할 수 있을 것 같아요" },
+
+  // ===== 4글자 단어 추가 =====
+  { word: "아무도 모르게", emoji: "🤫", hint: "조용하게 하는 선의", meaning: "보상 없이 주는 마음" },
+  { word: "천천히", emoji: "🐢", hint: "서두르지 말기", meaning: "급할 필요 없어요" },
+  { word: "그대로가", emoji: "✨", hint: "있는 그대로의 가치", meaning: "바꿀 필요 없는 당신" },
+  { word: "살고 싶은", emoji: "🌟", hint: "원하는 삶의 방식", meaning: "자기 속도가 제일 좋아요" },
+  { word: "놓아주기", emoji: "🕊️", hint: "손을 펼침", meaning: "붙들지 않은 사랑도 있어요" },
+  { word: "알아주기", emoji: "👁️", hint: "내 맘 알아주기", meaning: "말 없이도 이해해줘요" },
+  { word: "감사하는", emoji: "🙏", hint: "고마워하는 마음", meaning: "당신이 있어 좋아요" },
+  { word: "이어가기", emoji: "🔗", hint: "계속 연결되기", meaning: "끝나지 않는 마음" }
 ];
