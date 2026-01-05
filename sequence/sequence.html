@@ -153,7 +153,7 @@
         .status-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 10px;
             align-items: center;
         }
 
@@ -161,10 +161,10 @@
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.06);
             border-radius: 14px;
-            padding: 18px 16px;
+            padding: 10px 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
             text-align: center;
             align-items: center;
             transition: all 0.3s ease;
@@ -177,8 +177,8 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        .pill-title { font-size: 0.9rem; color: var(--muted); letter-spacing: -0.2px; }
-        .pill-main { font-size: 1.4rem; font-weight: 800; }
+        .pill-title { font-size: 0.75rem; color: var(--muted); letter-spacing: -0.2px; }
+        .pill-main { font-size: 1rem; font-weight: 800; }
         .pill-sub { font-size: 0.92rem; color: var(--muted); line-height: 1.35; }
 
         .level-label-wrapper {
@@ -593,13 +593,13 @@
                 <div class="pill">
                     <div class="pill-title" data-msg="labelDifficulty">난이도</div>
                     <div id="level-label" class="level-label-wrapper">
-                        <span class="level-emoji" style="font-size: 2rem;">-</span>
-                        <span class="level-name" style="font-size: 1.3rem; font-weight: 800;">-</span>
+                        <span class="level-emoji" style="font-size: 1.6rem;">-</span>
+                        <span class="level-name" style="font-size: 1rem; font-weight: 800;">-</span>
                     </div>
                 </div>
                 <div class="pill">
                     <div class="pill-title" data-msg="labelTarget">찾을 숫자</div>
-                    <div id="next-num" class="pill-main" style="font-size: 2rem;">1</div>
+                    <div id="next-num" class="pill-main" style="font-size: 1.4rem;">1</div>
                 </div>
             </div>
         </section>
