@@ -236,7 +236,7 @@
         }
 
         const randomItem = WORD_DATABASE[Math.floor(Math.random() * WORD_DATABASE.length)];
-        currentWord = randomItem.word;
+        currentWord = randomItem.word.replace(/\s+/g, ''); // 공백 제거
         currentWordData = randomItem;
         document.getElementById('hint').innerText = randomItem.hint;
         attemptsForCurrentWord = 1;

@@ -428,11 +428,15 @@ window.addEventListener('DOMContentLoaded', function() {
     clearPeekTimer();
 
     if(board){
-      // 1단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기
+      // 1단계: 매칭되지 않은 모든 카드를 앞면으로 보여주기 (애니메이션과 함께)
       const allCards = [...board.children];
       allCards.forEach(t => {
         if(!t.classList.contains("matched")){
+          // 상태 변경과 클래스 추가를 동시에 처리
           t.dataset.state = "up";
+          // 애니메이션 시작을 위해 리플로우 트리거
+          void t.offsetWidth;
+          t.classList.add("opening");
         }
       });
 
@@ -441,9 +445,10 @@ window.addEventListener('DOMContentLoaded', function() {
         if(board){
           allCards.forEach(t => {
             if(!t.classList.contains("matched")){
-              // closing 클래스 추가로 애니메이션 시작
+              // opening 클래스 제거 후 closing 클래스 추가로 애니메이션 시작
+              t.classList.remove("opening");
               t.classList.add("closing");
-              // 애니메이션 완료 후 상태 변경 및 클래스 제거
+              // 애니메이션 완료 후에만 상태 변경 (300ms 후)
               setTimeout(() => {
                 t.dataset.state = "down";
                 t.classList.remove("closing");
@@ -451,7 +456,7 @@ window.addEventListener('DOMContentLoaded', function() {
             }
           });
         }
-        setStateMessage("🌿 천천히 찾아보세요", "");
+        setStateMessage("천천히 찾아보세요", "");
         lock = false;
         peekTimer = null;
       }, sec * 1000);
