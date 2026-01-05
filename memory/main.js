@@ -387,9 +387,9 @@ window.addEventListener('DOMContentLoaded', function() {
     if(!resultModalBack) return;
 
     const messages = [
-      "차분하게 마무리했어요.",
-      "괜찮아요, 천천히 했으니까요.",
-      "조용한 마음으로 잘 이어갔어요.",
+      "잘 해냈어요.",
+      "모든 짝을 찾았어요.",
+      "오늘의 카드 시간이 마무리됐어요.",
     ];
 
     if(resultEmoji) resultEmoji.textContent = "🌿";
