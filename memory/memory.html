@@ -69,7 +69,6 @@ header {
     text-align: center; 
     margin-bottom: 10px; 
     width: 100%;
-    max-width: 500px;
     pointer-events: auto;
 }
 .brand { 
@@ -97,19 +96,26 @@ header {
     opacity: 0.9;
     margin-bottom: 4px;
     width: 100%;
-    max-width: 500px;
     text-align: left;
     padding: 0 2px;
 }
 
-/* ===== Top Bar (홈/타이틀/설정) ===== */
-.top-bar {
+/* ===== 상단 기준 컨테이너 ===== */
+.top-container {
     position: fixed;
     top: 8px;
     left: 50%;
     transform: translateX(-50%);
+    max-width: 560px;
+    width: calc(100% - 32px);
+    padding: 0 16px;
+    box-sizing: border-box;
+    z-index: 10000;
+}
+
+/* ===== Top Bar (홈/타이틀/설정) ===== */
+.top-bar {
     width: 100%;
-    max-width: 500px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -120,7 +126,6 @@ header {
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(8px);
     box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-    z-index: 10000;
     box-sizing: border-box;
 }
 
@@ -860,6 +865,16 @@ body.peeking .tile{
   }
 }
 
+/* ===== 상단 인사말 컨테이너 (통일된 기준) ===== */
+.top-greet {
+  margin: 20px auto;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
 .brand-footer { 
     margin-top: 20px; 
     padding: 20px; 
@@ -873,15 +888,17 @@ body.peeking .tile{
 </head>
 <body>
   <header>
-    <div class="top-bar">
-      <button id="homeBtn" title="홀" onclick="if(window.core) { window.core.playSfx('click'); setTimeout(() => window.location.href = '../index.html', 100); }">🏠</button>
-      <div class="top-title">🧩 같은 그림 찾기</div>
-      <button id="settingsOpenBtn" title="설정" onclick="if(window.core) window.core.openSettingsModal();">⚙️</button>
+    <div class="top-container">
+      <div class="top-bar">
+        <button id="homeBtn" title="홀" onclick="if(window.core) { window.core.playSfx('click'); setTimeout(() => window.location.href = '../index.html', 100); }">🏠</button>
+        <div class="top-title">🧩</div>
+        <button id="settingsOpenBtn" title="설정" onclick="if(window.core) window.core.openSettingsModal();">⚙️</button>
+      </div>
     </div>
   </header>
 
 <div class="wrap">
-  <div style="margin: 20px auto; max-width: 420px; text-align: center;">
+  <div class="top-greet">
     <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
     <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
   </div>
