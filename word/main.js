@@ -295,8 +295,11 @@
                     document.getElementById('modal-word-display').innerText = currentWord;
                     const feedbackEl = document.getElementById('modal-feedback');
                     const emojiEl = document.getElementById('modal-emoji-display');
-                    if (emojiEl && currentWordData?.emoji) {
-                        emojiEl.textContent = currentWordData.emoji;
+                    if (emojiEl && currentWordData?.icon) {
+                        const iconKey = currentWordData.icon;
+                        if (window.HEALING_ICONS && window.HEALING_ICONS[iconKey]) {
+                            emojiEl.innerHTML = window.HEALING_ICONS[iconKey];
+                        }
                     }
                     if (feedbackEl && currentWordData?.meaning) {
                         feedbackEl.innerText = currentWordData.meaning;
