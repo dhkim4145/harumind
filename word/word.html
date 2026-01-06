@@ -331,21 +331,18 @@
             animation: bounce 0.6s ease infinite alternate;
         }
 
-        /* 모달 아이콘이 SVG일 때도 크게 + 감성 톤 */
-.modal-emoji svg {
-  width: 72px;
-  height: 72px;
-  display: block;
-}
-
-/* currentColor 톤 지정 */
+        /* 1. SVG 관련 설정은 지우거나 아래처럼 이모지용으로 대체하세요 */
 .modal-emoji {
-  color: rgba(110, 231, 183, 0.95); /* 하루마음 accent */
+  /* 이모지 크기를 결정하는 핵심 코드 */
+  font-size: 64px; 
+  line-height: 1; /* 이모지가 수직 중앙에 딱 맞게 함 */
+  
+  /* --- 아래는 사용자님이 만드신 예쁜 디자인 그대로 유지 --- */
+  color: rgba(110, 231, 183, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
 
-  /* “이모지 풍부함”을 배경이 대신 */
   width: 92px;
   height: 92px;
   margin: 0 auto 20px;
@@ -356,6 +353,11 @@
     rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 14px 38px rgba(0,0,0,0.45), 0 0 28px rgba(110,231,183,0.22);
+}
+
+/* 이제 필요 없는 SVG 전용 설정은 삭제하세요 */
+.modal-emoji svg {
+  display: none;
 }
 
         @keyframes bounce {
@@ -563,7 +565,6 @@
     </div>
 
     <script src="../core.js"></script>
-    <script src="../healingIcons.js"></script>
     <script src="data.js"></script>
     <script src="main.js"></script>
     <script>
