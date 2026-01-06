@@ -26,7 +26,7 @@ window.addEventListener('DOMContentLoaded', function() {
       BIG: "harumind_memory_big",
     },
     // 뒷면 아이콘 후보 (물음표 비중 높게)
-    BACK_ICONS: ['question', 'question', 'question', 'breath', 'chair', 'star'],
+    BACK_ICONS: ['question', 'question', 'question', 'breath', 'coffee', 'star'],
   };
 
   // ============================================================
@@ -234,10 +234,15 @@ window.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    // SVG stroke 속성을 white로 교체 (밤하늘의 별처럼 빛나게)
-    svgContent = svgContent
-      .replace(/stroke="currentColor"/g, 'stroke="white"')
-      .replace(/stroke-width="1.5"/g, 'stroke-width="2"'); // 약간 두껍게
+    // SVG stroke를 white로 고정. 아이콘별 라인 두께를 다르게 적용
+    svgContent = svgContent.replace(/stroke="currentColor"/g, 'stroke="white"');
+    if(currentBackIcon === 'star'){
+      // 별은 더 섬세하게: 1.5 유지
+      svgContent = svgContent.replace(/stroke-width="[\d.]+"/g, 'stroke-width="1.5"');
+    } else {
+      // 그 외는 약간 두껍게
+      svgContent = svgContent.replace(/stroke-width="[\d.]+"/g, 'stroke-width="2"');
+    }
     
     // SVG를 base64로 인코딩
     const encoded = btoa(unescape(encodeURIComponent(svgContent)));
