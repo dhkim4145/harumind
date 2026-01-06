@@ -52,6 +52,7 @@
         .top-bar {
             position: sticky;
             top: 8px;
+            z-index: 1000;
             width: 100%;
             max-width: 500px;
             display: flex;
@@ -64,7 +65,6 @@
             background: rgba(255,255,255,0.06);
             backdrop-filter: blur(8px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-            z-index: 10000;
             margin-top: 8px;
             box-sizing: border-box;
         }
@@ -562,18 +562,9 @@
   100% { transform: scale(1) translateX(-4px); }
 }
     </style>
+    <link rel="stylesheet" href="../common.css">
 </head>
 <body>
-    <header>
-        <div class="top-bar">
-            <button id="homeBtn" title="홈으로">🏠</button>
-            <div class="top-title">☁️</div>
-            <button id="settingsOpenBtn" title="설정">⚙️</button>
-        </div>
-    </header>
-
-    <audio id="bgmAudio" preload="auto" loop></audio>
-
     <div style="margin: 20px auto; max-width: 420px; text-align: center; padding: 0 20px;">
         <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
         <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
@@ -663,6 +654,9 @@
             const line2El = document.getElementById('greetLine2');
             if (line1El) line1El.textContent = copy.line1;
             if (line2El) line2El.textContent = copy.line2;
+            
+            // 공통 상단바 주입
+            initGlobalHeader('☁️', { homeHref: '../index.html' });
         });
     </script>    <script src="main.js"></script>
 </body>

@@ -11,7 +11,7 @@
 <!-- 네이버 사이트 소유확인 -->
 <meta name="naver-site-verification" content="9a17421f3eca307a085f00983e810d49b7172fdd" />
 
-<title>🧩 소중한 친구들 찾기 | 하루마음 두뇌놀이</title>
+<title>하루마음 - 같은 그림 찾기</title>
 
 <meta name="description"
       content="강아지부터 나비까지, 우리 곁의 소중한 친구들과 함께하는 따뜻한 두뇌 놀이입니다. 다정한 친구들의 짝을 찾아 행복을 채워주세요." />
@@ -19,7 +19,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="하루마음" />
-<meta property="og:title" content="🧩 소중한 친구들 찾기 | 하루마음" />
+<meta property="og:title" content="같은 그림 찾기 | 하루마음" />
 <meta property="og:description" content="강아지부터 나비까지, 우리 곁의 소중한 친구들과 함께하는 따뜻한 두뇌 놀이입니다. 다정한 친구들의 짝을 찾아 행복을 채워주세요." />
 <meta property="og:url" content="https://harumind.kr/memory/" />
 <meta property="og:image" content="https://harumind.kr/og.png" />
@@ -53,7 +53,6 @@ body {
     justify-content: flex-start;
     min-height: 100vh;
     padding: 20px;
-    padding-top: 80px;
     transition: background 1.5s ease;
 }
 
@@ -102,18 +101,18 @@ header {
 
 /* ===== 상단 기준 컨테이너 ===== */
 .top-container {
-    position: fixed;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    width: 100%;
     max-width: 560px;
-    width: calc(100% - 32px);
+    margin: 0 auto;
+    padding: 8px 8px 16px;
     box-sizing: border-box;
-    z-index: 10000;
 }
 
 /* ===== Top Bar (홈/타이틀/설정) ===== */
 .top-bar {
+    position: sticky;
+    top: 8px;
+    z-index: 1000;
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -1025,19 +1024,10 @@ body.peeking .tile{
 }
 
 </style>
+<link rel="stylesheet" href="../common.css">
 </head>
 <body>
-  <header>
-    <div class="top-container">
-      <div class="top-bar">
-        <button id="homeBtn" title="홀" onclick="if(window.core) { window.core.playSfx('click'); setTimeout(() => window.location.href = '../index.html', 100); }">🏠</button>
-        <div class="top-title">☁️</div>
-        <button id="settingsOpenBtn" title="설정" onclick="if(window.core) window.core.openSettingsModal();">⚙️</button>
-      </div>
-    </div>
-  </header>
-
-<div class="wrap">
+  <div class="wrap">
   <div class="top-greet">
     <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
     <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
@@ -1145,6 +1135,9 @@ window.addEventListener('DOMContentLoaded', function() {
   const line2El = document.getElementById('greetLine2');
   if (line1El) line1El.textContent = copy.line1;
   if (line2El) line2El.textContent = copy.line2;
+  
+  // 공통 상단바 주입
+  initGlobalHeader('☁️', { homeHref: '../index.html' });
 });
 </script>
 

@@ -1,0 +1,95 @@
+/* ===== 공통 헤더 스타일 ===== */
+:root {
+  --header-height: 56px;
+  --header-gap: 8px;
+  --header-radius: 15px;
+  --header-bg: rgba(255, 255, 255, 0.06);
+  --header-border: rgba(255, 255, 255, 0.1);
+  --header-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* 페이지 기본 여백 통일 */
+body {
+  padding: 20px;
+}
+
+/* 상단 컨테이너: 좌우 정렬 + 하단 여백 */
+.top-container {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 8px 8px 16px;       /* 위/좌우/아래 */
+  box-sizing: border-box;
+}
+
+/* 상단바: sticky + blur */
+.top-bar {
+  position: sticky;
+  top: 8px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--header-gap);
+  height: var(--header-height);
+  padding: 0 8px;
+  background: var(--header-bg);
+  border: 1px solid var(--header-border);
+  border-radius: var(--header-radius);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--header-shadow);
+}
+
+/* 제목 */
+.top-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 버튼 */
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  backdrop-filter: blur(6px);
+}
+
+.nav-btn:active {
+  transform: scale(0.97);
+}
+
+.nav-btn.off {
+  opacity: 0.5;
+}
+
+/* 모바일 미세 조정 */
+@media (max-width: 520px) {
+  .top-bar {
+    padding: 6px;
+    gap: 6px;
+  }
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .top-title {
+    font-size: 0.95rem;
+  }
+}

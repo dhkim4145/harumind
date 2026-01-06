@@ -401,3 +401,63 @@ core.getLeastPlayedGame = function() {
     streaks.sort((a, b) => a.streak - b.streak);
     return streaks[0];
 };
+
+/**
+ * 모든 게임 공통 상단바 생성 함수
+ * @param {string} title 게임 제목 (이모지 포함)
+ * @param {object} opts 추가 옵션
+ * @param {string} [opts.homeHref='../index.html'] 홈 버튼 경로
+ * @param {Function} [opts.onSettings] 설정 버튼 클릭 핸들러
+ */
+function initGlobalHeader(title, opts = {}) {
+    const {
+        homeHref = '../index.html',
+        onSettings = null,
+    } = opts;
+
+    // 이미 주입되어 있다면 중복 생성 방지
+    if (document.querySelector('.top-container')) return;
+
+    const headerHtml = `
+        <div class="top-container">
+            <div class="top-bar">
+                <button type="button" class="nav-btn" id="globalHomeBtn" title="홈">🏠</button>
+                <div class="top-title">${title || ''}</div>
+                <button type="button" class="nav-btn" id="globalSettingsBtn" title="설정">⚙️</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('afterbegin', headerHtml);
+
+    // 홈 버튼 이벤트
+    const homeBtn = document.getElementById('globalHomeBtn');
+    if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+            if (window.core) window.core.playSfx?.('click');
+            window.location.href = homeHref;
+        });
+    }
+
+    // 설정 버튼 이벤트
+    const settingsBtn = document.getElementById('globalSettingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            if (onSettings) return onSettings();
+            if (window.core && typeof window.core.openSettingsModal === 'function') {
+                window.core.playSfx?.('click');
+                window.core.openSettingsModal();
+            } else {
+                console.warn('Settings modal not found');
+            }
+        });
+    }
+}
+
+// 설정창 열기 공통 함수 (모달용)
+function openSettingsModal() {
+    const modal = document.getElementById('settingsModalBack');
+    if (modal) {
+        modal.classList.add('isOpen');
+    }
+}
