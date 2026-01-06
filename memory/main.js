@@ -25,6 +25,8 @@ window.addEventListener('DOMContentLoaded', function() {
     KEYS: {
       BIG: "harumind_memory_big",
     },
+    // 뒷면 아이콘 후보 (물음표 비중 높게)
+    BACK_ICONS: ['question', 'question', 'question', 'breath', 'chair', 'star'],
   };
 
   // ============================================================
@@ -205,6 +207,46 @@ window.addEventListener('DOMContentLoaded', function() {
   let totalPairs = 0;
   let peekTimer = null;
   let tempMsgTimer = null;
+  let currentBackIcon = ''; // 현재 게임의 뒷면 아이콘
+
+  // 랜덤 뒷면 아이콘 선택
+  function selectRandomBackIcon() {
+    const icons = C.BACK_ICONS;
+    const selected = icons[Math.floor(Math.random() * icons.length)];
+    currentBackIcon = selected;
+    updateCardBackStyle();
+  }
+
+  // CSS 변수로 뒷면 아이콘 업데이트
+  function updateCardBackStyle() {
+    if (!window.HEALING_ICONS) {
+      console.warn('⚠️ HEALING_ICONS not loaded yet');
+      return;
+    }
+    if (!currentBackIcon) {
+      console.warn('⚠️ currentBackIcon not set');
+      return;
+    }
+    
+    let svgContent = window.HEALING_ICONS[currentBackIcon];
+    if (!svgContent) {
+      console.warn('⚠️ SVG content not found for:', currentBackIcon);
+      return;
+    }
+    
+    // SVG stroke 속성을 white로 교체 (밤하늘의 별처럼 빛나게)
+    svgContent = svgContent
+      .replace(/stroke="currentColor"/g, 'stroke="white"')
+      .replace(/stroke-width="1.5"/g, 'stroke-width="2"'); // 약간 두껍게
+    
+    // SVG를 base64로 인코딩
+    const encoded = btoa(unescape(encodeURIComponent(svgContent)));
+    const dataUri = `url("data:image/svg+xml;base64,${encoded}")`;
+    
+    // CSS 변수 업데이트
+    document.documentElement.style.setProperty('--card-back-icon', dataUri);
+    console.log('✅ Card back icon set to:', currentBackIcon, '✨');
+  }
 
   function seededCards(level, customSeed){
     const map = C.LEVEL_MAP;
@@ -259,6 +301,9 @@ window.addEventListener('DOMContentLoaded', function() {
     lock = false;
     matched = 0;
     totalPairs = 0;
+    
+    // 매 게임마다 새로운 뒷면 아이콘 선택
+    selectRandomBackIcon();
     
     const level = selectedLevel;
     // useRandomSeed가 true면 새로운 랜덤 seed 생성, false면 dateStr 기반 공식 배치

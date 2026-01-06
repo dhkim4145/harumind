@@ -45,6 +45,7 @@
     --muted: #b9c2ff;
     --accent: #6ee7b7;
     --radius: 20px;
+    --card-back-icon: none; /* 동적으로 설정될 변수 */
 }
 
 html, body {
@@ -514,10 +515,24 @@ button.primary{
 }
 
 .tile[data-state="down"]::after{
-  content:"?";
-  font-weight:900;
-  opacity:1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  height: 50%;
+  margin: auto;
+  background-image: var(--card-back-icon);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
   transform: scaleX(1);
+  z-index: 10;
+  pointer-events: none;
+  filter: invert(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 12px rgba(110, 231, 183, 0.3));
 }
 
 .tile[data-state="up"]::after{
@@ -1121,6 +1136,7 @@ body.peeking .tile{
   loop
   preload="auto"></audio>
 
+<script src="../healingIcons.js"></script>
 <script src="../core.js"></script>
 <script src="./main.js?v=7"></script>
 <script>
