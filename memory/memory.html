@@ -120,22 +120,24 @@ header {
     box-sizing: border-box;
 }
 
-/* ===== Top Bar (홈/타이틀/설정) ===== */
+/* ===== Top Bar (최신 글라스모피즘 + 네온 광채) ===== */
 .top-bar {
     position: sticky;
-    top: 8px;
+    top: 0;
     z-index: 1000;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 6px;
-    padding: 8px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 0 0 20px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(20, 27, 63, 0.4);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
     box-sizing: border-box;
 }
 
@@ -145,30 +147,52 @@ header {
     width: 40px;
     border-radius: 10px;
     flex: 0 0 auto;
-    border: 1px solid rgba(255,255,255,0.16);
-    background: rgba(255,255,255,0.08);
-    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
     padding: 0;
-    font-size: 18px;
     cursor: pointer;
-    backdrop-filter: blur(6px);
-    transition: opacity 0.2s ease, transform 0.1s ease;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-bar button svg,
+.top-bar select svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    stroke-width: 1.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    z-index: 2;
+    position: relative;
+}
+
+.top-bar button:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(110, 231, 183, 0.4);
+    box-shadow: 0 0 20px rgba(110, 231, 183, 0.3);
 }
 
 .top-bar button:active,
 .top-bar select:active {
-    transform: scale(0.97);
+    transform: scale(0.92);
+    box-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.6),
+        0 0 40px rgba(110, 231, 183, 0.5),
+        inset 0 0 20px rgba(110, 231, 183, 0.2);
+    background: rgba(110, 231, 183, 0.2);
+    border-color: rgba(110, 231, 183, 0.8);
 }
 
 .top-bar button.off {
-    opacity: 0.5;
-}
-
-#settingsOpenBtn {
-    font-size: 21px;
+    opacity: 0.4;
 }
 
 .top-title{
@@ -185,17 +209,18 @@ header {
 
 @media (max-width: 520px) {
     .top-bar {
-        padding: 6px;
-        gap: 4px;
+        padding: 10px 12px;
+        gap: 8px;
     }
     .top-bar button,
     .top-bar select {
         height: 36px;
         width: 36px;
-        font-size: 16px;
     }
-    #settingsOpenBtn {
-        font-size: 19px;
+    .top-bar button svg,
+    .top-bar select svg {
+        width: 18px;
+        height: 18px;
     }
     .top-title {
         font-size: 0.9rem;
@@ -608,10 +633,6 @@ button.primary{
   box-shadow: 0 6px 20px rgba(110, 231, 183, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-.tile.closing[data-state="up"]::after {
-  /* front icon styling persists during closing phase */
-}
-
 @keyframes cardFlipClose {
   0%{ transform: scaleX(1); }
   50%{ transform: scaleX(0); }
@@ -874,19 +895,71 @@ body.rainbow-sweep .tile.matched::after{
 }
 #settingsModalCard{
   width:min(420px, 100%);
-  background:#141b3f;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:20px;
-  box-shadow:0 18px 48px rgba(0,0,0,.45);
-  padding:24px 20px;
+  background: rgba(20, 27, 63, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  border:1px solid rgba(255, 255, 255, 0.15);
+  border-radius:24px;
+  box-shadow:0 18px 48px rgba(0,0,0,.45), 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  padding:28px 24px;
   display:flex;
   flex-direction:column;
-  gap:16px;
+  gap:24px;
+  animation: slideUpModal 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .settingsModalTitle{
-  font-size:18px;
+  font-size:20px;
   font-weight:900;
   color:var(--text);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+
+.settingsModalTitle button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.settingsModalTitle button:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.settingsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settingLabel {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  opacity: 0.95;
 }
 .top-title{
   flex: 1;
@@ -912,49 +985,113 @@ body.rainbow-sweep .tile.matched::after{
   letter-spacing:0.5px;
   opacity:0.85;
 }
-.settingsButton{
-  font-size:16px;
-  font-weight:700;
-  padding:12px 16px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  cursor:pointer;
-  backdrop-filter:blur(6px);
-  transition:all 0.2s ease;
-  text-align:left;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+/* ===== 토글 스위치 ===== */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.settingsButton:active{
-  transform:scale(0.97);
-  background:rgba(255,255,255,.12);
+
+.toggle-label {
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
 }
-.settingsButton.off{
-  opacity:0.6;
+
+.toggle-input {
+  position: relative;
+  width: 56px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(110, 231, 183, 0.3);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
-.settingsSelect{
-  font-size:16px;
-  font-weight:700;
-  padding:12px 16px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.16);
-  background:rgba(255,255,255,.08);
-  color:var(--text);
-  cursor:pointer;
-  backdrop-filter:blur(6px);
-  transition:all 0.2s ease;
-  text-align:left;
+
+.toggle-input.on {
+  background: rgba(110, 231, 183, 0.3);
+  border-color: rgba(110, 231, 183, 0.6);
 }
-.settingsSelect:active{
-  transform:scale(0.97);
-  background:rgba(255,255,255,.12);
+
+.toggle-input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 28px;
+  height: 28px;
+  background: white;
+  border-radius: 14px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
-.settingsSelect option{
-  color:#1f2937;
-  background:#ffffff;
+
+.toggle-input.on::after {
+  left: 26px;
+  box-shadow: 0 2px 8px rgba(110, 231, 183, 0.4);
+}
+
+/* ===== 테마 선택 컬러칩 ===== */
+.theme-chips {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.theme-chip {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-chip:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.theme-chip.warm {
+  background: linear-gradient(135deg, #ff6b5b, #ffa500);
+}
+
+.theme-chip.dark {
+  background: linear-gradient(135deg, #1e3a8a, #0f172a);
+}
+
+.theme-chip.forest {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+.theme-chip.active {
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 20px rgba(110, 231, 183, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-chip::before {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  font-weight: 900;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.theme-chip.active::before {
+  opacity: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* =========================
@@ -1132,14 +1269,29 @@ body.peeking .tile{
   }
 }
 
-/* ===== 상단 인사말 컨테이너 (통일된 기준) ===== */
+/* ===== 상단 인사말 컨테이너 (여백 최적화) ===== */
 .top-greet {
-  margin: 20px auto;
-  max-width: 420px;
+  margin: 0 auto;
+  max-width: 560px;
   width: 100%;
   text-align: center;
-  padding: 0 20px;
+  padding: 28px 16px 20px;
   box-sizing: border-box;
+}
+
+.top-greet > div:first-child {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.top-greet > div:last-child {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  opacity: 0.95;
 }
 
 .brand-footer { 
@@ -1191,121 +1343,296 @@ body.peeking .tile{
 </style>
 <link rel="stylesheet" href="../common.css">
 </head>
-<body>
+
   <div class="wrap">
-  <div class="top-greet">
-    <div id="greetLine1" style="font-size: 19px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: var(--text);"></div>
-    <div id="greetLine2" style="font-size: 15px; color: var(--muted); line-height: 1.5;"></div>
-  </div>
+    <!-- ===== 글라스모피즘 상단바 ===== -->
+    <div class="top-bar">
+      <button id="homeBtn" type="button" aria-label="홈으로 이동" title="홈">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </button>
+      
+      <div class="top-title">같은 그림 찾기</div>
+      
+      <button id="settingsOpenBtn" type="button" aria-label="설정" title="설정">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24M1 12h6m6 0h6m-16.78 7.78l4.24-4.24m2.12-2.12l4.24-4.24"></path>
+        </svg>
+      </button>
+    </div>
 
-  <div id="gameBoard" class="game-board-wrapper">
-    <div class="board" id="board"></div>
-  </div>
+    <!-- ===== 상단 힐링 메시지 ===== -->
+    <div class="top-greet">
+      <div>조용히 이어가도 좋아요</div>
+      <div>가볍게 조합해 볼까요</div>
+    </div>
 
-  <div class="card messageCard">
-    <div id="msg">소중한 친구들이 짝꿍을 기다리고 있어요. 함께 찾아줄까요? ✨</div>
-    <div id="hint">천천히 마음을 모아 찾아보세요</div>
-  </div>
+    <!-- ===== 게임 보드 ===== -->
+    <div id="gameBoard" class="game-board-wrapper">
+      <div class="board" id="board"></div>
+    </div>
 
-  <div class="card">
-    <button id="peekBtn" class="peek-btn" style="display:none;">💡 잠깐 도움받기</button>
+    <div style="height: 28px;"></div>
 
-    <select id="peekSec" style="display:none">
-      <option value="4">4</option>
-    </select>
-  </div>
-
-</div>
-
-<div id="modalBack" role="dialog" aria-modal="true" aria-label="이렇게 놀아요">
-  <div id="modalCard">
-    <div class="modalTitle">마음을 모으는 시간</div>
-    <div class="modalBody">
-      <div class="modalStep"><div class="modalNum">1</div><div>짝 찾기: 뒤집힌 카드에서 같은 그림을 찾아 마음을 이어주세요</div></div>
-      <div class="modalStep"><div class="modalNum">2</div><div>집중하기: 맞춘 짝이 많을수록 마음이 따뜻해져요</div></div>
-      <div class="modalStep"><div class="modalNum">3</div><div>여유롭게: 매일 새로운 배치로 천천히 즐겨보세요</div></div>
-      <div style="margin-top:10px;color:var(--muted);font-size:12px;">
-        * 천천히 해도 괜찮아요 🙂
+    <!-- ===== 힌트 버튼 ===== -->
+    <div class="card">
+      <div style="display:flex; justify-content:center;">
+        <button id="peekBtn" class="peek-btn" style="display:none;">💡 잠깐 도움받기</button>
       </div>
-    </div>
-    <div class="modalActions">
-      <button id="modalCloseBtn" type="button">닫기</button>
-    </div>
-  </div>
-</div>
-
-<div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
-  <div id="resultModalCard">
-    <div class="resultEmoji" id="resultEmoji">🌿</div>
-    <div class="resultMessage" id="resultMessage">차분하게 마무리했어요.</div>
-    <button id="resultRestartBtn" type="button" class="resultRestartBtn">다시 이어가기</button>
-  </div>
-</div>
-
-<!-- 설정 모달 -->
-<div id="settingsModalBack" role="dialog" aria-modal="true" aria-label="게임 설정">
-  <div id="settingsModalCard">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <div class="settingsModalTitle">⚙️ 설정</div>
-      <button id="settingsModalClose" type="button" style="background: none; border: none; font-size: 20px; color: var(--text); cursor: pointer; padding: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">✕</button>
-    </div>
-
-    <div class="settingsSection">
-      <div class="settingLabel">효과음</div>
-      <button id="modalSfxBtn" type="button" class="settingsButton">🔊 효과음 : 켜기</button>
-    </div>
-
-    <div class="settingsSection">
-      <div class="settingLabel">배경음악</div>
-      <button id="modalBgmBtn" type="button" class="settingsButton">🎵 배경음악 : 끄기</button>
-    </div>
-
-    <div class="settingsSection">
-      <div class="settingLabel">테마</div>
-      <select id="modalThemeSelect" class="settingsSelect">
-        <option value="warm">🌅 따뜻한 테마</option>
-        <option value="dark">🌙 밤하늘 테마</option>
-        <option value="forest">🌲 숲속 테마</option>
+      <select id="peekSec" style="display:none">
+        <option value="4">4</option>
       </select>
     </div>
   </div>
-</div>
 
-<audio id="bgmAudio"
-  loop
-  preload="auto"></audio>
+  <!-- ===== 모달들 ===== -->
+  <div id="modalBack" role="dialog" aria-modal="true" aria-label="이렇게 놀아요">
+    <div id="modalCard">
+      <div class="modalTitle">마음을 모으는 시간</div>
+      <div class="modalBody">
+        <div class="modalStep"><div class="modalNum">1</div><div>짝 찾기: 뒤집힌 카드에서 같은 그림을 찾아 마음을 이어주세요</div></div>
+        <div class="modalStep"><div class="modalNum">2</div><div>집중하기: 맞춘 짝이 많을수록 마음이 따뜻해져요</div></div>
+        <div class="modalStep"><div class="modalNum">3</div><div>여유롭게: 매일 새로운 배치로 천천히 즐겨보세요</div></div>
+        <div style="margin-top:10px;color:var(--muted);font-size:12px;">
+          * 천천히 해도 괜찮아요 🙂
+        </div>
+      </div>
+      <div class="modalActions">
+        <button id="modalCloseBtn" type="button">닫기</button>
+      </div>
+    </div>
+  </div>
 
-<script src="../healingIcons.js"></script>
-<script src="../core.js"></script>
-<script src="./main.js?v=7"></script>
-<script>
-// 안전장치: core 전역이 없다면 생성 (메모리 게임 전용 가드)
-window.addEventListener('DOMContentLoaded', function() {
-  if (!window.core && typeof HaruCore === 'function') {
-    window.core = new HaruCore();
-  }
+  <div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
+    <div id="resultModalCard">
+      <div class="resultEmoji" id="resultEmoji">🌿</div>
+      <div class="resultMessage" id="resultMessage">차분하게 마무리했어요.</div>
+      <button id="resultRestartBtn" type="button" class="resultRestartBtn">다시 이어가기</button>
+    </div>
+  </div>
 
-  // 시간대별 문구 적용
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
+  <div id="settingsModalBack" role="dialog" aria-modal="true" aria-label="게임 설정">
+    <div id="settingsModalCard">
+      <div class="settingsModalTitle">
+        ⚙️ 설정
+        <button id="settingsModalClose" type="button">✕</button>
+      </div>
 
-  const copies = [
-    { line1: '천천히 찾아도 괜찮아요', line2: '한 번만 맞춰도 충분해요' },
-    { line1: '눈이 편한 속도로 해요', line2: '서두르지 않아도 돼요' },
-    { line1: '오늘은 가볍게 시작해요', line2: '천천히 이어가도 좋아요' }
-  ];
+      <!-- 효과음 토글 -->
+      <div class="settingsSection">
+        <div class="settingLabel">효과음</div>
+        <div class="toggle-switch">
+          <span class="toggle-label">음소거</span>
+          <div id="sfxToggle" class="toggle-input on"></div>
+        </div>
+      </div>
 
-  const copy = pick(copies);
-  const line1El = document.getElementById('greetLine1');
-  const line2El = document.getElementById('greetLine2');
-  if (line1El) line1El.textContent = copy.line1;
-  if (line2El) line2El.textContent = copy.line2;
+      <!-- 배경음악 토글 -->
+      <div class="settingsSection">
+        <div class="settingLabel">배경음악</div>
+        <div class="toggle-switch">
+          <span class="toggle-label">음소거</span>
+          <div id="bgmToggle" class="toggle-input"></div>
+        </div>
+      </div>
+
+      <!-- 테마 선택 -->
+      <div class="settingsSection">
+        <div class="settingLabel">테마</div>
+        <div class="theme-chips">
+          <div id="themeWarm" class="theme-chip warm active" title="따뜻한 테마"></div>
+          <div id="themeDark" class="theme-chip dark" title="밤하늘 테마"></div>
+          <div id="themeForest" class="theme-chip forest" title="숲속 테마"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 스크립트 ===== -->
+  <script src="../healingIcons.js?v=2"></script>
+  <script src="../core.js?v=3"></script>
+  <script src="main.js?v=12"></script>
   
-  // 공통 상단바 주입
-  initGlobalHeader('☁️', { homeHref: '../index.html' });
-});
-</script>
+  <script>
+    // DOMContentLoaded: 게임 초기화 + SVG 버튼 이벤트
+    document.addEventListener('DOMContentLoaded', function(){
+      // core 객체 초기화 (필요시)
+      if (!window.core && typeof HaruCore === 'function') {
+        window.core = new HaruCore();
+      }
+
+      const homeBtn = document.getElementById('homeBtn');
+      const settingsBtn = document.getElementById('settingsOpenBtn');
+      const settingsModalBack = document.getElementById('settingsModalBack');
+      const settingsModalClose = document.getElementById('settingsModalClose');
+
+      // 홈 버튼 클릭
+      if(homeBtn){
+        homeBtn.addEventListener('click', () => {
+          if(window.core && typeof window.core.playSfx === 'function'){
+            window.core.playSfx('click');
+          }
+          window.location.href = '../index.html';
+        });
+      }
+
+      // 설정 버튼 클릭
+      if(settingsBtn){
+        settingsBtn.addEventListener('click', () => {
+          if(window.core && typeof window.core.playSfx === 'function'){
+            window.core.playSfx('click');
+          }
+          if(settingsModalBack){
+            settingsModalBack.classList.add('isOpen');
+            // 모달 열 때 현재 설정값 동기화
+            syncSettingsModalState();
+          }
+        });
+      }
+
+      // 설정 모달 닫기
+      if(settingsModalClose){
+        settingsModalClose.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if(settingsModalBack){
+            settingsModalBack.classList.remove('isOpen');
+          }
+        });
+      }
+
+      if(settingsModalBack){
+        settingsModalBack.addEventListener('click', (e) => {
+          if(e.target === settingsModalBack){
+            settingsModalBack.classList.remove('isOpen');
+          }
+        });
+      }
+
+      // ===== 설정 모달 상태 동기화 함수 =====
+      function syncSettingsModalState() {
+        // SFX 토글 동기화
+        const sfxToggle = document.getElementById('sfxToggle');
+        if(sfxToggle && window.core) {
+          if(window.core.isSfxOn) {
+            sfxToggle.classList.add('on');
+          } else {
+            sfxToggle.classList.remove('on');
+          }
+        }
+
+        // BGM 토글 동기화
+        const bgmToggle = document.getElementById('bgmToggle');
+        if(bgmToggle && window.core) {
+          if(window.core.isBgmOn) {
+            bgmToggle.classList.add('on');
+          } else {
+            bgmToggle.classList.remove('on');
+          }
+        }
+
+        // 테마 칩 동기화
+        const currentTheme = window.core.currentTheme || 'dark';
+        document.querySelectorAll('.theme-chip').forEach(chip => {
+          chip.classList.remove('active');
+        });
+        const activeChip = document.getElementById('theme' + capitalizeFirst(currentTheme));
+        if(activeChip) {
+          activeChip.classList.add('active');
+        }
+      }
+
+      function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+      }
+
+      // ===== 효과음 토글 =====
+      const sfxToggle = document.getElementById('sfxToggle');
+      if(sfxToggle){
+        sfxToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // core.js의 toggleSfx() 호출
+          if(window.core && typeof window.core.toggleSfx === 'function'){
+            window.core.toggleSfx();
+            // UI 업데이트
+            if(window.core.isSfxOn) {
+              sfxToggle.classList.add('on');
+            } else {
+              sfxToggle.classList.remove('on');
+            }
+          }
+        });
+      }
+
+      // ===== 배경음악 토글 =====
+      const bgmToggle = document.getElementById('bgmToggle');
+      if(bgmToggle){
+        bgmToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // core.js의 toggleBgm() 호출
+          if(window.core && typeof window.core.toggleBgm === 'function'){
+            window.core.toggleBgm();
+            // UI 업데이트
+            if(window.core.isBgmOn) {
+              bgmToggle.classList.add('on');
+            } else {
+              bgmToggle.classList.remove('on');
+            }
+          }
+        });
+      }
+
+      // ===== 테마 선택 =====
+      const themeWarm = document.getElementById('themeWarm');
+      const themeDark = document.getElementById('themeDark');
+      const themeForest = document.getElementById('themeForest');
+      
+      const applyThemeFromChip = (themeName) => {
+        // core.js의 applyTheme() 호출
+        if(window.core && typeof window.core.applyTheme === 'function'){
+          window.core.applyTheme(themeName);
+          // currentTheme도 업데이트 (core에서 자동 업데이트되지만 명시적으로)
+          window.core.currentTheme = themeName;
+        }
+        
+        // UI 업데이트: 모든 칩의 active 제거
+        document.querySelectorAll('.theme-chip').forEach(chip => {
+          chip.classList.remove('active');
+        });
+        
+        // 선택된 칩에 active 추가
+        if(themeName === 'warm' && themeWarm) themeWarm.classList.add('active');
+        if(themeName === 'dark' && themeDark) themeDark.classList.add('active');
+        if(themeName === 'forest' && themeForest) themeForest.classList.add('active');
+      };
+
+      if(themeWarm){
+        themeWarm.addEventListener('click', (e) => {
+          e.stopPropagation();
+          applyThemeFromChip('warm');
+        });
+      }
+      if(themeDark){
+        themeDark.addEventListener('click', (e) => {
+          e.stopPropagation();
+          applyThemeFromChip('dark');
+        });
+      }
+      if(themeForest){
+        themeForest.addEventListener('click', (e) => {
+          e.stopPropagation();
+          applyThemeFromChip('forest');
+        });
+      }
+
+      // 초기 상태 동기화 (모달이 처음 열릴 때)
+      syncSettingsModalState();
+    });
+  </script>
+</body>
+</html>
 
 </body>
 </html>

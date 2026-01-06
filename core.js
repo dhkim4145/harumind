@@ -118,6 +118,7 @@ class HaruCore {
     }
 
     updateModalSfxUi() {
+        // 구형 버튼 방식 (있으면 업데이트)
         const btn = document.getElementById('modalSfxBtn');
         if (btn) {
             if (this.isSfxOn) {
@@ -128,9 +129,20 @@ class HaruCore {
                 btn.classList.add('off');
             }
         }
+        
+        // 신규 토글 방식 (memory.html)
+        const sfxToggle = document.getElementById('sfxToggle');
+        if(sfxToggle) {
+          if(this.isSfxOn) {
+            sfxToggle.classList.add('on');
+          } else {
+            sfxToggle.classList.remove('on');
+          }
+        }
     }
 
     updateModalBgmUi() {
+        // 구형 버튼 방식 (있으면 업데이트)
         const btn = document.getElementById('modalBgmBtn');
         if (btn) {
             if (this.isBgmOn) {
@@ -140,6 +152,16 @@ class HaruCore {
                 btn.textContent = '🔇 배경음악 : 끄기';
                 btn.classList.add('off');
             }
+        }
+        
+        // 신규 토글 방식 (memory.html)
+        const bgmToggle = document.getElementById('bgmToggle');
+        if(bgmToggle) {
+          if(this.isBgmOn) {
+            bgmToggle.classList.add('on');
+          } else {
+            bgmToggle.classList.remove('on');
+          }
         }
     }
 

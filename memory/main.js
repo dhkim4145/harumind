@@ -92,8 +92,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // DOM 요소
   const board = document.getElementById("board");
-  const msgEl = document.getElementById("msg");
-  const hintEl = document.getElementById("hint");
 
   const homeBtn = document.getElementById("homeBtn");
   const peekBtn = document.getElementById("peekBtn");
@@ -103,34 +101,41 @@ window.addEventListener('DOMContentLoaded', function() {
   const modalCloseBtn = document.getElementById("modalCloseBtn");
   const modalCard = document.getElementById("modalCard");
 
-  // 설정 상태
-  let currentStateMsg = { msg: "", hint: "" };
-  
-  // 효과음 재생 (core 엔진 사용)
-  const tone = (type = 'click') => { if(window.core) window.core.playSfx(type); };
-
-  // 메시지 업데이트
-  function setMessage(msg, hint){
-    // 페이드 아웃
-    if(msgEl){
-      msgEl.classList.add("fadeOut");
-    }
-    if(hintEl){
-      hintEl.classList.add("fadeOut");
+  // 설정 상태 초기화
+  function initSettings(){
+    // localStorage에서 설정 불러오기
+    const sfxMuted = getBool('sfxMuted', false); // 기본: SFX 켜짐
+    const bgmMuted = getBool('bgmMuted', true);   // 기본: BGM 꺼짐
+    const theme = safeGet('theme') || 'warm';
+    
+    // UI 상태 동기화
+    const sfxToggle = document.getElementById('sfxToggle');
+    const bgmToggle = document.getElementById('bgmToggle');
+    
+    if(sfxToggle){
+      if(!sfxMuted){
+        sfxToggle.classList.add('on');
+      } else {
+        sfxToggle.classList.remove('on');
+      }
     }
     
-    // 페이드 인
-    setTimeout(() => {
-      if(msgEl){
-        msgEl.textContent = msg || "";
-        msgEl.classList.remove("fadeOut");
+    if(bgmToggle){
+      if(!bgmMuted){
+        bgmToggle.classList.add('on');
+      } else {
+        bgmToggle.classList.remove('on');
       }
-      if(hintEl){
-        hintEl.textContent = hint || "";
-        hintEl.classList.remove("fadeOut");
-      }
-    }, 200);
+    }
   }
+  
+  // 효과음 재생 (core 엔진 사용)
+  const tone = (type = 'click') => { 
+    if(window.core && !getBool('sfxMuted', false)) {
+      window.core.playSfx(type);
+    }
+  };
+
 
 
   // 모달 (How-to 모달만 유지)
@@ -317,19 +322,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function setStateMessage(msg, hint){
-    currentStateMsg = { msg, hint };
-    setMessage(msg, hint);
-  }
-
-  function showTempMessage(msg, hint, duration = 800){
-    clearTempMsgTimer();
-    setMessage(msg, hint);
-    tempMsgTimer = setTimeout(() => {
-      setMessage(currentStateMsg.msg, currentStateMsg.hint);
-      tempMsgTimer = null;
-    }, duration);
-  }
+  // 메시지 관련 기능 제거
 
   function build(autoPeekSec, useRandomSeed = false){
     clearPeekTimer();
@@ -339,6 +332,9 @@ window.addEventListener('DOMContentLoaded', function() {
     lock = false;
     matched = 0;
     totalPairs = 0;
+    
+    // 설정 초기화
+    initSettings();
     
     // 매 게임마다 새로운 뒷면 아이콘 선택
     selectRandomBackIcon();
@@ -351,7 +347,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
     const cards = seededCards(level, customSeed);
     
-    setStateMessage("천천히 찾아보세요", "");
+    // 하단 메시지 제거: 상태 메시지 표시 생략
     
     // 힌트 버튼 리셋
     if(peekBtn){
@@ -413,7 +409,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     if(!first){
       first = t;
-      setStateMessage("잘 보고 있어요", "");
+      // 상태 메시지 표시 생략
       return;
     }
 
@@ -439,7 +435,7 @@ window.addEventListener('DOMContentLoaded', function() {
           if(window.core) window.core.playSfx('success');
 
         if(matched < totalPairs){
-          setStateMessage("조용히 잘 이어가고 있어요", "천천히 이어가면 돼요");
+          // 상태 메시지 표시 생략
         }
 
         first = null;
@@ -451,7 +447,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
       }else{
           if(window.core) window.core.playSfx('click');
-        setMessage("괜찮아요", "");
+        // 상태 메시지 표시 생략
 
         setTimeout(()=>{
           first.dataset.state = "down";
@@ -459,7 +455,7 @@ window.addEventListener('DOMContentLoaded', function() {
           first = null;
           lock = false;
           
-          setStateMessage("천천히 찾아보세요", "");
+          // 상태 메시지 표시 생략
         }, C.MISMATCH_MS);
       }
     }, 100); // 100ms 지연으로 두 번째 카드 확인 시간 제공
@@ -467,7 +463,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   function finishGame(){
     clearTempMsgTimer();
-    setStateMessage("모든 친구들을 찾았어요 🌿", "");
+    // 상태 메시지 표시 생략
 
     if(peekBtn){
       peekBtn.style.display = "none";
@@ -594,7 +590,7 @@ window.addEventListener('DOMContentLoaded', function() {
             }
           });
         }
-        setStateMessage("천천히 찾아보세요", "");
+        // 상태 메시지 표시 생략
         lock = false;
         peekTimer = null;
       }, sec * 1000);
@@ -606,7 +602,7 @@ window.addEventListener('DOMContentLoaded', function() {
       }, sec * 1000);
     }
 
-    setMessage("잠깐 보고 기억해요", "친구들이 조용히 숨어 있어요.");
+    // 상태 메시지 표시 생략
   }
 
   // 하단 토스트 메시지 표시
@@ -639,7 +635,6 @@ window.addEventListener('DOMContentLoaded', function() {
   window.HarumindUI = {
     board,
     dateStr,
-    setMessage,
     openModal,
     closeModal,
   };
