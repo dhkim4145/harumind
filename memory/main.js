@@ -17,6 +17,21 @@ window.addEventListener('DOMContentLoaded', function() {
       '🐧','🐢', // 느림·집중·인내 (하루마음 핵심)
       '🐮','🐷'  // 온순함, 평온함
     ],
+      // 앞면 아이콘 후보 (SVG key) - 8쌍 기본
+      FRONT_ICONS: [
+        'leaf', 'cloud', 'moon', 'flower', 'coffee', 'star', 'droplet', 'heart'
+      ],
+      // 앞면 아이콘별 파스텔톤 글로우 색상
+      FRONT_GLOW: {
+        leaf: 'rgba(110, 231, 183, 0.9)',
+        cloud: 'rgba(180, 210, 255, 0.85)',
+        moon: 'rgba(190, 210, 255, 0.9)',
+        flower: 'rgba(255, 170, 200, 0.9)',
+        coffee: 'rgba(255, 210, 170, 0.9)',
+        star: 'rgba(255, 255, 200, 0.95)',
+        droplet: 'rgba(120, 200, 255, 0.9)',
+        heart: 'rgba(255, 150, 170, 0.95)'
+      },
     LEVEL_MAP: {
       "4x3": [3,4],   // 6쌍만 유지
     },
@@ -208,6 +223,7 @@ window.addEventListener('DOMContentLoaded', function() {
   let peekTimer = null;
   let tempMsgTimer = null;
   let currentBackIcon = ''; // 현재 게임의 뒷면 아이콘
+  let lastMatchedKey = null; // 마지막으로 맞춘 아이콘 키
 
   // 랜덤 뒷면 아이콘 선택
   function selectRandomBackIcon() {
@@ -244,13 +260,30 @@ window.addEventListener('DOMContentLoaded', function() {
       svgContent = svgContent.replace(/stroke-width="[\d.]+"/g, 'stroke-width="2"');
     }
     
-    // SVG를 base64로 인코딩
-    const encoded = btoa(unescape(encodeURIComponent(svgContent)));
-    const dataUri = `url("data:image/svg+xml;base64,${encoded}")`;
+    // SVG를 UTF-8로 안전하게 인코딩 (base64 대신)
+    const dataUri = `url("data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}")`;
     
     // CSS 변수 업데이트
     document.documentElement.style.setProperty('--card-back-icon', dataUri);
     console.log('✅ Card back icon set to:', currentBackIcon, '✨');
+  }
+
+  // Glow burst 효과 트리거
+  function triggerGlowBurst(tile){
+    if(!tile) return;
+    tile.classList.add('glow-burst');
+    setTimeout(()=> tile.classList.remove('glow-burst'), 600);
+  }
+
+  // 주어진 HEALING_ICONS key를 흰색 stroke로 교체해 data URI 반환
+  function iconKeyToDataUri(key, strokeWidth = '2'){
+    if(!window.HEALING_ICONS) return null;
+    let svg = window.HEALING_ICONS[key];
+    if(!svg) return null;
+    svg = svg
+      .replace(/stroke="currentColor"/g, 'stroke="white"')
+      .replace(/stroke-width="[\d.]+"/g, `stroke-width="${strokeWidth}"`);
+    return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
   }
 
   function seededCards(level, customSeed){
@@ -266,7 +299,7 @@ window.addEventListener('DOMContentLoaded', function() {
     for(const ch of seed) h = Math.imul(31, h) + ch.charCodeAt(0) | 0;
     const rnd = () => (h = Math.imul(48271, h) & 2147483647) / 2147483647;
 
-    const pool = [...C.EMOJIS].sort(()=>rnd()-0.5).slice(0, totalPairs);
+    const pool = [...C.FRONT_ICONS].sort(()=>rnd()-0.5).slice(0, totalPairs);
     return [...pool, ...pool].sort(()=>rnd()-0.5);
   }
 
@@ -325,11 +358,20 @@ window.addEventListener('DOMContentLoaded', function() {
       peekBtn.disabled = false;
     }
 
-    cards.forEach((emoji, index)=>{
+    cards.forEach((iconKey, index)=>{
       const t = document.createElement("div");
       t.className = "tile";
       t.dataset.state = "down";
-      t.dataset.emoji = emoji;
+        // 매칭 식별자: 아이콘 키 보존
+        t.dataset.emoji = iconKey;
+        // 앞면 SVG를 엘리먼트 CSS 변수로 주입
+        const frontUri = iconKeyToDataUri(iconKey, '2');
+        if(frontUri){
+          t.style.setProperty('--front-icon', frontUri);
+        }
+      // 아이콘별 글로우 색상 주입
+      const glow = C.FRONT_GLOW[iconKey] || 'rgba(110, 231, 183, 0.85)';
+      t.style.setProperty('--icon-glow', glow);
       t.onclick = () => clickTile(t);
       // 페이드 인 효과를 위한 초기 투명도
       t.style.opacity = "0";
@@ -386,6 +428,13 @@ window.addEventListener('DOMContentLoaded', function() {
 
         matched++;
 
+        // 마지막으로 맞춘 아이콘 키 저장
+        lastMatchedKey = t.dataset.emoji;
+
+        // 시각적 광채 폭발 (소리와 동기화)
+        triggerGlowBurst(first);
+        triggerGlowBurst(t);
+
         // 맑은 실로폰 느낌의 성공음 재생
           if(window.core) window.core.playSfx('success');
 
@@ -424,6 +473,17 @@ window.addEventListener('DOMContentLoaded', function() {
       peekBtn.style.display = "none";
     }
 
+    // 무지개 스윕 오버레이
+    document.body.classList.add('rainbow-sweep');
+    setTimeout(()=> document.body.classList.remove('rainbow-sweep'), 1400);
+
+    // 웅장한 피날레 사운드 (가능하면 finale, 없으면 레이어드 success)
+    if(window.core && typeof window.core.playSfx === 'function'){
+      window.core.playSfx('finale');
+      setTimeout(()=> window.core.playSfx('success'), 120);
+      setTimeout(()=> window.core.playSfx('success'), 280);
+    }
+
     showResultModal();
   }
 
@@ -437,13 +497,41 @@ window.addEventListener('DOMContentLoaded', function() {
     if(!resultModalBack) return;
 
     const messages = [
-      "잘 해냈어요",
-      "모든 짝을 찾았어요",
-      "오늘의 여기까지 해도 충분해요",
+      "잠시 멈춰간 이 시간이 당신에게 힘이 되었길",
+      "어둠 속에서도 빛을 찾아낸 당신의 마음을 응원합니다",
+      "조급했던 마음이 조금은 가라앉았길 바라요",
     ];
 
+    const ICON_LABELS = {
+      leaf:'나뭇잎', cloud:'구름', moon:'달', flower:'꽃', coffee:'찻잔', star:'별', droplet:'물방울', heart:'하트'
+    };
+    const label = ICON_LABELS[lastMatchedKey] || '별';
     if(resultEmoji) resultEmoji.textContent = "🌿";
-    if(resultMessage) resultMessage.textContent = messages[Math.floor(Math.random() * messages.length)];
+    if(resultMessage){
+      const base = messages[Math.floor(Math.random() * messages.length)];
+      resultMessage.textContent = `오늘 당신의 마음은 ${label}처럼 따뜻하네요. ${base}`;
+    }
+
+    // 둥둥 떠다니는 아이콘들 추가
+    let floatWrap = document.querySelector('#resultModalCard .floatingIcons');
+    if(!floatWrap){
+      floatWrap = document.createElement('div');
+      floatWrap.className = 'floatingIcons';
+      const keys = ['leaf','cloud','moon','flower','coffee','star','droplet','heart'];
+      for(let i=0;i<8;i++){
+        const k = keys[i % keys.length];
+        const el = document.createElement('div');
+        el.className = 'icon';
+        const uri = iconKeyToDataUri(k, '2');
+        el.style.backgroundImage = uri || '';
+        el.style.left = (Math.random()*90+5)+"%";
+        el.style.top = (Math.random()*80+10)+"%";
+        el.style.animationDelay = (Math.random()*2)+"s";
+        floatWrap.appendChild(el);
+      }
+      const cardEl = document.getElementById('resultModalCard');
+      if(cardEl) cardEl.appendChild(floatWrap);
+    }
 
     resultModalBack.classList.add("isOpen");
 

@@ -477,6 +477,12 @@ button.primary{
   overflow: hidden;
 }
 
+/* 가상 요소 기본값: 항상 생성되도록 보장 */
+.tile::after{
+  content: "";
+  display: block;
+}
+
 /* 카드 열린 상태 - 강조된 스타일 */
 .tile[data-state="up"] {
   background: linear-gradient(135deg, rgba(110, 231, 183, 0.25), rgba(110, 231, 183, 0.15));
@@ -521,36 +527,62 @@ button.primary{
   left: 0;
   right: 0;
   bottom: 0;
-  width: 50%;
-  height: 50%;
+  width: 60%;
+  height: 60%;
   margin: auto;
-  background-image: var(--card-back-icon);
+  background-image: var(--card-back-icon) !important;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.75;
+  opacity: 0.5;
   transform: scaleX(1);
-  z-index: 10;
+  z-index: 20;
   pointer-events: none;
-  filter: drop-shadow(0 0 2px white) drop-shadow(0 0 5px rgba(110, 231, 183, 0.7));
-  animation: pulseBackIcon 2.2s ease-in-out infinite;
+  display: block;
+  /* 백페이스는 민트 글로우 - 변수화된 펄스 사용 */
+  --glow-color: rgba(110, 231, 183, 0.6);
+  --inner-glow: 2px;
+  --outer-glow: 5px;
+  animation: pulseGlow 2.2s ease-in-out infinite;
 }
 
-@keyframes pulseBackIcon {
+@keyframes pulseGlow {
   0%, 100% {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 2px white) drop-shadow(0 0 5px rgba(110, 231, 183, 0.7));
+    filter:
+      drop-shadow(0 0 var(--inner-glow, 2px) white)
+      drop-shadow(0 0 var(--outer-glow, 5px) var(--glow-color, rgba(110, 231, 183, 0.7)));
   }
   50% {
-    opacity: 0.86;
-    filter: drop-shadow(0 0 3px white) drop-shadow(0 0 7px rgba(110, 231, 183, 0.82));
+    filter:
+      drop-shadow(0 0 calc(var(--inner-glow, 2px) + 1px) white)
+      drop-shadow(0 0 calc(var(--outer-glow, 5px) + 2px) var(--glow-color, rgba(110, 231, 183, 0.8)));
   }
 }
 
 .tile[data-state="up"]::after{
-  content:attr(data-emoji);
-  opacity:1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  height: 60%;
+  margin: auto;
+  background-image: var(--front-icon) !important;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 1;
   transform: scaleX(1);
+  z-index: 20;
+  pointer-events: none;
+  display: block;
+  /* 앞면은 아이콘 고유 글로우 컬러를 강하게 */
+  --glow-color: var(--icon-glow, rgba(110, 231, 183, 0.9));
+  --inner-glow: 2px;
+  --outer-glow: 7px;
+  animation: pulseGlow 2.2s ease-in-out infinite;
 }
 
 /* 카드 열기 애니메이션 - 카드 전체 회전 */
@@ -577,10 +609,7 @@ button.primary{
 }
 
 .tile.closing[data-state="up"]::after {
-  content: "?";
-  opacity: 1;
-  transform: scaleX(1);
-  font-weight: 900;
+  /* front icon styling persists during closing phase */
 }
 
 @keyframes cardFlipClose {
@@ -590,11 +619,109 @@ button.primary{
 }
 
 .tile.matched{
-  background: linear-gradient(135deg, rgba(110, 231, 183, 0.3), rgba(110, 231, 183, 0.2));
-  border-color: rgba(110, 231, 183, 0.7);
-  box-shadow: 0 8px 25px rgba(110, 231, 183, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  animation: bounceUp 0.2s ease-out;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  animation: successBounce 0.45s ease-out;
+  pointer-events: none;
 }
+
+@keyframes successBounce {
+  0%{
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  30%{
+    transform: translateY(-10px) scale(1.1);
+  }
+  100%{
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Leave a tiny star at center on matched */
+.tile.matched::after{
+  content: "" !important;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 2px;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 4px 1px white;
+  z-index: 30;
+  pointer-events: none;
+  /* override any icon image */
+  background-image: none !important;
+}
+
+/* Glow burst when matched */
+.tile.glow-burst::after{
+  animation: glowBurst 0.6s ease-out;
+}
+
+@keyframes glowBurst{
+  0%{
+    filter: drop-shadow(0 0 3px white) drop-shadow(0 0 25px var(--glow-color, rgba(110, 231, 183, 0.9)));
+  }
+  100%{
+    filter: drop-shadow(0 0 2px white) drop-shadow(0 0 var(--outer-glow, 7px) var(--glow-color, rgba(110, 231, 183, 0.7)));
+  }
+}
+
+/* Rainbow sweep finale */
+body.rainbow-sweep::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  background: linear-gradient(90deg,
+    rgba(255,0,0,0.0) 0%,
+    rgba(255,0,120,0.25) 15%,
+    rgba(255,150,0,0.25) 30%,
+    rgba(255,255,0,0.25) 45%,
+    rgba(0,255,150,0.3) 60%,
+    rgba(0,150,255,0.3) 75%,
+    rgba(180,0,255,0.25) 90%,
+    rgba(0,0,0,0.0) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.35;
+  animation: rainbowSweep 1.25s ease-out forwards;
+}
+
+@keyframes rainbowSweep{
+  0%{ transform: translateX(0); opacity: 0.0; }
+  10%{ opacity: 0.25; }
+  50%{ opacity: 0.4; }
+  100%{ transform: translateX(50%); opacity: 0.0; }
+}
+
+/* Twinkle stars brighter during rainbow sweep */
+body.rainbow-sweep .tile.matched::after{
+  animation: twinkle 1.2s ease-in-out 2;
+}
+
+@keyframes twinkle{
+  0%{ box-shadow: 0 0 4px 1px white; }
+  50%{ box-shadow: 0 0 10px 2px white; }
+  100%{ box-shadow: 0 0 4px 1px white; }
+}
+
+/* Result modal glass + floating icons */
+#resultModalBack.isOpen{ display: flex; }
+#resultModalBack{ position: fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1100; background: rgba(0,0,0,0.3); backdrop-filter: blur(6px); }
+#resultModalCard{ position: relative; width: min(420px, 90vw); padding: 20px; border-radius: 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 40px rgba(110, 231, 183, 0.25); backdrop-filter: blur(14px); color: var(--text); }
+.floatingIcons{ position:absolute; inset:-10px; pointer-events:none; }
+.floatingIcons .icon{ position:absolute; width:28px; height:28px; background-size:contain; background-repeat:no-repeat; opacity:0.85; animation: drift 6s ease-in-out infinite; }
+@keyframes drift{ 0%{ transform: translateY(0)} 50%{ transform: translateY(-6px)} 100%{ transform: translateY(0)} }
 
 @keyframes bounceUp{
   0%{ transform: translateY(0) translateZ(0); }
