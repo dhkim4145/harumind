@@ -318,6 +318,40 @@
       accent-color: var(--accent);
       cursor: pointer;
     }
+
+    /* ===== 바람 효과 ===== */
+    .wind-particle {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background: rgba(110, 231, 183, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      filter: blur(1px);
+      animation: windFloat linear infinite;
+    }
+
+    @keyframes windFloat {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.3;
+      }
+      100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .wind-particle:nth-child(odd) {
+      background: rgba(185, 194, 255, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -474,6 +508,48 @@
           }
         });
       });
+
+      // 바람 효과 생성
+      function createWindParticles() {
+        const particleCount = 15;
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'wind-particle';
+          
+          // 랜덤 시작 위치
+          const startX = Math.random() * window.innerWidth;
+          const startY = Math.random() * window.innerHeight;
+          particle.style.left = startX + 'px';
+          particle.style.top = startY + 'px';
+          
+          // 랜덤 이동 거리
+          const tx = (Math.random() - 0.5) * 200 + 100; // 우측으로 주로 이동
+          const ty = (Math.random() - 0.5) * 300;
+          particle.style.setProperty('--tx', tx + 'px');
+          particle.style.setProperty('--ty', ty + 'px');
+          
+          // 랜덤 애니메이션 지속 시간 및 지연
+          const duration = 8 + Math.random() * 6; // 8-14초
+          const delay = Math.random() * 5; // 0-5초 지연
+          particle.style.animationDuration = duration + 's';
+          particle.style.animationDelay = delay + 's';
+          
+          // 랜덤 크기
+          const size = 3 + Math.random() * 4; // 3-7px
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          
+          document.body.appendChild(particle);
+          
+          // 애니메이션 종료 후 재생성
+          particle.addEventListener('animationiteration', () => {
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = Math.random() * window.innerHeight + 'px';
+          });
+        }
+      }
+      
+      createWindParticles();
     });
   </script>
 
