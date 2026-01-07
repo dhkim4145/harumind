@@ -46,7 +46,6 @@ const WORD_DATABASE = [
   { word: "희망찬", emoji: "🌅", hint: "밝은 앞날", meaning: "내일도 할 수 있을 것 같아요" },
 
   // ===== 4글자 단어 추가 =====
-  { word: "아무도모르게", emoji: "🤫", hint: "조용하게 하는 선의", meaning: "보상 없이 주는 마음" },
   { word: "천천히", emoji: "🐢", hint: "서두르지 말기", meaning: "급할 필요 없어요" },
   { word: "그대로가", emoji: "✨", hint: "있는 그대로의 가치", meaning: "바꿀 필요 없는 당신" },
   { word: "살고싶은", emoji: "🌟", hint: "원하는 삶의 방식", meaning: "자기 속도가 제일 좋아요" },
