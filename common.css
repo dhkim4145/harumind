@@ -1,8 +1,24 @@
-/* ===== 공통 헤더 스타일 ===== */
+/* ===== 하루마음 디자인 토큰 ===== */
 :root {
+  /* 라운드 */
+  --radius-card: 24px;        /* 기본 라운드(카드) */
+  --radius-small: 16px;       /* 소형 요소(버튼/칩) */
+  
+  /* 글래스 blur */
+  --blur-default: 12px;       /* 기본 blur */
+  --blur-modal: 18px;         /* 모달/상단바 blur */
+  --blur-performance: 10px;   /* 성능 이슈 시 blur */
+  
+  /* 포인트 컬러 (#A8E6CF 기반) */
+  --color-point: #A8E6CF;           /* 기본 포인트 컬러 */
+  --color-point-hover: #B8F6DF;    /* hover 상태 */
+  --color-point-active: #98D6BF;   /* active 상태 */
+  --color-point-disabled: #78C6AF; /* disabled 상태 */
+  
+  /* 기존 변수 (호환성 유지) */
   --header-height: 56px;
   --header-gap: 8px;
-  --header-radius: 15px;
+  --header-radius: var(--radius-card);
   --header-bg: rgba(255, 255, 255, 0.06);
   --header-border: rgba(255, 255, 255, 0.1);
   --header-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -35,8 +51,8 @@ body {
   background: var(--header-bg);
   border: 1px solid var(--header-border);
   border-radius: var(--header-radius);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--blur-modal, 18px));
+  -webkit-backdrop-filter: blur(var(--blur-modal, 18px));
   box-shadow: var(--header-shadow);
 }
 
@@ -57,7 +73,7 @@ body {
 .nav-btn {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-small, 16px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
@@ -67,7 +83,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.1s ease;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(var(--blur-performance, 10px));
 }
 
 .nav-btn:active {

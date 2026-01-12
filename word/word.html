@@ -43,8 +43,8 @@
             --card-border: rgba(255,255,255,.08);
             --text: #e8ecff;
             --muted: #b9c2ff;
-            --accent: #6ee7b7;
-            --radius: 20px;
+            --accent: var(--color-point, #A8E6CF);
+            --radius: var(--radius-card, 24px);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -60,10 +60,10 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            border-radius: 0 0 20px 20px;
+            border-radius: 0 0 var(--radius-card, 24px) var(--radius-card, 24px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             background: rgba(20, 27, 63, 0.4);
-            backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(var(--blur-modal, 18px)) saturate(180%);
             box-shadow: 
                 0 8px 32px 0 rgba(31, 38, 135, 0.37),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -74,14 +74,14 @@
         .top-bar select {
             height: 40px;
             width: 40px;
-            border-radius: 10px;
+            border-radius: var(--radius-small, 16px);
             flex: 0 0 auto;
             border: 1px solid rgba(255, 255, 255, 0.18);
             background: rgba(255, 255, 255, 0.05);
             color: white;
             padding: 0;
             cursor: pointer;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(var(--blur-default, 12px));
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
@@ -105,8 +105,8 @@
 
         .top-bar button:hover {
             background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(110, 231, 183, 0.4);
-            box-shadow: 0 0 20px rgba(110, 231, 183, 0.3);
+            border-color: var(--color-point-hover, #B8F6DF);
+            box-shadow: 0 0 20px rgba(168, 230, 207, 0.3);
         }
 
         .top-bar button:active,
@@ -114,10 +114,10 @@
             transform: scale(0.92);
             box-shadow: 
                 0 0 20px rgba(255, 255, 255, 0.6),
-                0 0 40px rgba(110, 231, 183, 0.5),
-                inset 0 0 20px rgba(110, 231, 183, 0.2);
-            background: rgba(110, 231, 183, 0.2);
-            border-color: rgba(110, 231, 183, 0.8);
+                0 0 40px rgba(168, 230, 207, 0.5),
+                inset 0 0 20px rgba(168, 230, 207, 0.2);
+            background: var(--color-point-active, #98D6BF);
+            border-color: var(--color-point, #A8E6CF);
         }
 
         .top-bar button.off {
@@ -178,19 +178,19 @@
             gap: 18px;
             background: var(--card-bg);
             padding: 20px;
-            border-radius: var(--radius);
+            border-radius: var(--radius-card, 24px);
             border: 1px solid var(--card-border);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(var(--blur-default, 12px));
         }
 
         .answer-area {
             display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
             min-height: 70px; padding: 18px;
             background: rgba(255,255,255,0.06);
-            border-radius: 16px;
+            border-radius: var(--radius-small, 16px);
             border: 1px solid rgba(255,255,255,0.14);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(110, 231, 183, 0.16);
-            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.28), 0 0 24px rgba(168, 230, 207, 0.16);
+            backdrop-filter: blur(var(--blur-default, 12px));
             position: relative;
             overflow: hidden;
         }
@@ -235,7 +235,7 @@
         .tile {
             width: 55px; height: 55px;
             background: white; color: #0b1020;
-            border-radius: 12px; display: flex; justify-content: center; align-items: center;
+            border-radius: var(--radius-small, 16px); display: flex; justify-content: center; align-items: center;
             font-size: 1.4rem; font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 0 #cbd5e1; transition: all 0.1s;
         }
@@ -244,8 +244,8 @@
 
         .answer-char {
             width: 55px; height: 55px;
-            background: rgba(110, 231, 183, 0.15); border: 2px solid var(--accent);
-            color: var(--accent); border-radius: 12px;
+            background: rgba(168, 230, 207, 0.15); border: 2px solid var(--accent);
+            color: var(--accent); border-radius: var(--radius-small, 16px);
             display: flex; justify-content: center; align-items: center;
             font-size: 1.4rem; font-weight: bold;
             animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -282,14 +282,14 @@
         
         /* 에메랄드 글래스모피즘 버튼 */
         .btn {
-            background: linear-gradient(135deg, rgba(110, 231, 183, 0.15), rgba(110, 231, 183, 0.05));
-            border: 2px solid rgba(110, 231, 183, 0.4);
+            background: linear-gradient(135deg, rgba(168, 230, 207, 0.15), rgba(168, 230, 207, 0.05));
+            border: 2px solid var(--color-point-hover, #B8F6DF);
             color: var(--text);
             padding: 12px 24px;
-            border-radius: 12px;
+            border-radius: var(--radius-small, 16px);
             cursor: pointer;
             font-weight: 600;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(var(--blur-default, 12px));
             box-shadow: 0 4px 15px rgba(110, 231, 183, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
             position: relative;
@@ -312,9 +312,9 @@
         }
 
         .btn:hover {
-            background: linear-gradient(135deg, rgba(110, 231, 183, 0.25), rgba(110, 231, 183, 0.15));
-            border-color: rgba(110, 231, 183, 0.6);
-            box-shadow: 0 6px 20px rgba(110, 231, 183, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, var(--color-point-hover, #B8F6DF), rgba(168, 230, 207, 0.15));
+            border-color: var(--color-point, #A8E6CF);
+            box-shadow: 0 6px 20px rgba(168, 230, 207, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
         }
 
@@ -339,8 +339,9 @@
         .modal-content {
             background: linear-gradient(135deg, #1a2250 0%, #0f1535 100%);
             color: white; padding: 40px 30px;
-            border-radius: 25px; text-align: center; width: 85%; max-width: 350px;
+            border-radius: var(--radius-card, 24px); text-align: center; width: 85%; max-width: 350px;
             border: 2px solid var(--accent);
+            backdrop-filter: blur(var(--blur-modal, 18px));
             box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
             animation: modalSlideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -391,7 +392,7 @@
             font-weight: 700;
             margin: 20px 0;
             color: #fff;
-            text-shadow: 0 0 20px rgba(110, 231, 183, 0.5);
+            text-shadow: 0 0 20px rgba(168, 230, 207, 0.5);
         }
 
 
@@ -424,22 +425,22 @@
 
         .modal-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--accent), #52d4a0);
+            background: linear-gradient(135deg, var(--color-point, #A8E6CF), var(--color-point-active, #98D6BF));
             color: #0b1020;
             font-weight: bold;
             margin-top: 20px;
             border: none;
             padding: 14px;
-            border-radius: 12px;
+            border-radius: var(--radius-small, 16px);
             cursor: pointer;
             font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(110, 231, 183, 0.4);
+            box-shadow: 0 4px 15px rgba(168, 230, 207, 0.4);
             transition: all 0.3s ease;
         }
 
         .modal-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(110, 231, 183, 0.6);
+            box-shadow: 0 6px 20px rgba(168, 230, 207, 0.6);
         }
 
         .modal-btn:active {
@@ -467,9 +468,9 @@
         #settingsModalCard{
           width:min(420px, 100%);
           background: rgba(20, 27, 63, 0.7);
-          backdrop-filter: blur(20px) saturate(180%);
+          backdrop-filter: blur(var(--blur-modal, 18px)) saturate(180%);
           border:1px solid rgba(255, 255, 255, 0.15);
-          border-radius:24px;
+          border-radius:var(--radius-card, 24px);
           box-shadow:0 18px 48px rgba(0,0,0,.45), 0 8px 32px 0 rgba(31, 38, 135, 0.37);
           padding:28px 24px;
           display:flex;
@@ -552,16 +553,16 @@
           width: 56px;
           height: 32px;
           background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(110, 231, 183, 0.3);
-          border-radius: 16px;
+          border: 1px solid var(--color-point-hover, #B8F6DF);
+          border-radius: var(--radius-small, 16px);
           cursor: pointer;
           transition: all 0.3s ease;
           flex-shrink: 0;
         }
 
         .toggle-input.on {
-          background: rgba(110, 231, 183, 0.3);
-          border-color: rgba(110, 231, 183, 0.6);
+            background: var(--color-point-active, #98D6BF);
+            border-color: var(--color-point, #A8E6CF);
         }
 
         .toggle-input::after {
@@ -578,8 +579,8 @@
         }
 
         .toggle-input.on::after {
-          left: 26px;
-          box-shadow: 0 2px 8px rgba(110, 231, 183, 0.4);
+            left: 26px;
+            box-shadow: 0 2px 8px rgba(168, 230, 207, 0.4);
         }
 
         /* ===== 테마 선택 컬러칩 ===== */
@@ -619,8 +620,8 @@
         }
 
         .theme-chip.active {
-          border-color: rgba(255, 255, 255, 0.8);
-          box-shadow: 0 0 20px rgba(110, 231, 183, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(168, 230, 207, 0.6), 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .theme-chip::before {
