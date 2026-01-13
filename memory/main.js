@@ -483,76 +483,23 @@ window.addEventListener('DOMContentLoaded', function() {
     showResultModal();
   }
 
-  // 결과 모달 표시
+  // 결과 모달 표시 (통일된 완료 모달 사용)
   function showResultModal(){
-    const resultModalBack = document.getElementById("resultModalBack");
-    const resultEmoji = document.getElementById("resultEmoji");
-    const resultMessage = document.getElementById("resultMessage");
-    const resultRestartBtn = document.getElementById("resultRestartBtn");
-
-    if(!resultModalBack) return;
-
-    const messages = [
-      "잠시 멈춰간 이 시간이 당신에게 힘이 되었길",
-      "어둠 속에서도 빛을 찾아낸 당신의 마음을 응원합니다",
-      "조급했던 마음이 조금은 가라앉았길 바라요",
-    ];
-
-    const ICON_LABELS = {
-      leaf:'나뭇잎', cloud:'구름', moon:'달', flower:'꽃', coffee:'찻잔', star:'별', droplet:'물방울', heart:'하트'
-    };
-    const label = ICON_LABELS[lastMatchedKey] || '별';
-    if(resultEmoji) resultEmoji.textContent = "🌿";
-    if(resultMessage){
-      const base = messages[Math.floor(Math.random() * messages.length)];
-      resultMessage.textContent = `오늘 당신의 마음은 ${label}처럼 따뜻하네요. ${base}`;
+    // 통일된 완료 모달 표시
+    if(window.core && typeof window.core.showCompletionModal === 'function'){
+      window.core.showCompletionModal({
+        difficulty: '', // memory 게임은 난이도 없음
+        onHome: () => {
+          window.location.href = '../index.html';
+        },
+        onFinish: () => {
+          const completionModal = document.getElementById('completionModal');
+          if(completionModal){
+            completionModal.classList.remove('isOpen');
+          }
+        }
+      });
     }
-
-    // 둥둥 떠다니는 아이콘들 추가
-    let floatWrap = document.querySelector('#resultModalCard .floatingIcons');
-    if(!floatWrap){
-      floatWrap = document.createElement('div');
-      floatWrap.className = 'floatingIcons';
-      const keys = ['leaf','cloud','moon','flower','coffee','star','droplet','heart'];
-      for(let i=0;i<8;i++){
-        const k = keys[i % keys.length];
-        const el = document.createElement('div');
-        el.className = 'icon';
-        const uri = iconKeyToDataUri(k, '2');
-        el.style.backgroundImage = uri || '';
-        el.style.left = (Math.random()*90+5)+"%";
-        el.style.top = (Math.random()*80+10)+"%";
-        el.style.animationDelay = (Math.random()*2)+"s";
-        floatWrap.appendChild(el);
-      }
-      const cardEl = document.getElementById('resultModalCard');
-      if(cardEl) cardEl.appendChild(floatWrap);
-    }
-
-    resultModalBack.classList.add("isOpen");
-
-    if(resultRestartBtn){
-      const handleRestart = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        resultModalBack.classList.remove("isOpen");
-        setTimeout(() => build(4, true), 80);
-      };
-
-      resultRestartBtn.replaceWith(resultRestartBtn.cloneNode(true));
-      const newRestartBtn = document.getElementById("resultRestartBtn");
-      if(newRestartBtn){
-        newRestartBtn.addEventListener('click', handleRestart);
-      }
-    }
-
-    const closeOnBackdrop = (e) => {
-      if(e.target === resultModalBack){
-        resultModalBack.classList.remove("isOpen");
-        resultModalBack.removeEventListener('click', closeOnBackdrop);
-      }
-    };
-    resultModalBack.addEventListener('click', closeOnBackdrop);
   }
 
   function doPeek(sec){

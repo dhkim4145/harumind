@@ -483,3 +483,101 @@ function openSettingsModal() {
         modal.classList.add('isOpen');
     }
 }
+
+/**
+ * 통일된 완료 모달 표시 함수
+ * @param {Object} opts 옵션
+ * @param {string} [opts.difficulty=''] 난이도 ('easy'|'normal'|'hard'|'')
+ * @param {Function} [opts.onHome] 홈으로 돌아가기 버튼 클릭 핸들러
+ * @param {Function} [opts.onFinish] 오늘은 여기까지 버튼 클릭 핸들러
+ */
+core.showCompletionModal = function(opts = {}) {
+    const {
+        difficulty = '',
+        onHome = null,
+        onFinish = null
+    } = opts;
+
+    // 기본 문장 A1~A5
+    const baseMessages = [
+        '오늘도 잘 마무리했어요',
+        '잠시 멈춰간 이 시간이 당신에게 힘이 되었길',
+        '조급했던 마음이 조금은 가라앉았길 바라요',
+        '어둠 속에서도 빛을 찾아낸 당신의 마음을 응원합니다',
+        '천천히 이어가도 괜찮아요'
+    ];
+
+    // 난이도 문장
+    const difficultyMessages = {
+        easy: '가볍게 시작한 오늘도 충분해요',
+        normal: '차분하게 이어간 오늘도 좋아요',
+        hard: '깊이 몰입한 오늘도 의미 있어요'
+    };
+
+    // 아이콘 선택 (상태에 따라)
+    const icons = ['🌱', '✨', '🌕'];
+    const selectedIcon = icons[Math.floor(Math.random() * icons.length)];
+
+    // 기본 문장 랜덤 선택
+    const baseMessage = baseMessages[Math.floor(Math.random() * baseMessages.length)];
+    
+    // 난이도 문장 선택
+    const difficultyMessage = difficulty && difficultyMessages[difficulty] 
+        ? difficultyMessages[difficulty] 
+        : '';
+
+    // 모달 요소 찾기
+    const modal = document.getElementById('completionModal');
+    if (!modal) {
+        console.warn('완료 모달 요소를 찾을 수 없습니다 (id: completionModal)');
+        return;
+    }
+
+    // 모달 내용 업데이트
+    const emojiEl = document.getElementById('completion-emoji');
+    const baseMsgEl = document.getElementById('completion-base-message');
+    const difficultyMsgEl = document.getElementById('completion-difficulty-message');
+
+    if (emojiEl) emojiEl.textContent = selectedIcon;
+    if (baseMsgEl) baseMsgEl.textContent = baseMessage;
+    if (difficultyMsgEl && difficultyMessage) {
+        difficultyMsgEl.textContent = difficultyMessage;
+        difficultyMsgEl.style.display = 'block';
+    } else if (difficultyMsgEl) {
+        difficultyMsgEl.style.display = 'none';
+    }
+
+    // 버튼 핸들러 설정
+    const homeBtn = document.getElementById('completion-home-btn');
+    const finishBtn = document.getElementById('completion-finish-btn');
+
+    if (homeBtn) {
+        homeBtn.onclick = () => {
+            if (window.core) window.core.playSfx?.('click');
+            if (onHome) {
+                onHome();
+            } else {
+                window.location.href = '../index.html';
+            }
+        };
+    }
+
+    if (finishBtn) {
+        finishBtn.onclick = () => {
+            if (window.core) window.core.playSfx?.('click');
+            if (onFinish) {
+                onFinish();
+            } else {
+                // 모달 닫기
+                if (modal.classList) {
+                    modal.classList.remove('isOpen');
+                } else {
+                    modal.style.display = 'none';
+                }
+            }
+        };
+    }
+
+    // 모달 표시
+    modal.classList.add('isOpen');
+};

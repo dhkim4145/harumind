@@ -307,10 +307,25 @@
                     }
                     document.getElementById('modal').style.display = 'flex';
                     
-                    // 2초 후 자동 닫힘
+                    // 2초 후 자동 닫힘 후 완료 모달 표시
                     if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
                     modalAutoCloseTimer = setTimeout(() => {
                         autoCloseModal();
+                        // 완료 모달 표시
+                        if (window.core && typeof window.core.showCompletionModal === 'function') {
+                            window.core.showCompletionModal({
+                                difficulty: '',
+                                onHome: () => {
+                                    window.location.href = '../index.html';
+                                },
+                                onFinish: () => {
+                                    const completionModal = document.getElementById('completionModal');
+                                    if (completionModal) {
+                                        completionModal.classList.remove('isOpen');
+                                    }
+                                }
+                            });
+                        }
                     }, 2000);
                 }, 500);
             } else {
@@ -334,12 +349,44 @@
     function closeModal() {
         if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
         document.getElementById('modal').style.display = 'none';
-        nextLevel();
+        // 완료 모달 표시
+        if (window.core && typeof window.core.showCompletionModal === 'function') {
+            window.core.showCompletionModal({
+                difficulty: '',
+                onHome: () => {
+                    window.location.href = '../index.html';
+                },
+                onFinish: () => {
+                    const completionModal = document.getElementById('completionModal');
+                    if (completionModal) {
+                        completionModal.classList.remove('isOpen');
+                    }
+                }
+            });
+        } else {
+            nextLevel();
+        }
     }
 
     function autoCloseModal() {
         document.getElementById('modal').style.display = 'none';
-        nextLevel();
+        // 완료 모달 표시
+        if (window.core && typeof window.core.showCompletionModal === 'function') {
+            window.core.showCompletionModal({
+                difficulty: '',
+                onHome: () => {
+                    window.location.href = '../index.html';
+                },
+                onFinish: () => {
+                    const completionModal = document.getElementById('completionModal');
+                    if (completionModal) {
+                        completionModal.classList.remove('isOpen');
+                    }
+                }
+            });
+        } else {
+            nextLevel();
+        }
     }
 
     // ============================================================

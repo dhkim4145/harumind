@@ -729,11 +729,25 @@
         </div>
     </div>
 
+    <!-- 단어 완료 모달 (단어와 의미 표시용) -->
     <div id="modal">
         <div class="modal-content">
             <div class="modal-emoji" id="modal-emoji-display">💎</div>
             <div id="modal-word-display" class="modal-word"></div>
             <div class="modal-feedback" id="modal-feedback">피드백 영역</div>
+        </div>
+    </div>
+
+    <!-- 통일된 완료 모달 -->
+    <div id="completionModal" class="completion-modal">
+        <div class="completion-modal-content">
+            <div class="completion-emoji" id="completion-emoji">🌱</div>
+            <div class="completion-base-message" id="completion-base-message"></div>
+            <div class="completion-difficulty-message" id="completion-difficulty-message" style="display: none;"></div>
+            <div class="completion-buttons">
+                <button class="completion-btn completion-btn-home" id="completion-home-btn">홈으로 돌아가기</button>
+                <button class="completion-btn completion-btn-finish" id="completion-finish-btn">오늘은 여기까지</button>
+            </div>
         </div>
     </div>
 

@@ -344,37 +344,34 @@ function finishGame() {
 }
 
 function showResult(elapsed) {
-    const modal = document.getElementById('modal');
-    if (!modal) return;
-
-    // 30% 확률로 위로 문구 표시
-    const showMessage = Math.random() < 0.3;
-    const message = showMessage 
-        ? MSGS.encouragement[Math.floor(Math.random() * MSGS.encouragement.length)]
-        : '';
-
-    const emojiEl = document.getElementById('modal-emoji');
-    const messageEl = document.getElementById('modal-message');
-
-    if (emojiEl) emojiEl.innerText = '🌿';
-    if (messageEl) messageEl.innerText = message;
-
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
-
-    const modalBtn = document.getElementById('modal-action');
-    if (modalBtn) {
-        modalBtn.onclick = () => {
-            closeModal();
+    // 통일된 완료 모달 표시
+    if (window.core && typeof window.core.showCompletionModal === 'function') {
+        // 난이도 매핑
+        const difficultyMap = {
+            'easy': 'easy',
+            'normal': 'normal',
+            'hard': 'hard'
         };
+        
+        window.core.showCompletionModal({
+            difficulty: difficultyMap[state.level] || '',
+            onHome: () => {
+                window.location.href = '../index.html';
+            },
+            onFinish: () => {
+                const completionModal = document.getElementById('completionModal');
+                if (completionModal) {
+                    completionModal.classList.remove('isOpen');
+                }
+            }
+        });
     }
 }
 
 function closeModal() {
-    const modal = document.getElementById('modal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
+    const completionModal = document.getElementById('completionModal');
+    if (completionModal) {
+        completionModal.classList.remove('isOpen');
     }
     startGame(state.level);
 }

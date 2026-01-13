@@ -863,11 +863,16 @@
         </section>
     </main>
 
-    <div id="modal" class="modal-backdrop" aria-hidden="true">
-        <div class="modal-content">
-            <div id="modal-emoji" class="modal-emoji">✨</div>
-            <div id="modal-message" class="modal-feedback"></div>
-            <button class="modal-btn" id="modal-action">다시 이어서</button>
+    <!-- 통일된 완료 모달 -->
+    <div id="completionModal" class="completion-modal">
+        <div class="completion-modal-content">
+            <div class="completion-emoji" id="completion-emoji">🌱</div>
+            <div class="completion-base-message" id="completion-base-message"></div>
+            <div class="completion-difficulty-message" id="completion-difficulty-message" style="display: none;"></div>
+            <div class="completion-buttons">
+                <button class="completion-btn completion-btn-home" id="completion-home-btn">홈으로 돌아가기</button>
+                <button class="completion-btn completion-btn-finish" id="completion-finish-btn">오늘은 여기까지</button>
+            </div>
         </div>
     </div>
 

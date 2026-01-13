@@ -1407,11 +1407,16 @@ body.peeking .tile{
     </div>
   </div>
 
-  <div id="resultModalBack" role="dialog" aria-modal="true" aria-label="게임 결과">
-    <div id="resultModalCard">
-      <div class="resultEmoji" id="resultEmoji">🌿</div>
-      <div class="resultMessage" id="resultMessage">차분하게 마무리했어요.</div>
-      <button id="resultRestartBtn" type="button" class="resultRestartBtn">다시 이어가기</button>
+  <!-- 통일된 완료 모달 -->
+  <div id="completionModal" class="completion-modal">
+    <div class="completion-modal-content">
+      <div class="completion-emoji" id="completion-emoji">🌱</div>
+      <div class="completion-base-message" id="completion-base-message"></div>
+      <div class="completion-difficulty-message" id="completion-difficulty-message" style="display: none;"></div>
+      <div class="completion-buttons">
+        <button class="completion-btn completion-btn-home" id="completion-home-btn">홈으로 돌아가기</button>
+        <button class="completion-btn completion-btn-finish" id="completion-finish-btn">오늘은 여기까지</button>
+      </div>
     </div>
   </div>
 
