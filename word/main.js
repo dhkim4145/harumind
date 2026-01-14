@@ -311,6 +311,10 @@
                     if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
                     modalAutoCloseTimer = setTimeout(() => {
                         autoCloseModal();
+                        // 오늘 플레이 완료 처리
+                        if (window.core && typeof window.core.markPlayedToday === 'function') {
+                            window.core.markPlayedToday();
+                        }
                         // 완료 모달 표시
                         if (window.core && typeof window.core.showCompletionModal === 'function') {
                             window.core.showCompletionModal({
@@ -349,6 +353,10 @@
     function closeModal() {
         if (modalAutoCloseTimer) clearTimeout(modalAutoCloseTimer);
         document.getElementById('modal').style.display = 'none';
+        // 오늘 플레이 완료 처리
+        if (window.core && typeof window.core.markPlayedToday === 'function') {
+            window.core.markPlayedToday();
+        }
         // 완료 모달 표시
         if (window.core && typeof window.core.showCompletionModal === 'function') {
             window.core.showCompletionModal({
@@ -370,6 +378,10 @@
 
     function autoCloseModal() {
         document.getElementById('modal').style.display = 'none';
+        // 오늘 플레이 완료 처리
+        if (window.core && typeof window.core.markPlayedToday === 'function') {
+            window.core.markPlayedToday();
+        }
         // 완료 모달 표시
         if (window.core && typeof window.core.showCompletionModal === 'function') {
             window.core.showCompletionModal({
@@ -409,6 +421,14 @@
     // [Initialization]
     // ============================================================
     document.addEventListener('DOMContentLoaded', () => {
+        // Daily Limit 체크
+        if (window.core && typeof window.core.isLockedToday === 'function') {
+            if (window.core.isLockedToday()) {
+                window.core.showDailyLimitScreen();
+                return; // 게임 시작 막기
+            }
+        }
+
         // 초기 테마 동기화
         core.applyTheme(core.currentTheme);
         // ✅ BGM은 core.js의 제스처 감지로 자동 재생

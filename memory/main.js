@@ -485,6 +485,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // 결과 모달 표시 (통일된 완료 모달 사용)
   function showResultModal(){
+    // 오늘 플레이 완료 처리
+    if(window.core && typeof window.core.markPlayedToday === 'function'){
+      window.core.markPlayedToday();
+    }
+    
     // 통일된 완료 모달 표시
     if(window.core && typeof window.core.showCompletionModal === 'function'){
       window.core.showCompletionModal({
@@ -564,6 +569,14 @@ window.addEventListener('DOMContentLoaded', function() {
   // ============================================================
 
   dateStr = HarumindStorage.todayKey();
+  
+  // Daily Limit 체크
+  if(window.core && typeof window.core.isLockedToday === 'function'){
+    if(window.core.isLockedToday()){
+      window.core.showDailyLimitScreen();
+      return; // 게임 시작 막기
+    }
+  }
   
   // Home 버튼
   if(homeBtn) {

@@ -437,6 +437,15 @@
     </div>
   </div>
 
+  <!-- ===== Daily Limit Screen ===== -->
+  <div id="dailyLimitScreen">
+    <div class="daily-limit-content">
+      <div class="daily-limit-emoji">🌕</div>
+      <div class="daily-limit-message" id="dailyLimitMessage"></div>
+      <div class="daily-limit-hint">화면을 탭하면 홈으로 돌아갑니다</div>
+    </div>
+  </div>
+
   <script src="core.js"></script>
   <script>
     // 인사말 로직 (기존 유지)
@@ -489,6 +498,14 @@
 
     // DOM 로드 후 실행
     document.addEventListener('DOMContentLoaded', function() {
+      // Daily Limit 체크
+      if (window.core && typeof window.core.isLockedToday === 'function') {
+        if (window.core.isLockedToday()) {
+          window.core.showDailyLimitScreen();
+          return; // 게임 카드 클릭 막기 위해 early return
+        }
+      }
+
       applyTimeCopy();
 
       // 설정 모달 제어
@@ -523,9 +540,18 @@
         });
       }
 
-      // 게임 링크에 효과음 추가
+      // 게임 링크에 효과음 추가 및 Daily Limit 체크
       document.querySelectorAll('.game-card').forEach(card => {
-        card.addEventListener('click', () => {
+        card.addEventListener('click', (e) => {
+          // Daily Limit 체크
+          if (window.core && typeof window.core.isLockedToday === 'function') {
+            if (window.core.isLockedToday()) {
+              e.preventDefault();
+              window.core.showDailyLimitScreen();
+              return;
+            }
+          }
+          
           if (window.core && typeof window.core.playSfx === 'function') {
             window.core.playSfx('click');
           }

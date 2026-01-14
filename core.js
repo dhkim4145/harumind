@@ -374,6 +374,84 @@ core.getTodayKey = function() {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 };
 
+/**
+ * 오늘 플레이가 잠겨있는지 확인
+ * @returns {boolean} true면 오늘 이미 플레이했음 (잠김)
+ */
+core.isLockedToday = function() {
+    const today = this.getTodayKey();
+    const lastPlayDate = localStorage.getItem('harumin_lastPlayDate');
+    return lastPlayDate === today;
+};
+
+/**
+ * 오늘 플레이 완료 처리 (날짜 저장)
+ */
+core.markPlayedToday = function() {
+    const today = this.getTodayKey();
+    localStorage.setItem('harumin_lastPlayDate', today);
+};
+
+/**
+ * Daily Limit Screen 표시
+ */
+core.showDailyLimitScreen = function() {
+    // 차단 문구 풀
+    const messages = [
+        '오늘의 정성이 이미 충분히 스며들었어요. 이제는 편안히 쉴 시간입니다.',
+        '새싹도 밤에는 잠을 자야 더 건강해진답니다. 우리 내일 아침에 다시 만나요.',
+        '오늘의 여운을 가만히 느껴보세요. 내일의 마음 조각은 제가 소중히 준비해둘게요.',
+        '충분히 잘해주셨어요. 지금은 화면 밖의 소중한 일상으로 가볍게 돌아가셔도 좋아요.',
+        '오늘 채운 온기가 밤새 당신을 포근하게 감싸주길 바라요. 내일 또 만나요.'
+    ];
+
+    // 랜덤 메시지 선택
+    const message = messages[Math.floor(Math.random() * messages.length)];
+
+    // Daily Limit Screen 요소 찾기
+    const limitScreen = document.getElementById('dailyLimitScreen');
+    if (!limitScreen) {
+        console.warn('Daily Limit Screen 요소를 찾을 수 없습니다');
+        return;
+    }
+
+    // 메시지 업데이트
+    const messageEl = document.getElementById('dailyLimitMessage');
+    if (messageEl) {
+        messageEl.textContent = message;
+    }
+
+    // 안내문 표시/숨김 처리
+    const hintEl = document.querySelector('#dailyLimitScreen .daily-limit-hint');
+    if (hintEl) {
+        // 현재 경로 확인: 홈(index.html)인지 게임 페이지인지
+        const isHomePage = window.location.pathname === '/' || 
+                          window.location.pathname.endsWith('/index.html') ||
+                          window.location.pathname.endsWith('index.html');
+        
+        if (isHomePage) {
+            // 홈에서는 안내문 숨김
+            hintEl.style.display = 'none';
+        } else {
+            // 게임 페이지에서는 안내문 표시
+            hintEl.style.display = 'block';
+        }
+    }
+
+    // 화면 표시
+    limitScreen.classList.add('isOpen');
+
+    // 화면 탭 시 홈으로 이동
+    const handleTap = () => {
+        if (window.core) window.core.playSfx?.('click');
+        window.location.href = '../index.html';
+    };
+
+    // 기존 이벤트 리스너 제거 후 새로 추가
+    limitScreen.removeEventListener('click', handleTap);
+    limitScreen.addEventListener('click', handleTap);
+};
+
 core.markVisit = function() {
     const today = this.getTodayKey();
     const key = 'harumind_visit_days';

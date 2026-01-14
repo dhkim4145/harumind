@@ -122,6 +122,14 @@ function updateAttendance() {
 
 function init() {
     document.addEventListener('DOMContentLoaded', () => {
+        // Daily Limit 체크
+        if (window.core && typeof window.core.isLockedToday === 'function') {
+            if (window.core.isLockedToday()) {
+                window.core.showDailyLimitScreen();
+                return; // 게임 시작 막기
+            }
+        }
+
         // 테마 반영 및 공통 바인딩
         core.applyTheme(core.currentTheme);
         // ✅ BGM은 core.js의 제스처 감지로 자동 재생
@@ -344,6 +352,11 @@ function finishGame() {
 }
 
 function showResult(elapsed) {
+    // 오늘 플레이 완료 처리
+    if (window.core && typeof window.core.markPlayedToday === 'function') {
+        window.core.markPlayedToday();
+    }
+    
     // 통일된 완료 모달 표시
     if (window.core && typeof window.core.showCompletionModal === 'function') {
         // 난이도 매핑

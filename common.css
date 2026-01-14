@@ -217,6 +217,77 @@ body {
   transform: scale(0.98);
 }
 
+/* ===== Daily Limit Screen ===== */
+#dailyLimitScreen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(var(--blur-modal, 18px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  cursor: pointer;
+  padding: 20px;
+}
+
+#dailyLimitScreen.isOpen {
+  display: flex;
+}
+
+.daily-limit-content {
+  text-align: center;
+  color: var(--text);
+  max-width: 400px;
+  padding: 40px 24px;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.daily-limit-emoji {
+  font-size: 80px;
+  line-height: 1;
+  margin-bottom: 24px;
+  animation: gentlePulse 3s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+}
+
+.daily-limit-message {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.daily-limit-hint {
+  font-size: 14px;
+  color: var(--muted);
+  opacity: 0.8;
+  margin-top: 24px;
+  display: block; /* 기본값은 표시, core.js에서 홈일 때 숨김 처리 */
+}
+
 /* 모바일 미세 조정 */
 @media (max-width: 520px) {
   .top-bar {
@@ -242,5 +313,22 @@ body {
   
   .completion-base-message {
     font-size: 16px;
+  }
+  
+  .daily-limit-content {
+    padding: 32px 20px;
+  }
+  
+  .daily-limit-emoji {
+    font-size: 64px;
+    margin-bottom: 20px;
+  }
+  
+  .daily-limit-message {
+    font-size: 16px;
+  }
+  
+  .daily-limit-hint {
+    font-size: 13px;
   }
 }
