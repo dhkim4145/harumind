@@ -424,9 +424,11 @@ core.showDailyLimitScreen = function() {
     // 안내문 표시/숨김 처리
     const hintEl = document.querySelector('#dailyLimitScreen .daily-limit-hint');
     if (hintEl) {
-        const isHome = document.body?.dataset?.page === 'home';
-        // 홈에서는 무조건 숨김, 게임 페이지에서만 표시
-        hintEl.style.display = isHome ? 'none' : 'block';
+        const isGamePage = document.body?.dataset?.page === 'game';
+        const isLocked = window.core && typeof window.core.isLockedToday === 'function'
+            ? window.core.isLockedToday()
+            : false;
+        hintEl.style.display = (isGamePage && isLocked) ? 'block' : 'none';
     }
 
     // 화면 표시
