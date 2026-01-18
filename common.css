@@ -285,7 +285,7 @@ body {
   color: var(--muted);
   opacity: 0.8;
   margin-top: 24px;
-  display: block; /* 기본값은 표시, core.js에서 홈일 때 숨김 처리 */
+  display: none; /* 기본값 숨김 (FOUC 방지) */
 }
 
 /* 모바일 미세 조정 */

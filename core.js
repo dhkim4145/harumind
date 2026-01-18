@@ -424,18 +424,9 @@ core.showDailyLimitScreen = function() {
     // 안내문 표시/숨김 처리
     const hintEl = document.querySelector('#dailyLimitScreen .daily-limit-hint');
     if (hintEl) {
-        // 현재 경로 확인: 홈(index.html)인지 게임 페이지인지
-        const isHomePage = window.location.pathname === '/' || 
-                          window.location.pathname.endsWith('/index.html') ||
-                          window.location.pathname.endsWith('index.html');
-        
-        if (isHomePage) {
-            // 홈에서는 안내문 숨김
-            hintEl.style.display = 'none';
-        } else {
-            // 게임 페이지에서는 안내문 표시
-            hintEl.style.display = 'block';
-        }
+        const isHome = document.body?.dataset?.page === 'home';
+        // 홈에서는 무조건 숨김, 게임 페이지에서만 표시
+        hintEl.style.display = isHome ? 'none' : 'block';
     }
 
     // 화면 표시
