@@ -400,6 +400,11 @@
     <section class="welcome-sec">
       <div id="greetLine1"></div>
       <div id="greetLine2"></div>
+      <div class="constellation-trace" aria-hidden="true">
+        <span class="trace-dot"></span>
+        <span class="trace-dot"></span>
+        <span class="trace-dot"></span>
+      </div>
     </section>
 
     <!-- ===== 게임 리스트 ===== -->
@@ -503,6 +508,7 @@
       // Daily Limit 체크
       if (window.core && typeof window.core.isLockedToday === 'function') {
         if (window.core.isLockedToday()) {
+          document.body.classList.add('is-locked-today');
           window.core.showDailyLimitScreen();
           return; // 게임 카드 클릭 막기 위해 early return
         }

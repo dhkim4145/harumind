@@ -288,6 +288,26 @@ body {
   display: none; /* 기본값 숨김 (FOUC 방지) */
 }
 
+/* ===== Constellation Trace (Day 12) ===== */
+.constellation-trace {
+  display: flex;
+  gap: 6px;
+  opacity: 0.20;
+  pointer-events: none;
+  margin-top: 12px;
+}
+
+.trace-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-point);
+}
+
+body.is-locked-today .constellation-trace {
+  opacity: 0.25;
+}
+
 /* 모바일 미세 조정 */
 @media (max-width: 520px) {
   .top-bar {
