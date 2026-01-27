@@ -1,4 +1,15 @@
 // data.js
+// TODO: Review long/forcing-interpretation meaning candidates for shortening:
+// - Line 3: "지나간 뒤에도 마음은 머물러요" (여운) - could be shorter
+// - Line 4: "당연하지 않았음을 아는 마음" (고마움) - forcing interpretation
+// - Line 12: "도망치지 않아도 되는 순간" (여기) - forcing interpretation
+// - Line 17: "외면하지 않은 용기" (마주) - forcing interpretation
+// - Line 26: "상처 난 마음도 쉬어가요" (보듬) - forcing interpretation
+// - Line 31: "눈에 안 보여도 자라고 있어요" (자람) - could be shorter
+// - Line 40: "놓아버린 후의 홀가분함" (가벼움) - forcing interpretation
+// - Line 45: "표면 아래 있는 진심" (깊이감) - forcing interpretation
+// - Line 52: "붙들지 않은 사랑도 있어요" (놓아주기) - forcing interpretation
+// - Line 55: "끝나지 않는 마음" (이어가기) - forcing interpretation
 const WORD_DATABASE = [
   { word: "여운", emoji: "🎐", hint: "남아 있는 느낌", meaning: "지나간 뒤에도 마음은 머물러요" },
   { word: "고마움", emoji: "🌼", hint: "마음이 숙여지는 순간", meaning: "당연하지 않았음을 아는 마음" },
