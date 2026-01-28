@@ -46,26 +46,27 @@
         return getTodayKey();
     }
 
-    function loadDailyStats(dateKey) {
-        try {
-            const raw = safeGet(DAILY_STATS_PREFIX + dateKey);
-            if (!raw) return { clears: 0, attempts: 0 };
-            const obj = JSON.parse(raw);
-            return {
-                clears: Number(obj.clears) || 0,
-                attempts: Number(obj.attempts) || 0
-            };
-        } catch(e) {
-            return { clears: 0, attempts: 0 };
-        }
-    }
+    // DISABLED (Day 13 cleanup): Daily stats tracking conflicts with philosophy
+    // function loadDailyStats(dateKey) {
+    //     try {
+    //         const raw = safeGet(DAILY_STATS_PREFIX + dateKey);
+    //         if (!raw) return { clears: 0, attempts: 0 };
+    //         const obj = JSON.parse(raw);
+    //         return {
+    //             clears: Number(obj.clears) || 0,
+    //             attempts: Number(obj.attempts) || 0
+    //         };
+    //     } catch(e) {
+    //         return { clears: 0, attempts: 0 };
+    //     }
+    // }
 
-    function saveDailyStats(dateKey, data) {
-        safeSet(DAILY_STATS_PREFIX + dateKey, JSON.stringify({
-            clears: Number(data?.clears) || 0,
-            attempts: Number(data?.attempts) || 0
-        }));
-    }
+    // function saveDailyStats(dateKey, data) {
+    //     safeSet(DAILY_STATS_PREFIX + dateKey, JSON.stringify({
+    //         clears: Number(data?.clears) || 0,
+    //         attempts: Number(data?.attempts) || 0
+    //     }));
+    // }
 
     function setBool(key, value) {
         safeSet(key, value ? "1" : "0");
@@ -188,43 +189,45 @@
 
 
     // ============================================================
-    // [Attendance System]
+    // [Attendance System] - DISABLED (Day 13 cleanup)
+    // NOTE: Harumind stores only the user's current state.
+    // Do NOT store streaks, totals, scores, or rankings.
     // ============================================================
-    function getTodayKey() {
-        const d = new Date();
-        return d.getFullYear() + '-' + 
-               String(d.getMonth() + 1).padStart(2, '0') + '-' + 
-               String(d.getDate()).padStart(2, '0');
-    }
+    // function getTodayKey() {
+    //     const d = new Date();
+    //     return d.getFullYear() + '-' + 
+    //            String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+    //            String(d.getDate()).padStart(2, '0');
+    // }
 
-    function updateAttendance() {
-        const today = getTodayKey();
-        let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
-        let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
+    // function updateAttendance() {
+    //     const today = getTodayKey();
+    //     let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
+    //     let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
 
-        if (lastDate !== today) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayKey = yesterday.getFullYear() + '-' + 
-                               String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
-                               String(yesterday.getDate()).padStart(2, '0');
-            if (lastDate === yesterdayKey) {
-                streak++;
-            } else {
-                streak = 1;
-            }
-            safeSet(STORAGE_KEYS.LAST_DATE, today);
-            if (window.core && typeof core.markVisit === 'function') {
-                core.markVisit();
-            }
-            safeSet(STORAGE_KEYS.STREAK, String(streak));
-        }
-        
-        const attendanceEl = document.getElementById('attendanceInline');
-        if(attendanceEl) {
-            attendanceEl.innerText = `🔥 ${streak}일째`;
-        }
-    }
+    //     if (lastDate !== today) {
+    //         const yesterday = new Date();
+    //         yesterday.setDate(yesterday.getDate() - 1);
+    //         const yesterdayKey = yesterday.getFullYear() + '-' + 
+    //                            String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
+    //                            String(yesterday.getDate()).padStart(2, '0');
+    //         if (lastDate === yesterdayKey) {
+    //             streak++;
+    //         } else {
+    //             streak = 1;
+    //         }
+    //         safeSet(STORAGE_KEYS.LAST_DATE, today);
+    //         if (window.core && typeof core.markVisit === 'function') {
+    //             core.markVisit();
+    //         }
+    //         safeSet(STORAGE_KEYS.STREAK, String(streak));
+    //     }
+    //     
+    //     const attendanceEl = document.getElementById('attendanceInline');
+    //     if(attendanceEl) {
+    //         attendanceEl.innerText = `🔥 ${streak}일째`;
+    //     }
+    // }
 
     // ============================================================
     // [Game Logic]
@@ -285,11 +288,12 @@
         if (userSelection.length === currentWord.length) {
             if (userSelection.join('') === currentWord) {
                 // 정답!
-                const todayKey = getTodayKeySafe();
-                const stats = loadDailyStats(todayKey);
-                const attemptsTotal = stats.attempts + attemptsForCurrentWord;
-                const clears = stats.clears + 1;
-                saveDailyStats(todayKey, { clears, attempts: attemptsTotal });
+                // DISABLED (Day 13 cleanup): Daily stats tracking
+                // const todayKey = getTodayKeySafe();
+                // const stats = loadDailyStats(todayKey);
+                // const attemptsTotal = stats.attempts + attemptsForCurrentWord;
+                // const clears = stats.clears + 1;
+                // saveDailyStats(todayKey, { clears, attempts: attemptsTotal });
 
                 setTimeout(() => {
                     document.getElementById('modal-word-display').innerText = currentWord;
@@ -437,7 +441,7 @@
         initControls();
         
         // Update attendance
-        updateAttendance();
+        // updateAttendance(); // DISABLED (Day 13 cleanup)
         
         // Start game
         if (typeof WORD_DATABASE !== 'undefined') {

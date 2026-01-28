@@ -64,61 +64,64 @@ function safeSet(key, value) {
     catch(e) {}
 }
 
-function loadDailyStats(dateKey) {
-    try {
-        const raw = safeGet(STORAGE_KEYS.DAILY_PREFIX + dateKey);
-        if (!raw) return { clears: 0 };
-        const obj = JSON.parse(raw);
-        return { clears: Number(obj.clears) || 0 };
-    } catch(e) {
-        return { clears: 0 };
-    }
-}
+// DISABLED (Day 13 cleanup): Daily stats tracking conflicts with philosophy
+// function loadDailyStats(dateKey) {
+//     try {
+//         const raw = safeGet(STORAGE_KEYS.DAILY_PREFIX + dateKey);
+//         if (!raw) return { clears: 0 };
+//         const obj = JSON.parse(raw);
+//         return { clears: Number(obj.clears) || 0 };
+//     } catch(e) {
+//         return { clears: 0 };
+//     }
+// }
 
-function saveDailyStats(dateKey, data) {
-    safeSet(STORAGE_KEYS.DAILY_PREFIX + dateKey, JSON.stringify({
-        clears: Number(data?.clears) || 0
-    }));
-}
+// function saveDailyStats(dateKey, data) {
+//     safeSet(STORAGE_KEYS.DAILY_PREFIX + dateKey, JSON.stringify({
+//         clears: Number(data?.clears) || 0
+//     }));
+// }
 
 // ============================================================
-// [Attendance System]
+// [Attendance System] - DISABLED (Day 13 cleanup)
+// NOTE: Harumind stores only the user's current state.
+// Do NOT store streaks, totals, scores, or rankings.
 // ============================================================
-function getTodayKey() {
-    const d = new Date();
-    return d.getFullYear() + '-' + 
-           String(d.getMonth() + 1).padStart(2, '0') + '-' + 
-           String(d.getDate()).padStart(2, '0');
-}
+// function getTodayKey() {
+//     const d = new Date();
+//     return d.getFullYear() + '-' + 
+//            String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+//            String(d.getDate()).padStart(2, '0');
+// }
 
-function updateAttendance() {
-    const today = getTodayKey();
-    let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
-    let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
+// function updateAttendance() {
+//     const today = getTodayKey();
+//     let lastDate = safeGet(STORAGE_KEYS.LAST_DATE);
+//     let streak = parseInt(safeGet(STORAGE_KEYS.STREAK) || '0');
 
-    if (lastDate !== today) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayKey = yesterday.getFullYear() + '-' + 
-                           String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
-                           String(yesterday.getDate()).padStart(2, '0');
-        if (lastDate === yesterdayKey) {
-            streak++;
-        } else {
-            streak = 1;
-        }
-        safeSet(STORAGE_KEYS.LAST_DATE, today);
-        safeSet(STORAGE_KEYS.STREAK, String(streak));
-        if (window.core && typeof core.markVisit === 'function') {
-            core.markVisit();
-        }
-    }
-    
-    const attendanceEl = document.getElementById('attendanceInline');
-    if(attendanceEl) {
-        attendanceEl.innerText = `🔥 ${streak}일째`;
-    }
-}
+//     if (lastDate !== today) {
+//         const yesterday = new Date();
+//         yesterday.setDate(yesterday.getDate() - 1);
+//         const yesterdayKey = yesterday.getFullYear() + '-' + 
+//                            String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + 
+//                            String(yesterday.getDate()).padStart(2, '0');
+//         if (lastDate === yesterdayKey) {
+//             streak++;
+//         } else {
+//             streak = 1;
+//         }
+//         safeSet(STORAGE_KEYS.LAST_DATE, today);
+//         safeSet(STORAGE_KEYS.STREAK, String(streak));
+//         if (window.core && typeof core.markVisit === 'function') {
+//             core.markVisit();
+//         }
+//     }
+//     
+//     const attendanceEl = document.getElementById('attendanceInline');
+//     if(attendanceEl) {
+//         attendanceEl.innerText = `🔥 ${streak}일째`;
+//     }
+// }
 
 function init() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -134,7 +137,7 @@ function init() {
         core.applyTheme(core.currentTheme);
         // ✅ BGM은 core.js의 제스처 감지로 자동 재생
 
-        updateAttendance();
+        // updateAttendance(); // DISABLED (Day 13 cleanup)
         bindHeader();
         bindLevels();
         applyStaticCopy();
@@ -340,13 +343,12 @@ function finishGame() {
     if (state.timerId) clearInterval(state.timerId);
     const elapsed = state.elapsed || (performance.now() - state.startTime) / 1000;
 
-    // 일일 클리어 횟수 저장
-    const todayKey = getTodayKey();
-    const dailyStats = loadDailyStats(todayKey);
-    dailyStats.clears += 1;
-    saveDailyStats(todayKey, dailyStats);
-
-    updateAttendance();
+    // DISABLED (Day 13 cleanup): Daily stats and attendance tracking
+    // const todayKey = getTodayKey();
+    // const dailyStats = loadDailyStats(todayKey);
+    // dailyStats.clears += 1;
+    // saveDailyStats(todayKey, dailyStats);
+    // updateAttendance();
     core.playSfx('success');
     showResult(elapsed);
 }

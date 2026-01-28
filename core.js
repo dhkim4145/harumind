@@ -1,4 +1,10 @@
 // core.js - 모든 게임의 공통 엔진
+
+// ============================================================================
+// NOTE: Harumind stores only the user's current state.
+// Do NOT store streaks, totals, scores, or rankings.
+// ============================================================================
+
 class HaruCore {
     constructor() {
         this.audioCtx = null;
@@ -349,25 +355,28 @@ class HaruCore {
 // 전역 객체로 생성 (모든 게임에서 window.core.playSfx() 식으로 접근)
 window.core = new HaruCore();
 
-// 게임 출석 및 추천 기능
-core.getGameAttendance = function(gameType) {
-    const key = `harumind_${gameType}_lastDate`;
-    const lastDate = localStorage.getItem(key);
-    const today = new Date().toISOString().slice(0, 10);
-    return lastDate === today;
-};
+// ============================================================================
+// DISABLED: Game attendance/count features (Day 13 cleanup)
+// These functions track streaks and totals, which conflict with philosophy.
+// ============================================================================
+// core.getGameAttendance = function(gameType) {
+//     const key = `harumind_${gameType}_lastDate`;
+//     const lastDate = localStorage.getItem(key);
+//     const today = new Date().toISOString().slice(0, 10);
+//     return lastDate === today;
+// };
 
-core.getTodayGameCount = function() {
-    let count = 0;
-    if (this.getGameAttendance('memory')) count++;
-    if (this.getGameAttendance('wordfrag')) count++;
-    if (this.getGameAttendance('sequence')) count++;
-    return count;
-};
+// core.getTodayGameCount = function() {
+//     let count = 0;
+//     if (this.getGameAttendance('memory')) count++;
+//     if (this.getGameAttendance('wordfrag')) count++;
+//     if (this.getGameAttendance('sequence')) count++;
+//     return count;
+// };
 
-core.getTotalGameCount = function() {
-    return 3;
-};
+// core.getTotalGameCount = function() {
+//     return 3;
+// };
 
 core.getTodayKey = function() {
     const d = new Date();
@@ -445,55 +454,59 @@ core.showDailyLimitScreen = function() {
     limitScreen.addEventListener('click', handleTap);
 };
 
-core.markVisit = function() {
-    const today = this.getTodayKey();
-    const key = 'harumind_visit_days';
-    let days = [];
-    try {
-        days = JSON.parse(localStorage.getItem(key) || '[]');
-        if (!Array.isArray(days)) days = [];
-    } catch(e) {
-        days = [];
-    }
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 14);
-    const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
-    const set = new Set(days.filter(d => d >= cutoffKey));
-    set.add(today);
-    const next = Array.from(set).sort();
-    localStorage.setItem(key, JSON.stringify(next));
-};
+// ============================================================================
+// DISABLED: Visit tracking and streak-based features (Day 13 cleanup)
+// These functions store visit history and streaks, which conflict with philosophy.
+// ============================================================================
+// core.markVisit = function() {
+//     const today = this.getTodayKey();
+//     const key = 'harumind_visit_days';
+//     let days = [];
+//     try {
+//         days = JSON.parse(localStorage.getItem(key) || '[]');
+//         if (!Array.isArray(days)) days = [];
+//     } catch(e) {
+//         days = [];
+//     }
+//     const cutoff = new Date();
+//     cutoff.setDate(cutoff.getDate() - 14);
+//     const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
+//     const set = new Set(days.filter(d => d >= cutoffKey));
+//     set.add(today);
+//     const next = Array.from(set).sort();
+//     localStorage.setItem(key, JSON.stringify(next));
+// };
 
-core.getWeeklyVisitCount = function() {
-    const key = 'harumind_visit_days';
-    let days = [];
-    try {
-        days = JSON.parse(localStorage.getItem(key) || '[]');
-        if (!Array.isArray(days)) days = [];
-    } catch(e) {
-        days = [];
-    }
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 6); // 오늘 포함 7일
-    const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
-    return days.filter(d => d >= cutoffKey).length;
-};
+// core.getWeeklyVisitCount = function() {
+//     const key = 'harumind_visit_days';
+//     let days = [];
+//     try {
+//         days = JSON.parse(localStorage.getItem(key) || '[]');
+//         if (!Array.isArray(days)) days = [];
+//     } catch(e) {
+//         days = [];
+//     }
+//     const cutoff = new Date();
+//     cutoff.setDate(cutoff.getDate() - 6); // 오늘 포함 7일
+//     const cutoffKey = cutoff.getFullYear() + '-' + String(cutoff.getMonth() + 1).padStart(2, '0') + '-' + String(cutoff.getDate()).padStart(2, '0');
+//     return days.filter(d => d >= cutoffKey).length;
+// };
 
-core.getLeastPlayedGame = function() {
-    const games = [
-        { key: 'memory', name: '같은 그림 찾기', emoji: '🧩', path: 'memory/memory.html' },
-        { key: 'wordfrag', name: '단어 조합하기', emoji: '✍️', path: 'word/word.html' },
-        { key: 'sequence', name: '숫자 순서터치', emoji: '🔢', path: 'sequence/sequence.html' }
-    ];
-    
-    const streaks = games.map(g => ({
-        ...g,
-        streak: parseInt(localStorage.getItem(`harumind_${g.key}_streak`) || '0', 10)
-    }));
-    
-    streaks.sort((a, b) => a.streak - b.streak);
-    return streaks[0];
-};
+// core.getLeastPlayedGame = function() {
+//     const games = [
+//         { key: 'memory', name: '같은 그림 찾기', emoji: '🧩', path: 'memory/memory.html' },
+//         { key: 'wordfrag', name: '단어 조합하기', emoji: '✍️', path: 'word/word.html' },
+//         { key: 'sequence', name: '숫자 순서터치', emoji: '🔢', path: 'sequence/sequence.html' }
+//     ];
+//     
+//     const streaks = games.map(g => ({
+//         ...g,
+//         streak: parseInt(localStorage.getItem(`harumind_${g.key}_streak`) || '0', 10)
+//     }));
+//     
+//     streaks.sort((a, b) => a.streak - b.streak);
+//     return streaks[0];
+// };
 
 /**
  * 모든 게임 공통 상단바 생성 함수
