@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+
+<!-- SEO -->
+<title>하루마음 | 오늘 밤, 잠깐 여기 머물다 가세요</title>
+<meta name="description" content="흔들리는 날, 잠시 머물 수 있는 자리. 오늘의 감정을 고르면 글귀와 음악을 드립니다." />
+<meta name="keywords" content="하루마감, 감성, 위로, 밤, 감정정리, 마음정리, 힐링, 하루마음" />
+<link rel="canonical" href="https://harumind.kr/" />
+
+<!-- OG -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="하루마음" />
+<meta property="og:title" content="하루마음 | 오늘 밤, 잠깐 여기 머물다 가세요" />
+<meta property="og:description" content="흔들리는 날, 잠시 머물 수 있는 자리. 오늘의 감정을 고르면 글귀와 음악을 드립니다." />
+<meta property="og:url" content="https://harumind.kr/" />
+
+<!-- 네이버 서치어드바이저 -->
+<meta name="naver-site-verification" content="9a17421f3eca307a085f00983e810d49b7172fdd" />
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-JX8PENN22H');
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
+<script src="quotes.js"></script>
+</head>
+<body>
+
+<script>
+/* ================================================================
+   ✏️  콘텐츠 편집 구역 — 여기만 수정하면 됩니다
+   ================================================================
+
+   각 감정별로:
+     quote      → 화면에 표시될 글귀 (\n 은 줄바꿈)
+
+     musicUrl   → SUNO에서 다운받은 mp3 파일 경로
+                  예) "music/피곤함.mp3"   (GitHub에 music 폴더 만들어서 업로드)
+                  파일 없으면 "" 로 두세요 (플레이어 숨김 처리됨)
+     musicTitle → 음악 플레이어에 표시될 곡 제목
+
+     youtubeUrl → 유튜브 영상 또는 쇼츠 주소 붙여넣기
+                  예) https://www.youtube.com/watch?v=XXXXXXXXXXX
+                      https://www.youtube.com/shorts/XXXXXXXXXXX
+                  링크 없으면 "" 로 두세요 (준비중 표시됨)
+     videoTitle → 영상 카드에 표시될 제목
+     videoType  → 'SHORTS' / 'LONG' / 'MUSIC' 중 하나
+
+   ================================================================ */
+
+const CONTENT = {
+
+  피곤함: {
+    emoji: "😮‍💨",
+    quote: "오늘 하루, 끝났어요.\n더 잘하려 하지 않아도 돼요.\n지금 이대로 충분히 수고했어요.",
+    musicUrl: "music/tired.mp3",
+    musicTitle: "지친 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "지친 밤을 위한 짧은 위로",
+    videoType: "SHORTS"
+  },
+
+  불안함: {
+    emoji: "🌀",
+    quote: "걱정이 많은 밤이에요.\n그 걱정들, 오늘 밤은 여기 두고 가도 돼요.\n내일 다시 챙겨도 늦지 않아요.",
+    musicUrl: "music/anxious.mp3",
+    musicTitle: "불안한 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "마음이 흔들리는 밤에",
+    videoType: "SHORTS"
+  },
+
+  공허함: {
+    emoji: "🌑",
+    quote: "아무것도 느껴지지 않는 날이 있어요.\n그게 비어있는 게 아니라, 쉬고 있는 거예요.\n오늘은 그냥 있어도 돼요.",
+    musicUrl: "music/empty.mp3",
+    musicTitle: "공허한 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "공허한 밤, 그냥 있어도 돼요",
+    videoType: "LONG"
+  },
+
+  쓸쓸함: {
+    emoji: "🍂",
+    quote: "혼자인 밤이에요.\n그래도 괜찮아요.\n당신 옆에, 이 밤이 있어요.",
+    musicUrl: "music/lonely.mp3",
+    musicTitle: "쓸쓸한 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "가을 밤의 위로",
+    videoType: "MUSIC"
+  },
+
+  복잡함: {
+    emoji: "🌊",
+    quote: "생각이 많은 밤이에요.\n다 정리하려 하지 않아도 돼요.\n오늘은 여기서 멈춰요.",
+    musicUrl: "music/complex.mp3",
+    musicTitle: "복잡한 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "머릿속을 비우는 밤",
+    videoType: "LONG"
+  },
+
+  괜찮음: {
+    emoji: "🌙",
+    quote: "오늘, 나쁘지 않았잖아요.\n특별한 게 없어도 괜찮아요.\n그냥 오늘 하루, 잘 보냈어요.",
+    musicUrl: "music/okay.mp3",
+    musicTitle: "괜찮은 밤을 위한 음악",
+    youtubeUrl: "",           // ← 유튜브 링크 여기에
+    videoTitle: "오늘도 잘 버텼어요",
+    videoType: "SHORTS"
+  }
+
+};
+/* ================================================================
+   ✏️  편집 구역 끝
+   ================================================================ */
+</script>
+
+<style>
+  :root {
+    --bg: #0c0c10;
+    --surface: #13131b;
+    --surface2: #1b1b26;
+    --border: rgba(255,255,255,0.055);
+    --border-hover: rgba(255,255,255,0.11);
+    --text-primary: #eae6de;
+    --text-secondary: #8a8690;
+    --text-muted: #48454f;
+    --accent: #c4a882;
+    --accent-dim: rgba(196,168,130,0.13);
+    --accent-border: rgba(196,168,130,0.25);
+    --radius: 14px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* grain overlay */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0;
+  }
+
+  /* soft top glow */
+  body::after {
+    content:'';
+    position:fixed; top:-30%; left:50%; transform:translateX(-50%);
+    width:700px; height:700px;
+    background:radial-gradient(circle, rgba(196,168,130,0.035) 0%, transparent 65%);
+    pointer-events:none; z-index:0;
+  }
+
+  .app {
+    position:relative; z-index:1;
+    max-width:420px; margin:0 auto;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display:none; flex-direction:column;
+    min-height:100vh;
+    padding:0 22px 48px;
+    animation: up .45s cubic-bezier(.22,1,.36,1);
+  }
+  .screen.active { display:flex; }
+
+  @keyframes up {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 48px 0 28px;
+  }
+
+  .wordmark {
+    font-family:'Noto Serif KR', serif;
+    font-size:10px;
+    letter-spacing:.28em;
+    color:var(--accent);
+    opacity:.65;
+    margin-bottom:6px;
+  }
+
+  .time-pill {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:11px; color:var(--text-muted);
+    letter-spacing:.08em;
+    margin-bottom:22px;
+  }
+
+  .time-dot {
+    width:4px; height:4px;
+    background:var(--accent); border-radius:50%;
+    opacity:.7;
+    animation: blink 3s ease infinite;
+  }
+  @keyframes blink {
+    0%,100%{opacity:.7} 50%{opacity:.2}
+  }
+
+  .h-title {
+    font-family:'Noto Serif KR', serif;
+    font-size:21px; font-weight:300;
+    line-height:1.65; letter-spacing:-.01em;
+    color:var(--text-primary);
+  }
+
+  .h-sub {
+    font-size:12px; color:var(--text-muted);
+    margin-top:8px; line-height:1.7;
+  }
+
+  /* ── EMOTION GRID ── */
+  .emotion-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:4px;
+  }
+
+  .e-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 15px;
+    cursor:pointer;
+    transition: border-color .18s, transform .18s, background .18s;
+    display:flex; flex-direction:column; gap:7px;
+    user-select:none;
+  }
+  .e-card:hover {
+    border-color:var(--border-hover);
+    transform:translateY(-2px);
+  }
+  .e-card.selected {
+    border-color:var(--accent);
+    background:var(--accent-dim);
+  }
+
+  .e-emoji { font-size:21px; line-height:1; }
+
+  .e-word {
+    font-family:'Noto Serif KR', serif;
+    font-size:14px; font-weight:400;
+    color:var(--text-primary); letter-spacing:-.01em;
+  }
+
+  .e-desc {
+    font-size:11px; color:var(--text-muted);
+    line-height:1.55;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    width:100%; border:none; border-radius:12px;
+    padding:15px; cursor:pointer;
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:13px; font-weight:400;
+    letter-spacing:.05em;
+    transition: all .18s ease;
+    margin-top:16px;
+  }
+
+  .btn-primary {
+    background:var(--accent); color:#1a1410;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background:#d4b892; transform:translateY(-1px);
+  }
+  .btn-primary:disabled { opacity:.28; cursor:not-allowed; }
+
+  .btn-ghost {
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-secondary);
+  }
+  .btn-ghost:hover {
+    border-color:var(--border-hover); color:var(--text-primary);
+  }
+
+  /* ── CONTENT SCREEN ── */
+  .emotion-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--accent-dim);
+    border:1px solid var(--accent-border);
+    border-radius:20px; padding:5px 13px;
+    font-size:12px; color:var(--accent);
+    margin-bottom:20px;
+  }
+
+  .sec-label {
+    font-size:9.5px; letter-spacing:.22em;
+    color:var(--text-muted); text-transform:uppercase;
+    margin-bottom:11px;
+  }
+
+  .content-section { margin-bottom:22px; }
+
+  /* quote */
+  .quote-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:2px solid var(--accent);
+    border-radius:var(--radius);
+    padding:22px 20px;
+  }
+
+  .quote-text {
+    font-family:'Noto Serif KR', serif;
+    font-size:15px; line-height:2;
+    color:var(--text-primary); font-weight:300;
+    letter-spacing:.01em;
+  }
+
+  /* video card */
+  .video-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    cursor:pointer;
+    transition: border-color .18s, transform .18s;
+    text-decoration:none;
+    display:block;
+  }
+  .video-card:hover {
+    border-color:var(--border-hover); transform:translateY(-2px);
+  }
+  .video-card.no-link { cursor:default; opacity:.45; }
+  .video-card.no-link:hover { transform:none; border-color:var(--border); }
+
+  .v-thumb {
+    width:100%; aspect-ratio:16/9;
+    background:linear-gradient(135deg,#181828 0%,#12182e 60%,#0e1a30 100%);
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+
+  .v-thumb::before {
+    content:'';
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 30% 60%, rgba(196,168,130,0.06), transparent 60%);
+  }
+
+  .v-play {
+    width:42px; height:42px;
+    background:rgba(196,168,130,0.88);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .18s;
+    position:relative; z-index:1;
+  }
+  .video-card:hover .v-play { transform:scale(1.08); }
+
+  .play-tri {
+    width:0; height:0;
+    border-style:solid;
+    border-width:7px 0 7px 13px;
+    border-color:transparent transparent transparent #1a1410;
+    margin-left:3px;
+  }
+
+  .v-type-badge {
+    position:absolute; bottom:10px; left:12px;
+    font-size:9px; letter-spacing:.12em;
+    color:rgba(255,255,255,.4);
+    background:rgba(0,0,0,.35);
+    padding:3px 7px; border-radius:4px;
+    z-index:1;
+  }
+
+  .v-info { padding:13px 15px; }
+
+  .v-title {
+    font-family:'Noto Serif KR', serif;
+    font-size:14px; color:var(--text-primary);
+    line-height:1.5; margin-bottom:5px;
+  }
+
+  .v-meta { font-size:11px; color:var(--text-muted); }
+
+  /* no-link notice */
+  .no-link-notice {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--surface);
+    border:1px dashed rgba(255,255,255,0.08);
+    border-radius:var(--radius);
+    padding:20px;
+    font-size:12px; color:var(--text-muted);
+    letter-spacing:.05em;
+  }
+
+  .no-link-dot {
+    width:5px; height:5px;
+    background:var(--accent); border-radius:50%; opacity:.5;
+    animation: blink 2.5s ease infinite;
+  }
+
+
+
+  /* ── MUSIC PLAYER ── */
+  .music-player {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .music-play-btn {
+    width: 44px; height: 44px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .18s ease;
+    flex-shrink: 0;
+  }
+  .music-play-btn:hover { background: rgba(196,168,130,0.22); transform: scale(1.05); }
+  .music-play-btn.playing { background: var(--accent); border-color: var(--accent); }
+
+  .play-icon-m {
+    width:0; height:0;
+    border-style:solid;
+    border-width:6px 0 6px 11px;
+    border-color:transparent transparent transparent var(--accent);
+    margin-left:2px;
+    transition: border-color .18s;
+  }
+  .music-play-btn.playing .play-icon-m {
+    border-color: transparent transparent transparent #1a1410;
+  }
+  /* pause icon */
+  .pause-icon-m {
+    display: none;
+    gap: 3px;
+  }
+  .pause-bar {
+    width: 3px; height: 12px;
+    background: #1a1410;
+    border-radius: 2px;
+  }
+  .music-play-btn.playing .play-icon-m  { display: none; }
+  .music-play-btn.playing .pause-icon-m { display: flex; }
+
+  .music-info { flex: 1; min-width: 0; }
+
+  .music-title {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 8px;
+  }
+
+  .music-progress-wrap {
+    position: relative;
+    height: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    cursor: pointer;
+    margin-bottom: 5px;
+  }
+
+  .music-progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width .1s linear;
+    pointer-events: none;
+  }
+
+  .music-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: .05em;
+  }
+
+  /* 음악 준비중 */
+  .music-pending {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--surface);
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 18px;
+    font-size: 12px; color: var(--text-muted);
+    letter-spacing: .05em;
+  }
+
+  /* ── 감정별 배경 ── */
+  body {
+    transition: background 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  body.emotion-피곤함  { background: radial-gradient(ellipse at top, #1a1f2e 0%, #0d1117 60%); }
+  body.emotion-불안함  { background: radial-gradient(ellipse at top, #1a1528 0%, #0e0d1a 60%); }
+  body.emotion-공허함  { background: radial-gradient(ellipse at top, #111111 0%, #080808 60%); }
+  body.emotion-쓸쓸함  { background: radial-gradient(ellipse at top, #1e1410 0%, #120d0a 60%); }
+  body.emotion-복잡함  { background: radial-gradient(ellipse at top, #0f1e22 0%, #090f12 60%); }
+  body.emotion-괜찮음  { background: radial-gradient(ellipse at top, #141828 0%, #0a0c14 60%); }
+
+  @media(max-width:440px){
+    .app { max-width:100%; }
+  }
+
+  /* ── 파티클 캔버스 ── */
+  #particle-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+  }
+  #particle-canvas.active {
+    opacity: 1;
+  }
+</style>
+
+<!-- ══════════════ PARTICLE CANVAS ══════════════ -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- ══════════════ SCREEN: 감정 선택 ══════════════ -->
+<div class="app">
+
+  <div class="screen active" id="s-emotion">
+    <div class="header">
+      <div class="wordmark">하루마음</div>
+      <div class="time-pill">
+        <div class="time-dot"></div>
+        <span id="clock">밤 11:00</span>
+      </div>
+      <div class="h-title">오늘 어떤 감정이<br>가장 가까운가요</div>
+      <div class="h-sub">지금 이 순간의 감정을 하나 골라주세요</div>
+    </div>
+
+    <div class="emotion-grid" id="emotion-grid"></div>
+
+    <button class="btn btn-primary" id="confirm-btn" onclick="goContent()" disabled>
+      이 감정으로 시작하기
+    </button>
+  </div>
+
+  <!-- ══════════════ SCREEN: 콘텐츠 ══════════════ -->
+  <div class="screen" id="s-content">
+    <div class="header">
+      <div class="wordmark">하루마음</div>
+      <div class="emotion-badge">
+        <span id="c-emoji"></span>
+        <span id="c-label"></span> 을 위한 콘텐츠
+      </div>
+      <div class="h-title">잠깐,<br>여기 머물다 가세요</div>
+    </div>
+
+    <!-- 음악 플레이어 -->
+    <div class="content-section" id="music-section">
+      <div class="sec-label">오늘의 음악</div>
+
+      <!-- 음악 있을 때 -->
+      <div class="music-player" id="music-player" style="display:none">
+        <div class="music-play-btn" id="music-btn" onclick="toggleMusic()">
+          <div class="play-icon-m"></div>
+          <div class="pause-icon-m">
+            <div class="pause-bar"></div>
+            <div class="pause-bar"></div>
+          </div>
+        </div>
+        <div class="music-info">
+          <div class="music-title" id="music-title"></div>
+          <div class="music-progress-wrap" id="progress-wrap" onclick="seekMusic(event)">
+            <div class="music-progress-bar" id="progress-bar"></div>
+          </div>
+          <div class="music-time" id="music-time">0:00 / 0:00</div>
+        </div>
+      </div>
+
+      <!-- 음악 준비중일 때 -->
+      <div class="music-pending" id="music-pending" style="display:none">
+        <div class="no-link-dot"></div>
+        음악 준비 중이에요
+      </div>
+    </div>
+
+    <!-- 글귀 -->
+    <div class="content-section">
+      <div class="sec-label">오늘의 글귀</div>
+      <div class="quote-card">
+        <div class="quote-text" id="c-quote"></div>
+      </div>
+    </div>
+
+    <!-- 영상 -->
+    <div class="content-section" id="video-section">
+      <div class="sec-label">추천 영상</div>
+      <a id="video-link" target="_blank" rel="noopener">
+        <div class="video-card" id="video-card">
+          <div class="v-thumb">
+            <div class="v-play"><div class="play-tri"></div></div>
+            <div class="v-type-badge" id="v-badge">SHORTS</div>
+          </div>
+          <div class="v-info">
+            <div class="v-title" id="v-title"></div>
+            <div class="v-meta">하루마음 · @harumindlab</div>
+          </div>
+        </div>
+      </a>
+      <div class="no-link-notice" id="no-link-msg" style="display:none">
+        <div class="no-link-dot"></div>
+        곧 업로드될 예정이에요
+      </div>
+    </div>
+
+    <button class="btn btn-ghost" onclick="backToEmotion()">← 다른 감정 선택하기</button>
+  </div>
+
+  <!-- hidden audio -->
+  <audio id="audio-player" preload="none"></audio>
+
+</div>
+
+<script>
+  // ── 시계 ──
+  function tick() {
+    const now = new Date();
+    const h = now.getHours(), m = String(now.getMinutes()).padStart(2,'0');
+    const period = h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : '밤';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    document.getElementById('clock').textContent = `${period} ${h12}:${m}`;
+  }
+  tick(); setInterval(tick, 30000);
+
+  // ── 감정 카드 렌더 ──
+  let selected = null;
+
+  function renderGrid() {
+    const grid = document.getElementById('emotion-grid');
+    Object.entries(CONTENT).forEach(([name, data]) => {
+      const desc = {
+        피곤함:'몸도 마음도 지쳤을 때',
+        불안함:'마음이 가라앉지 않을 때',
+        공허함:'아무것도 느껴지지 않을 때',
+        쓸쓸함:'혼자인 느낌이 들 때',
+        복잡함:'생각이 정리되지 않을 때',
+        괜찮음:'나쁘지 않지만 뭔가 부족할 때'
+      }[name] || '';
+
+      const card = document.createElement('div');
+      card.className = 'e-card';
+      card.dataset.key = name;
+      card.innerHTML = `
+        <div class="e-emoji">${data.emoji}</div>
+        <div class="e-word">${name}</div>
+        <div class="e-desc">${desc}</div>
+      `;
+      card.addEventListener('click', () => selectEmotion(name, card));
+      grid.appendChild(card);
+    });
+  }
+
+  function selectEmotion(name, card) {
+    document.querySelectorAll('.e-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selected = name;
+    document.getElementById('confirm-btn').disabled = false;
+
+    // 배경 미리보기
+    const emotionClasses = ['emotion-피곤함','emotion-불안함','emotion-공허함','emotion-쓸쓸함','emotion-복잡함','emotion-괜찮음'];
+    document.body.classList.remove(...emotionClasses);
+    document.body.classList.add('emotion-' + name);
+  }
+
+  // ── 음악 플레이어 ──
+  const audio = document.getElementById('audio-player');
+  let isPlaying = false;
+
+  function fmt(s) {
+    const m = Math.floor(s / 60), ss = Math.floor(s % 60);
+    return `${m}:${String(ss).padStart(2,'0')}`;
+  }
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('music-time').textContent =
+      `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+  });
+
+  audio.addEventListener('ended', () => {
+    isPlaying = false;
+    document.getElementById('music-btn').classList.remove('playing');
+    document.getElementById('progress-bar').style.width = '0%';
+  });
+
+  function toggleMusic() {
+    const btn = document.getElementById('music-btn');
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+      btn.classList.remove('playing');
+      stopParticles();
+    } else {
+      audio.play().then(() => {
+        isPlaying = true;
+        btn.classList.add('playing');
+        startParticles(selected);
+      }).catch(() => {});
+    }
+  }
+
+  // ── 파티클 엔진 ──
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  let animFrame = null;
+  let currentEmotion = '';
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // 감정별 파티클 설정
+  const PARTICLE_CONFIG = {
+    피곤함: {
+      count: 15, color: 'rgba(180,190,220,', speedX: 0.05, speedY: 0.08,
+      size: 1.2, opacity: 0.25, drift: 0.01
+    },
+    불안함: {
+      count: 30, color: 'rgba(180,160,220,', speedX: 0.3, speedY: 0.15,
+      size: 1.0, opacity: 0.35, drift: 0.08, shake: true
+    },
+    공허함: {
+      count: 3, color: 'rgba(200,200,200,', speedX: 0.02, speedY: 0.03,
+      size: 1.5, opacity: 0.2, drift: 0.005
+    },
+    쓸쓸함: {
+      count: 20, color: 'rgba(196,168,130,', speedX: 0.05, speedY: 0.25,
+      size: 1.0, opacity: 0.3, drift: 0.02, fall: true
+    },
+    복잡함: {
+      count: 35, color: 'rgba(150,180,200,', speedX: 0.2, speedY: 0.12,
+      size: 1.0, opacity: 0.3, drift: 0.05, multiDir: true
+    },
+    괜찮음: {
+      count: 25, color: 'rgba(196,168,130,', speedX: 0.08, speedY: 0.06,
+      size: 1.8, opacity: 0.4, drift: 0.02, glow: true
+    }
+  };
+
+  function createParticle(cfg) {
+    const dir = cfg.multiDir ? (Math.random() - 0.5) * 2 : 1;
+    return {
+      x: Math.random() * canvas.width,
+      y: cfg.fall ? Math.random() * canvas.height * 0.3 : Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * cfg.speedX * dir,
+      vy: cfg.fall ? Math.random() * cfg.speedY + 0.1 : (Math.random() - 0.5) * cfg.speedY,
+      size: Math.random() * cfg.size + 0.5,
+      opacity: Math.random() * cfg.opacity + 0.05,
+      drift: cfg.drift,
+      shake: cfg.shake || false,
+      glow: cfg.glow || false,
+      fall: cfg.fall || false,
+      color: cfg.color,
+      phase: Math.random() * Math.PI * 2
+    };
+  }
+
+  function startParticles(emotion) {
+    currentEmotion = emotion;
+    const cfg = PARTICLE_CONFIG[emotion];
+    if (!cfg) return;
+
+    particles = [];
+    for (let i = 0; i < cfg.count; i++) {
+      particles.push(createParticle(cfg));
+    }
+    canvas.classList.add('active');
+    animate();
+  }
+
+  function stopParticles() {
+    canvas.classList.remove('active');
+    cancelAnimationFrame(animFrame);
+    setTimeout(() => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = [];
+    }, 1500);
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cfg = PARTICLE_CONFIG[currentEmotion];
+    if (!cfg) return;
+
+    particles.forEach(p => {
+      p.phase += 0.02;
+
+      // 진동 효과 (불안함)
+      if (p.shake) {
+        p.x += Math.sin(p.phase * 3) * 0.4;
+      }
+
+      // 일반 이동
+      p.x += p.vx + Math.sin(p.phase) * p.drift;
+      p.y += p.vy + Math.cos(p.phase * 0.7) * p.drift;
+
+      // 화면 경계 처리
+      if (p.fall) {
+        if (p.y > canvas.height) {
+          p.y = -5;
+          p.x = Math.random() * canvas.width;
+        }
+      } else {
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.y < -10) p.y = canvas.height + 10;
+        if (p.y > canvas.height + 10) p.y = -10;
+      }
+
+      // 그리기
+      ctx.beginPath();
+      if (p.glow) {
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.color + '0.5)';
+      } else {
+        ctx.shadowBlur = 0;
+      }
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + p.opacity + ')';
+      ctx.fill();
+    });
+
+    ctx.shadowBlur = 0;
+    animFrame = requestAnimationFrame(animate);
+  }
+
+  function seekMusic(e) {
+    if (!audio.duration) return;
+    const wrap = document.getElementById('progress-wrap');
+    const rect = wrap.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = pct * audio.duration;
+  }
+
+  function stopMusic() {
+    audio.pause();
+    audio.currentTime = 0;
+    isPlaying = false;
+    document.getElementById('music-btn').classList.remove('playing');
+    document.getElementById('progress-bar').style.width = '0%';
+    stopParticles();
+  }
+
+  // ── 콘텐츠 화면 이동 ──
+  function goContent() {
+    if (!selected) return;
+    const d = CONTENT[selected];
+    stopMusic();
+
+    // 배지
+    document.getElementById('c-emoji').textContent = d.emoji;
+    document.getElementById('c-label').textContent = selected;
+    // 오늘 요일에 맞는 글귀 (quotes.js) → 없으면 기본 글귀
+    const todayQuote = (typeof getTodayQuote === 'function')
+      ? getTodayQuote(selected)
+      : d.quote;
+    document.getElementById('c-quote').innerHTML = todayQuote.replace(/\n/g, '<br>');
+
+    // 음악
+    const musicUrl = (d.musicUrl || '').trim();
+    const musicPlayer  = document.getElementById('music-player');
+    const musicPending = document.getElementById('music-pending');
+
+    if (musicUrl) {
+      audio.src = musicUrl;
+      document.getElementById('music-title').textContent = d.musicTitle;
+      document.getElementById('music-time').textContent = '0:00 / 0:00';
+      document.getElementById('progress-bar').style.width = '0%';
+      musicPlayer.style.display  = 'flex';
+      musicPending.style.display = 'none';
+    } else {
+      musicPlayer.style.display  = 'none';
+      musicPending.style.display = 'flex';
+    }
+
+    // 영상
+    document.getElementById('v-title').textContent = d.videoTitle;
+    document.getElementById('v-badge').textContent = d.videoType;
+    const link = (d.youtubeUrl || '').trim();
+    const videoCard = document.getElementById('video-card');
+    const videoLink = document.getElementById('video-link');
+    const noLinkMsg = document.getElementById('no-link-msg');
+
+    if (link) {
+      videoLink.href = link;
+      videoCard.style.display = 'block';
+      noLinkMsg.style.display = 'none';
+    } else {
+      videoLink.removeAttribute('href');
+      videoCard.style.display = 'none';
+      noLinkMsg.style.display = 'flex';
+    }
+
+    showScreen('content');
+  }
+
+  function backToEmotion() {
+    stopMusic();
+    const emotionClasses = ['emotion-피곤함','emotion-불안함','emotion-공허함','emotion-쓸쓸함','emotion-복잡함','emotion-괜찮음'];
+    document.body.classList.remove(...emotionClasses);
+    showScreen('emotion');
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('s-' + id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  renderGrid();
+</script>
+</body>
+</html>
