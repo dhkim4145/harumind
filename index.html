@@ -30,16 +30,6 @@
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
-<!-- PWA -->
-<link rel="manifest" href="/site.webmanifest">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" href="/favicon.ico">
-<meta name="theme-color" content="#0c0c10">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="하루마음">
 <script src="quotes.js"></script>
 </head>
 <body>
@@ -344,88 +334,24 @@ const CONTENT = {
     letter-spacing:.01em;
   }
 
-  /* video card */
-  .video-card {
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    overflow:hidden;
-    cursor:pointer;
-    transition: border-color .18s, transform .18s;
-    text-decoration:none;
-    display:block;
+  /* ── 음악 종료 문장 ── */
+  .music-end-msg {
+    display: none;
+    text-align: center;
+    padding: 28px 20px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 15px;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 2s ease;
+    letter-spacing: 0.05em;
+    line-height: 1.8;
   }
-  .video-card:hover {
-    border-color:var(--border-hover); transform:translateY(-2px);
+  .music-end-msg.show {
+    display: block;
   }
-  .video-card.no-link { cursor:default; opacity:.45; }
-  .video-card.no-link:hover { transform:none; border-color:var(--border); }
-
-  .v-thumb {
-    width:100%; aspect-ratio:16/9;
-    background:linear-gradient(135deg,#181828 0%,#12182e 60%,#0e1a30 100%);
-    display:flex; align-items:center; justify-content:center;
-    position:relative; overflow:hidden;
-  }
-
-  .v-thumb::before {
-    content:'';
-    position:absolute; inset:0;
-    background:radial-gradient(circle at 30% 60%, rgba(196,168,130,0.06), transparent 60%);
-  }
-
-  .v-play {
-    width:42px; height:42px;
-    background:rgba(196,168,130,0.88);
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    transition:transform .18s;
-    position:relative; z-index:1;
-  }
-  .video-card:hover .v-play { transform:scale(1.08); }
-
-  .play-tri {
-    width:0; height:0;
-    border-style:solid;
-    border-width:7px 0 7px 13px;
-    border-color:transparent transparent transparent #1a1410;
-    margin-left:3px;
-  }
-
-  .v-type-badge {
-    position:absolute; bottom:10px; left:12px;
-    font-size:9px; letter-spacing:.12em;
-    color:rgba(255,255,255,.4);
-    background:rgba(0,0,0,.35);
-    padding:3px 7px; border-radius:4px;
-    z-index:1;
-  }
-
-  .v-info { padding:13px 15px; }
-
-  .v-title {
-    font-family:'Noto Serif KR', serif;
-    font-size:14px; color:var(--text-primary);
-    line-height:1.5; margin-bottom:5px;
-  }
-
-  .v-meta { font-size:11px; color:var(--text-muted); }
-
-  /* no-link notice */
-  .no-link-notice {
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    background:var(--surface);
-    border:1px dashed rgba(255,255,255,0.08);
-    border-radius:var(--radius);
-    padding:20px;
-    font-size:12px; color:var(--text-muted);
-    letter-spacing:.05em;
-  }
-
-  .no-link-dot {
-    width:5px; height:5px;
-    background:var(--accent); border-radius:50%; opacity:.5;
-    animation: blink 2.5s ease infinite;
+  .music-end-msg.visible {
+    opacity: 1;
   }
 
 
@@ -625,25 +551,9 @@ const CONTENT = {
       </div>
     </div>
 
-    <!-- 영상 -->
-    <div class="content-section" id="video-section">
-      <div class="sec-label">추천 영상</div>
-      <a id="video-link" target="_blank" rel="noopener">
-        <div class="video-card" id="video-card">
-          <div class="v-thumb">
-            <div class="v-play"><div class="play-tri"></div></div>
-            <div class="v-type-badge" id="v-badge">SHORTS</div>
-          </div>
-          <div class="v-info">
-            <div class="v-title" id="v-title"></div>
-            <div class="v-meta">하루마음 · @harumindlab</div>
-          </div>
-        </div>
-      </a>
-      <div class="no-link-notice" id="no-link-msg" style="display:none">
-        <div class="no-link-dot"></div>
-        곧 업로드될 예정이에요
-      </div>
+    <!-- 음악 종료 문장 -->
+    <div class="music-end-msg" id="music-end-msg">
+      오늘은 여기까지입니다 🌙
     </div>
 
     <button class="btn btn-ghost" onclick="backToEmotion()">← 다른 감정 선택하기</button>
@@ -726,6 +636,11 @@ const CONTENT = {
     isPlaying = false;
     document.getElementById('music-btn').classList.remove('playing');
     document.getElementById('progress-bar').style.width = '0%';
+    stopParticles();
+    // 종료 문장 표시
+    const endMsg = document.getElementById('music-end-msg');
+    endMsg.classList.add('show');
+    setTimeout(() => endMsg.classList.add('visible'), 100);
   });
 
   function toggleMusic() {
@@ -873,6 +788,41 @@ const CONTENT = {
     animFrame = requestAnimationFrame(animate);
   }
 
+  // ── 호흡 리듬 (5초 주기로 파티클 크기 파동) ──
+  let breathTime = 0;
+  let breathRAF = null;
+  function breathLoop() {
+    breathTime += 0.008;
+    const scale = 0.92 + Math.sin(breathTime * Math.PI * 2 / 5) * 0.08;
+    if (isPlaying) {
+      particles.forEach(p => {
+        p.breathScale = scale;
+      });
+    }
+    breathRAF = requestAnimationFrame(breathLoop);
+  }
+  breathLoop();
+
+  // ── 터치 반응 ──
+  document.addEventListener('touchstart', (e) => {
+    if (!isPlaying) return;
+    const touch = e.touches[0];
+    for (let i = 0; i < 3; i++) {
+      particles.push({
+        x: touch.clientX + (Math.random() - 0.5) * 30,
+        y: touch.clientY + (Math.random() - 0.5) * 30,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8 - 0.3,
+        size: Math.random() * 2.5 + 1,
+        opacity: 0.55,
+        drift: 0.03,
+        shake: false, glow: true, fall: false,
+        color: 'rgba(196,168,130,',
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  });
+
   function seekMusic(e) {
     if (!audio.duration) return;
     const wrap = document.getElementById('progress-wrap');
@@ -922,25 +872,10 @@ const CONTENT = {
       musicPending.style.display = 'flex';
     }
 
-    // 영상
-    document.getElementById('v-title').textContent = d.videoTitle;
-    document.getElementById('v-badge').textContent = d.videoType;
-    const link = (d.youtubeUrl || '').trim();
-    const videoCard = document.getElementById('video-card');
-    const videoLink = document.getElementById('video-link');
-    const noLinkMsg = document.getElementById('no-link-msg');
-
-    if (link) {
-      videoLink.href = link;
-      videoCard.style.display = 'block';
-      noLinkMsg.style.display = 'none';
-    } else {
-      videoLink.removeAttribute('href');
-      videoCard.style.display = 'none';
-      noLinkMsg.style.display = 'flex';
-    }
-
     showScreen('content');
+    // 종료 문장 숨기기 (새 감정 선택시 초기화)
+    const endMsg = document.getElementById('music-end-msg');
+    endMsg.classList.remove('show', 'visible');
   }
 
   function backToEmotion() {
