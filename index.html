@@ -290,7 +290,7 @@ const FLOW_DURATION = {
   .flow-dots {
     display: flex;
     gap: 7px;
-    margin-bottom: 64px;
+    margin-bottom: 0;
   }
 
   .flow-dot {
@@ -307,6 +307,16 @@ const FLOW_DURATION = {
 
   .flow-dot.done {
     background: rgba(196,168,130,0.35);
+  }
+
+  /* 단계 표시 */
+  .flow-step-indicator {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: .12em;
+    margin-top: 12px;
+    margin-bottom: 52px;
+    opacity: 0.6;
   }
 
   /* 메인 텍스트 */
@@ -384,7 +394,7 @@ const FLOW_DURATION = {
     line-height: 1;
     cursor: pointer;
     padding: 4px 8px;
-    opacity: 0.5;
+    opacity: 0.75;
     transition: opacity .2s ease;
     z-index: 10;
   }
@@ -396,9 +406,8 @@ const FLOW_DURATION = {
      COMPLETE SCREEN
   ══════════════════════════════════════════ */
   #s-complete {
-    justify-content: center;
     align-items: center;
-    padding: 0 32px;
+    padding: 96px 32px 64px;
     min-height: 100vh;
     text-align: center;
   }
@@ -440,7 +449,8 @@ const FLOW_DURATION = {
     background: transparent;
     opacity: 0;
     transform: translateY(10px);
-    transition: opacity .9s cubic-bezier(.22,1,.36,1) .8s, transform .9s cubic-bezier(.22,1,.36,1) .8s, border-color .2s ease, color .2s ease;
+    transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), border-color .2s ease, color .2s ease;
+    margin-top: 48px;
   }
 
   .complete-restart:hover {
@@ -448,10 +458,14 @@ const FLOW_DURATION = {
     color: var(--text-secondary);
   }
 
+  .complete-restart.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* COMPLETE 진입 시 visible 클래스로 애니메이션 트리거 */
   #s-complete.visible .complete-title,
-  #s-complete.visible .complete-sub,
-  #s-complete.visible .complete-restart {
+  #s-complete.visible .complete-sub {
     opacity: 1;
     transform: translateY(0);
   }
@@ -617,6 +631,7 @@ const FLOW_DURATION = {
       <div class="flow-dot" data-step="3"></div>
       <div class="flow-dot" data-step="4"></div>
     </div>
+    <div class="flow-step-indicator" id="flow-step-indicator">1 / 4</div>
 
     <!-- 메인 텍스트 -->
     <div class="flow-text" id="flow-text"></div>
@@ -631,7 +646,6 @@ const FLOW_DURATION = {
   <div class="screen" id="s-complete">
     <div class="complete-title">오늘은 여기까지입니다</div>
     <div class="complete-sub">충분합니다</div>
-    <button class="complete-restart" onclick="restart()">다시 시작</button>
 
     <!-- 글귀 + 음악 (페이드인) -->
     <div class="complete-extras" id="complete-extras">
@@ -652,6 +666,9 @@ const FLOW_DURATION = {
         <div class="complete-music-bar" id="complete-music-bar"></div>
       </div>
     </div>
+
+    <!-- 다시 시작 (extras 이후 등장) -->
+    <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
   </div>
 
   <!-- hidden audio -->
@@ -715,6 +732,9 @@ const FLOW_DURATION = {
   }
 
   let flowTimer = null;
+  let tapAllowed = false;
+  let currentStep = 0;
+  let tapIgnoreTimer = null;
 
   /* ──────────────────────────────────────────
      FLOW 엔진
@@ -727,6 +747,15 @@ const FLOW_DURATION = {
 
   function runFlowStep(step) {
     clearTimeout(flowTimer);
+    clearTimeout(tapIgnoreTimer);
+    currentStep = step;
+    tapAllowed = false;
+
+    // 단계별 탭 허용 딜레이
+    const tapDelay = (step === 3) ? 1500 : (step === 4) ? Infinity : 500;
+    if (tapDelay !== Infinity) {
+      tapIgnoreTimer = setTimeout(() => { tapAllowed = true; }, tapDelay);
+    }
 
     // 도트 업데이트
     document.querySelectorAll('.flow-dot').forEach(d => {
@@ -735,6 +764,9 @@ const FLOW_DURATION = {
       if (s === step) d.classList.add('active');
       else if (s < step) d.classList.add('done');
     });
+
+    // 단계 표시 업데이트
+    document.getElementById('flow-step-indicator').textContent = `${step} / 4`;
 
     // 텍스트 설정
     const textEl = document.getElementById('flow-text');
@@ -837,6 +869,9 @@ const FLOW_DURATION = {
 
   function exitFlow() {
     clearTimeout(flowTimer);
+    clearTimeout(tapIgnoreTimer);
+    tapAllowed = false;
+    currentStep = 0;
     // 배경색은 선택된 감정 색으로 복원 (선택 상태 유지)
     // selected가 있으면 해당 감정 배경 유지, 없으면 초기화
     if (!selected) {
@@ -878,8 +913,14 @@ const FLOW_DURATION = {
 
     // extras 페이드인 (1.8초 딜레이 — 종료 메시지 읽고 나서)
     const extras = document.getElementById('complete-extras');
+    const restartBtn = document.getElementById('complete-restart');
+    restartBtn.classList.remove('visible');
     extras.style.display = 'flex';
-    setTimeout(() => extras.classList.add('visible'), 1800);
+    setTimeout(() => {
+      extras.classList.add('visible');
+      // extras 페이드인 완료(1.2s) 후 1초 뒤 다시시작 등장
+      setTimeout(() => restartBtn.classList.add('visible'), 1000);
+    }, 1800);
   }
 
   function restart() {
@@ -887,6 +928,7 @@ const FLOW_DURATION = {
     clearTimeout(flowTimer);
     // COMPLETE 애니메이션 초기화
     document.getElementById('s-complete').classList.remove('visible');
+    document.getElementById('complete-restart').classList.remove('visible');
     // extras 초기화
     const extras = document.getElementById('complete-extras');
     extras.classList.remove('visible');
@@ -1018,6 +1060,17 @@ const FLOW_DURATION = {
         phase: Math.random() * Math.PI * 2
       });
     }
+  });
+
+  // FLOW 전체 화면 탭 — 선택적 스킵
+  document.getElementById('s-flow').addEventListener('click', (e) => {
+    // 종료 버튼, × 버튼 클릭은 각자 처리
+    if (e.target.closest('.flow-end-btn') || e.target.closest('.flow-exit-btn')) return;
+    if (!tapAllowed || currentStep === 4) return;
+    clearTimeout(flowTimer);
+    clearTimeout(tapIgnoreTimer);
+    tapAllowed = false;
+    runFlowStep(currentStep + 1);
   });
 
   /* ──────────────────────────────────────────
