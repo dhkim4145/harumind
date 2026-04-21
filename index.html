@@ -94,12 +94,12 @@ const FLOW_COMMON = {
 };
 
 // 단계별 자동 전환 시간 (ms)
-// 3단계: 4000ms 표시 후 → 4000ms 정지(텍스트 유지, 아무 변화 없음) → 4단계
+// 3단계: 3000ms 표시 후 → 3000ms 정지(텍스트 유지, 아무 변화 없음) → 4단계
 const FLOW_DURATION = {
   1: 3500,
   2: 3500,
-  3: 4000,
-  '3-pause': 4000
+  3: 3000,
+  '3-pause': 3000
   // 4단계는 버튼으로 전환
 };
 </script>
@@ -553,50 +553,6 @@ const FLOW_DURATION = {
     transform: translateY(0);
   }
 
-  /* 앱 종료 버튼 */
-  .complete-close-btn {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 32px;
-    cursor: pointer;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: .1em;
-    color: var(--text-secondary);
-    background: transparent;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), border-color .2s ease, color .2s ease;
-    margin-top: 48px;
-  }
-
-  .complete-close-btn:hover {
-    border-color: var(--border-hover);
-    color: var(--text-primary);
-  }
-
-  .complete-close-btn.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* 종료 오버레이 */
-  .close-overlay {
-    position: fixed;
-    inset: 0;
-    background: #0c0c10;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 100;
-    transition: opacity 2s ease;
-  }
-
-  .close-overlay.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-
   /* COMPLETE 진입 시 visible 클래스로 애니메이션 트리거 */
   #s-complete.visible .complete-title,
   #s-complete.visible .complete-emotion,
@@ -718,13 +674,9 @@ const FLOW_DURATION = {
       <div class="complete-quote" id="complete-quote"></div>
     </div>
 
-    <!-- 앱 종료 + 다시 시작 -->
-    <button class="complete-close-btn" id="complete-close-btn" onclick="closeApp()">오늘 하루 닫기</button>
+    <!-- 다시 시작 -->
     <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
   </div>
-
-  <!-- 종료 오버레이 -->
-  <div class="close-overlay" id="close-overlay" onclick="restoreFromClose()"></div>
 
 
 </div>
@@ -858,7 +810,7 @@ const FLOW_DURATION = {
       textEl.textContent = text;
 
       // 3단계는 조금 더 늦게 등장 — 정지점 강조
-      const fadeDelay = (step === 3) ? 200 : (step === 4) ? 300 : 80;
+      const fadeDelay = (step === 3) ? 200 : (step === 4) ? 500 : 80;
       setTimeout(() => textEl.classList.add('visible'), fadeDelay);
     }, blankDelay);
 
@@ -930,18 +882,11 @@ const FLOW_DURATION = {
     // 글귀 페이드인 (1.8초 딜레이)
     const extras = document.getElementById('complete-extras');
     const restartBtn = document.getElementById('complete-restart');
-    const closeBtn = document.getElementById('complete-close-btn');
     restartBtn.classList.remove('visible');
-    closeBtn.classList.remove('visible');
     extras.style.display = 'flex';
     setTimeout(() => {
       extras.classList.add('visible');
-      // 글귀 페이드인 완료 후 1초 뒤 앱 종료 등장
-      setTimeout(() => {
-        closeBtn.classList.add('visible');
-        // 앱 종료 후 0.8초 뒤 다시 시작 등장
-        setTimeout(() => restartBtn.classList.add('visible'), 800);
-      }, 1000);
+      setTimeout(() => restartBtn.classList.add('visible'), 1000);
     }, 1800);
   }
 
@@ -951,7 +896,6 @@ const FLOW_DURATION = {
     // COMPLETE 애니메이션 초기화
     document.getElementById('s-complete').classList.remove('visible');
     document.getElementById('complete-restart').classList.remove('visible');
-    document.getElementById('complete-close-btn').classList.remove('visible');
     // extras 초기화
     const extras = document.getElementById('complete-extras');
     extras.classList.remove('visible');
@@ -981,24 +925,6 @@ const FLOW_DURATION = {
         }, 2000);
       }, 500);
     }
-  }
-
-  function closeApp() {
-    const overlay = document.getElementById('close-overlay');
-    overlay.classList.add('active');
-  }
-
-  function restoreFromClose() {
-    // 탭하면 오버레이 페이드아웃 후 HOME으로
-    const overlay = document.getElementById('close-overlay');
-    overlay.style.transition = 'opacity 1s ease';
-    overlay.style.opacity = '0';
-    setTimeout(() => {
-      overlay.classList.remove('active');
-      overlay.style.transition = '';
-      overlay.style.opacity = '';
-      restart();
-    }, 1000);
   }
 
   /* ──────────────────────────────────────────
