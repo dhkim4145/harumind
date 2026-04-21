@@ -42,27 +42,33 @@
 const CONTENT = {
   피곤함: {
     emoji: "😮‍💨",
-    musicUrl: "music/tired.mp3",
+    transition: ["오늘은 이 상태에서", "여기까지 둡니다"],
+    completeEmotion: "피곤했던 오늘 그대로"
   },
   불안함: {
     emoji: "🌀",
-    musicUrl: "music/anxious.mp3",
+    transition: ["지금 이 마음에서", "멈춥니다"],
+    completeEmotion: "불안했던 오늘 그대로"
   },
   공허함: {
     emoji: "🌑",
-    musicUrl: "music/empty.mp3",
+    transition: ["비어있는 그대로", "여기까지 둡니다"],
+    completeEmotion: "비어있던 오늘 그대로"
   },
   쓸쓸함: {
     emoji: "🍂",
-    musicUrl: "music/lonely.mp3",
+    transition: ["이 조용함 속에서", "여기까지 둡니다"],
+    completeEmotion: "쓸쓸했던 오늘 그대로"
   },
   복잡함: {
     emoji: "🌊",
-    musicUrl: "music/complex.mp3",
+    transition: ["정리하지 않은 채로", "여기까지 둡니다"],
+    completeEmotion: "복잡했던 오늘 그대로"
   },
   괜찮음: {
     emoji: "🌙",
-    musicUrl: "music/okay.mp3",
+    transition: ["이 상태 그대로", "여기까지 둡니다"],
+    completeEmotion: "괜찮았던 오늘 그대로"
   }
 };
 
@@ -297,6 +303,46 @@ const FLOW_DURATION = {
   body.emotion-괜찮음  { background: radial-gradient(ellipse at top, #141828 0%, #0a0c14 60%); }
 
   /* ══════════════════════════════════════════
+     TRANSITION SCREEN
+  ══════════════════════════════════════════ */
+  #s-transition {
+    justify-content: center;
+    align-items: center;
+    padding: 0 32px;
+    min-height: 100vh;
+    text-align: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .transition-text {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    letter-spacing: .04em;
+    line-height: 1.7;
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(3px);
+    transition: opacity 1s cubic-bezier(.22,1,.36,1),
+                transform 1s cubic-bezier(.22,1,.36,1),
+                filter 1s cubic-bezier(.22,1,.36,1);
+  }
+
+  .transition-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+
+  .transition-line2 {
+    font-size: 15px;
+    color: var(--text-muted);
+    transition-delay: .5s;
+  }
+
+  /* ══════════════════════════════════════════
      FLOW SCREEN
   ══════════════════════════════════════════ */
   #s-flow {
@@ -446,10 +492,22 @@ const FLOW_DURATION = {
     font-weight: 400;
     color: var(--text-primary);
     letter-spacing: .04em;
-    margin-bottom: 28px;
+    margin-bottom: 12px;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 1.1s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1);
+  }
+
+  .complete-emotion {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--text-muted);
+    letter-spacing: .06em;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 1s cubic-bezier(.22,1,.36,1) .4s, transform 1s cubic-bezier(.22,1,.36,1) .4s;
   }
 
   .complete-sub {
@@ -461,7 +519,7 @@ const FLOW_DURATION = {
     margin-bottom: 0;
     opacity: 0;
     transform: translateY(8px);
-    transition: opacity 1s cubic-bezier(.22,1,.36,1) .7s, transform 1s cubic-bezier(.22,1,.36,1) .7s;
+    transition: opacity 1s cubic-bezier(.22,1,.36,1) .8s, transform 1s cubic-bezier(.22,1,.36,1) .8s;
   }
 
   .complete-close {
@@ -506,6 +564,7 @@ const FLOW_DURATION = {
 
   /* COMPLETE 진입 시 visible 클래스로 애니메이션 트리거 */
   #s-complete.visible .complete-title,
+  #s-complete.visible .complete-emotion,
   #s-complete.visible .complete-sub,
   #s-complete.visible .complete-close {
     opacity: 1;
@@ -596,12 +655,18 @@ const FLOW_DURATION = {
 
     <div class="emotion-grid" id="emotion-grid"></div>
 
-    <button class="btn btn-primary" id="confirm-btn" onclick="startFlow()" disabled>
-      이 감정으로 시작하기
+    <button class="btn btn-primary" id="confirm-btn" onclick="startTransition()" disabled>
+      여기서 멈춥니다
     </button>
   </div>
 
-  <!-- ══════════════ SCREEN 2: FLOW ══════════════ -->
+  <!-- ══════════════ SCREEN 2: TRANSITION ══════════════ -->
+  <div class="screen" id="s-transition">
+    <div class="transition-text" id="transition-line1"></div>
+    <div class="transition-text transition-line2" id="transition-line2"></div>
+  </div>
+
+  <!-- ══════════════ SCREEN 3: FLOW ══════════════ -->
   <div class="screen" id="s-flow">
     <!-- 탈출 버튼 -->
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
@@ -627,8 +692,9 @@ const FLOW_DURATION = {
   <!-- ══════════════ SCREEN 3: COMPLETE ══════════════ -->
   <div class="screen" id="s-complete">
     <div class="complete-title">오늘은 여기까지입니다</div>
+    <div class="complete-emotion" id="complete-emotion"></div>
     <div class="complete-sub">충분합니다</div>
-    <div class="complete-close">내일의 나는 내일의 내가 봅니다</div>
+    <div class="complete-close">내일은 내일의 내가 봅니다</div>
 
     <!-- 글귀 (페이드인) -->
     <div class="complete-extras" id="complete-extras">
@@ -702,10 +768,35 @@ const FLOW_DURATION = {
   let tapIgnoreTimer = null;
 
   /* ──────────────────────────────────────────
+     TRANSITION 엔진
+  ────────────────────────────────────────── */
+  function startTransition() {
+    if (!selected) return;
+    showScreen('transition');
+
+    const data = CONTENT[selected];
+    const line1 = document.getElementById('transition-line1');
+    const line2 = document.getElementById('transition-line2');
+
+    line1.textContent = data.transition[0];
+    line2.textContent = data.transition[1];
+    line1.classList.remove('visible');
+    line2.classList.remove('visible');
+
+    // 1줄 페이드인
+    setTimeout(() => {
+      line1.classList.add('visible');
+      // 2줄 페이드인 (0.5s 딜레이는 CSS에 있음)
+      line2.classList.add('visible');
+      // 1.2초 후 FLOW로 자동 전환
+      setTimeout(() => startFlow(), 2800);
+    }, 300);
+  }
+
+  /* ──────────────────────────────────────────
      FLOW 엔진
   ────────────────────────────────────────── */
   function startFlow() {
-    if (!selected) return;
     showScreen('flow');
     runFlowStep(1);
   }
@@ -794,6 +885,8 @@ const FLOW_DURATION = {
     tapAllowed = false;
     currentStep = 0;
     document.body.classList.remove('flow-step-1','flow-step-2','flow-step-3','flow-step-4');
+    document.getElementById('transition-line1').classList.remove('visible');
+    document.getElementById('transition-line2').classList.remove('visible');
     // 배경색은 선택된 감정 색으로 복원 (선택 상태 유지)
     // selected가 있으면 해당 감정 배경 유지, 없으면 초기화
     if (!selected) {
@@ -816,6 +909,10 @@ const FLOW_DURATION = {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => completeScreen.classList.add('visible'));
     });
+
+    // 감정 연결 문구
+    document.getElementById('complete-emotion').textContent =
+      CONTENT[selected].completeEmotion;
 
     // 글귀 세팅 (quotes.js)
     const quote = (typeof getTodayQuote === 'function')
