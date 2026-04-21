@@ -590,6 +590,22 @@ const FLOW_DURATION = {
   }
   #particle-canvas.active { opacity: 1; }
 
+  /* ── 잔상 이모지 ── */
+  .echo-emoji {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 28px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity .8s ease;
+  }
+  .echo-emoji.visible {
+    opacity: 0.15;
+  }
+
   @media(max-width:440px){
     .app { max-width:100%; }
   }
@@ -597,6 +613,9 @@ const FLOW_DURATION = {
 
 <!-- PARTICLE CANVAS -->
 <canvas id="particle-canvas"></canvas>
+
+<!-- 잔상 이모지 -->
+<div class="echo-emoji" id="echo-emoji"></div>
 
 <div class="app">
 
@@ -924,6 +943,7 @@ const FLOW_DURATION = {
   }
 
   function restart() {
+    const lastEmoji = selected ? CONTENT[selected].emoji : null;
     stopCompleteMusic();
     clearTimeout(flowTimer);
     // COMPLETE 애니메이션 초기화
@@ -940,6 +960,24 @@ const FLOW_DURATION = {
     document.body.style.background = '';
     showScreen('emotion');
     window.scrollTo(0,0);
+
+    // 잔상 이모지 — 0.5초 후 등장, 2초 유지, 페이드아웃
+    if (lastEmoji) {
+      const echoEl = document.getElementById('echo-emoji');
+      echoEl.textContent = lastEmoji;
+      echoEl.classList.remove('visible');
+      setTimeout(() => {
+        echoEl.classList.add('visible');
+        setTimeout(() => {
+          echoEl.style.transition = 'opacity 1.5s ease';
+          echoEl.classList.remove('visible');
+          setTimeout(() => {
+            echoEl.style.transition = 'opacity .8s ease';
+            echoEl.textContent = '';
+          }, 1500);
+        }, 2000);
+      }, 500);
+    }
   }
 
   /* ──────────────────────────────────────────
