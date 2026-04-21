@@ -43,32 +43,26 @@ const CONTENT = {
   피곤함: {
     emoji: "😮‍💨",
     musicUrl: "music/tired.mp3",
-    musicTitle: "지친 밤을 위한 음악",
   },
   불안함: {
     emoji: "🌀",
     musicUrl: "music/anxious.mp3",
-    musicTitle: "불안한 밤을 위한 음악",
   },
   공허함: {
     emoji: "🌑",
     musicUrl: "music/empty.mp3",
-    musicTitle: "공허한 밤을 위한 음악",
   },
   쓸쓸함: {
     emoji: "🍂",
     musicUrl: "music/lonely.mp3",
-    musicTitle: "쓸쓸한 밤을 위한 음악",
   },
   복잡함: {
     emoji: "🌊",
     musicUrl: "music/complex.mp3",
-    musicTitle: "복잡한 밤을 위한 음악",
   },
   괜찮음: {
     emoji: "🌙",
     musicUrl: "music/okay.mp3",
-    musicTitle: "괜찮은 밤을 위한 음악",
   }
 };
 
@@ -78,17 +72,17 @@ const CONTENT = {
 
 // 1단계: 감정별
 const FLOW_STEP1 = {
-  피곤함: "눈을 잠시 감습니다",
-  불안함: "숨을 한번 내쉽니다",
-  공허함: "아무것도 하지 않아도 됩니다",
-  쓸쓸함: "지금 이 공간에 그대로 있습니다",
-  복잡함: "생각을 잠시 내려놓습니다",
-  괜찮음: "지금 상태를 그대로 둡니다"
+  피곤함: "힘을 풉니다",
+  불안함: "숨을 내쉽니다",
+  공허함: "비워둡니다",
+  쓸쓸함: "여기 있습니다",
+  복잡함: "내려놓습니다",
+  괜찮음: "그대로입니다"
 };
 
 // 2~4단계: 공통
 const FLOW_COMMON = {
-  2: "천천히 내려갑니다",
+  2: "그대로 둡니다",
   3: "괜찮습니다",
   4: "오늘은 여기까지입니다"
 };
@@ -108,7 +102,6 @@ const FLOW_DURATION = {
   :root {
     --bg: #0c0c10;
     --surface: #13131b;
-    --surface2: #1b1b26;
     --border: rgba(255,255,255,0.055);
     --border-hover: rgba(255,255,255,0.11);
     --text-primary: #eae6de;
@@ -271,15 +264,6 @@ const FLOW_DURATION = {
   }
   .btn-primary:disabled { opacity:.28; cursor:not-allowed; }
 
-  .btn-ghost {
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--text-secondary);
-  }
-  .btn-ghost:hover {
-    border-color:var(--border-hover); color:var(--text-primary);
-  }
-
   /* ── 감정별 배경 ── */
   body {
     transition: background 1.2s cubic-bezier(.4,0,.2,1);
@@ -299,6 +283,7 @@ const FLOW_DURATION = {
     align-items: center;
     padding: 0 32px;
     min-height: 100vh;
+    position: relative;
   }
 
   /* 진행 도트 */
@@ -373,7 +358,6 @@ const FLOW_DURATION = {
     letter-spacing: .08em;
     color: var(--accent);
     background: var(--accent-dim);
-    transition: all .2s ease;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity .7s ease, transform .7s ease, background .2s ease, border-color .2s ease;
@@ -388,73 +372,25 @@ const FLOW_DURATION = {
     background: rgba(196,168,130,0.22);
   }
 
-  /* 음악 플레이어 (FLOW 2단계) */
-  .flow-music {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    margin-top: 40px;
-    opacity: 0;
-    transition: opacity .9s ease;
-  }
-
-  .flow-music.visible {
-    opacity: 0.8;
-  }
-
-  .flow-music-btn {
-    width: 44px; height: 44px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-border);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all .18s ease;
-  }
-  .flow-music-btn:hover { background: rgba(196,168,130,0.18); transform: scale(1.04); }
-  .flow-music-btn.playing { background: rgba(196,168,130,0.22); border-color: var(--accent-border); }
-
-  .play-icon-f {
-    width:0; height:0;
-    border-style:solid;
-    border-width:6px 0 6px 10px;
-    border-color:transparent transparent transparent rgba(196,168,130,0.7);
-    margin-left:3px;
-  }
-  .flow-music-btn.playing .play-icon-f {
-    border-color: transparent transparent transparent rgba(196,168,130,0.7);
-  }
-  .pause-icon-f { display: none; gap: 3px; }
-  .pause-bar-f {
-    width: 2px; height: 12px;
-    background: rgba(196,168,130,0.7);
-    border-radius: 2px;
-  }
-  .flow-music-btn.playing .play-icon-f  { display: none; }
-  .flow-music-btn.playing .pause-icon-f { display: flex; }
-
-  .flow-music-progress {
-    width: 140px; height: 1px;
-    background: rgba(255,255,255,0.07);
-    border-radius: 1px;
-    position: relative;
-    cursor: pointer;
-  }
-  .flow-music-bar {
-    height: 100%; width: 0%;
-    background: rgba(196,168,130,0.45);
-    border-radius: 1px;
-    pointer-events: none;
-    transition: width .1s linear;
-  }
-
-  .flow-music-time {
-    font-size: 10px;
+  /* FLOW 탈출 버튼 */
+  .flow-exit-btn {
+    position: absolute;
+    top: 24px;
+    left: 22px;
+    background: transparent;
+    border: none;
     color: var(--text-muted);
-    opacity: 0.6;
-    letter-spacing: .06em;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    opacity: 0.5;
+    transition: opacity .2s ease;
+    z-index: 10;
   }
+  .flow-exit-btn:hover { opacity: 1; }
+
+
 
   /* ══════════════════════════════════════════
      COMPLETE SCREEN
@@ -475,7 +411,8 @@ const FLOW_DURATION = {
     letter-spacing: .04em;
     margin-bottom: 14px;
     opacity: 0;
-    animation: cFadeUp .9s cubic-bezier(.22,1,.36,1) .2s forwards;
+    transform: translateY(10px);
+    transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1);
   }
 
   .complete-sub {
@@ -486,7 +423,8 @@ const FLOW_DURATION = {
     letter-spacing: .06em;
     margin-bottom: 56px;
     opacity: 0;
-    animation: cFadeUp .9s cubic-bezier(.22,1,.36,1) .6s forwards;
+    transform: translateY(10px);
+    transition: opacity .9s cubic-bezier(.22,1,.36,1) .4s, transform .9s cubic-bezier(.22,1,.36,1) .4s;
   }
 
   .complete-restart {
@@ -500,9 +438,9 @@ const FLOW_DURATION = {
     letter-spacing: .1em;
     color: var(--text-muted);
     background: transparent;
-    transition: all .2s ease;
     opacity: 0;
-    animation: cFadeUp .9s cubic-bezier(.22,1,.36,1) 1s forwards;
+    transform: translateY(10px);
+    transition: opacity .9s cubic-bezier(.22,1,.36,1) .8s, transform .9s cubic-bezier(.22,1,.36,1) .8s, border-color .2s ease, color .2s ease;
   }
 
   .complete-restart:hover {
@@ -510,9 +448,120 @@ const FLOW_DURATION = {
     color: var(--text-secondary);
   }
 
-  @keyframes cFadeUp {
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0); }
+  /* COMPLETE 진입 시 visible 클래스로 애니메이션 트리거 */
+  #s-complete.visible .complete-title,
+  #s-complete.visible .complete-sub,
+  #s-complete.visible .complete-restart {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* COMPLETE 하단 — 글귀 + 음악 */
+  .complete-extras {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    width: 100%;
+    margin-top: 48px;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .complete-extras.visible {
+    opacity: 1;
+  }
+
+  .complete-quote {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 2;
+    text-align: center;
+    letter-spacing: .02em;
+    padding: 0 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    width: 100%;
+  }
+
+  /* 음악 토글 버튼 */
+  .complete-music-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: border-color .2s ease;
+  }
+  .complete-music-btn:hover {
+    border-color: var(--border-hover);
+  }
+  .complete-music-btn.playing {
+    border-color: var(--accent-border);
+  }
+
+  .complete-music-icon {
+    width: 28px; height: 28px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .2s ease;
+  }
+  .complete-music-btn.playing .complete-music-icon {
+    background: rgba(196,168,130,0.2);
+  }
+
+  .cplay-icon {
+    width:0; height:0;
+    border-style:solid;
+    border-width:4px 0 4px 7px;
+    border-color:transparent transparent transparent rgba(196,168,130,0.8);
+    margin-left:2px;
+  }
+  .cpause-icon { display:none; gap:2px; }
+  .cpause-bar {
+    width:2px; height:8px;
+    background: rgba(196,168,130,0.8);
+    border-radius:1px;
+  }
+  .complete-music-btn.playing .cplay-icon  { display:none; }
+  .complete-music-btn.playing .cpause-icon { display:flex; }
+
+  .complete-music-label {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text-muted);
+    letter-spacing: .08em;
+  }
+  .complete-music-btn.playing .complete-music-label {
+    color: var(--accent);
+    opacity: .7;
+  }
+
+  /* progress */
+  .complete-music-progress {
+    width: 100%;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 1px;
+    position: relative;
+    cursor: pointer;
+    display: none;
+  }
+  .complete-music-progress.show { display: block; }
+  .complete-music-bar {
+    height: 100%; width: 0%;
+    background: rgba(196,168,130,0.4);
+    border-radius: 1px;
+    pointer-events: none;
+    transition: width .1s linear;
   }
 
   /* 파티클 캔버스 */
@@ -558,6 +607,9 @@ const FLOW_DURATION = {
 
   <!-- ══════════════ SCREEN 2: FLOW ══════════════ -->
   <div class="screen" id="s-flow">
+    <!-- 탈출 버튼 -->
+    <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
+
     <!-- 진행 도트 -->
     <div class="flow-dots" id="flow-dots">
       <div class="flow-dot" data-step="1"></div>
@@ -568,21 +620,6 @@ const FLOW_DURATION = {
 
     <!-- 메인 텍스트 -->
     <div class="flow-text" id="flow-text"></div>
-
-    <!-- 2단계 음악 플레이어 -->
-    <div class="flow-music" id="flow-music">
-      <div class="flow-music-btn" id="flow-music-btn" onclick="toggleFlowMusic()">
-        <div class="play-icon-f"></div>
-        <div class="pause-icon-f">
-          <div class="pause-bar-f"></div>
-          <div class="pause-bar-f"></div>
-        </div>
-      </div>
-      <div class="flow-music-progress" id="flow-progress-wrap" onclick="seekFlowMusic(event)">
-        <div class="flow-music-bar" id="flow-progress-bar"></div>
-      </div>
-      <div class="flow-music-time" id="flow-music-time">0:00 / 0:00</div>
-    </div>
 
     <!-- 4단계 종료 버튼 -->
     <button class="flow-end-btn" id="flow-end-btn" onclick="goComplete()">
@@ -595,10 +632,32 @@ const FLOW_DURATION = {
     <div class="complete-title">오늘은 여기까지입니다</div>
     <div class="complete-sub">충분합니다</div>
     <button class="complete-restart" onclick="restart()">다시 시작</button>
+
+    <!-- 글귀 + 음악 (페이드인) -->
+    <div class="complete-extras" id="complete-extras">
+      <div class="complete-quote" id="complete-quote"></div>
+
+      <button class="complete-music-btn" id="complete-music-btn" onclick="toggleCompleteMusic()" style="display:none">
+        <div class="complete-music-icon">
+          <div class="cplay-icon"></div>
+          <div class="cpause-icon">
+            <div class="cpause-bar"></div>
+            <div class="cpause-bar"></div>
+          </div>
+        </div>
+        <span class="complete-music-label" id="complete-music-label">음악 듣기</span>
+      </button>
+
+      <div class="complete-music-progress" id="complete-music-progress" onclick="seekCompleteMusic(event)">
+        <div class="complete-music-bar" id="complete-music-bar"></div>
+      </div>
+    </div>
   </div>
 
   <!-- hidden audio -->
   <audio id="audio-player" preload="none"></audio>
+
+
 </div>
 
 <script>
@@ -655,89 +714,18 @@ const FLOW_DURATION = {
     document.body.classList.add('emotion-' + name);
   }
 
-  /* ──────────────────────────────────────────
-     오디오
-  ────────────────────────────────────────── */
-  const audio = document.getElementById('audio-player');
-  let isPlaying = false;
-  let flowStep = 0;
   let flowTimer = null;
-
-  function fmt(s) {
-    if (!s || isNaN(s)) return '0:00';
-    const m = Math.floor(s / 60), ss = Math.floor(s % 60);
-    return `${m}:${String(ss).padStart(2,'0')}`;
-  }
-
-  audio.addEventListener('timeupdate', () => {
-    if (!audio.duration) return;
-    const pct = (audio.currentTime / audio.duration) * 100;
-    document.getElementById('flow-progress-bar').style.width = pct + '%';
-    document.getElementById('flow-music-time').textContent =
-      `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
-  });
-
-  audio.addEventListener('ended', () => {
-    isPlaying = false;
-    document.getElementById('flow-music-btn').classList.remove('playing');
-    stopParticles();
-  });
-
-  function toggleFlowMusic() {
-    const btn = document.getElementById('flow-music-btn');
-    if (isPlaying) {
-      audio.pause();
-      isPlaying = false;
-      btn.classList.remove('playing');
-      stopParticles();
-    } else {
-      audio.play().then(() => {
-        isPlaying = true;
-        btn.classList.add('playing');
-        startParticles(selected);
-      }).catch(() => {});
-    }
-  }
-
-  function seekFlowMusic(e) {
-    if (!audio.duration) return;
-    const wrap = document.getElementById('flow-progress-wrap');
-    const rect = wrap.getBoundingClientRect();
-    const pct = (e.clientX - rect.left) / rect.width;
-    audio.currentTime = pct * audio.duration;
-  }
-
-  function stopMusic() {
-    audio.pause();
-    audio.currentTime = 0;
-    isPlaying = false;
-    const btn = document.getElementById('flow-music-btn');
-    if (btn) btn.classList.remove('playing');
-    document.getElementById('flow-progress-bar').style.width = '0%';
-    stopParticles();
-  }
 
   /* ──────────────────────────────────────────
      FLOW 엔진
   ────────────────────────────────────────── */
   function startFlow() {
     if (!selected) return;
-    stopMusic();
-
-    // 음악 세팅
-    const musicUrl = (CONTENT[selected].musicUrl || '').trim();
-    if (musicUrl) {
-      audio.src = musicUrl;
-      document.getElementById('flow-progress-bar').style.width = '0%';
-      document.getElementById('flow-music-time').textContent = '0:00 / 0:00';
-    }
-
     showScreen('flow');
     runFlowStep(1);
   }
 
   function runFlowStep(step) {
-    flowStep = step;
     clearTimeout(flowTimer);
 
     // 도트 업데이트
@@ -761,18 +749,6 @@ const FLOW_DURATION = {
 
     if (step === 3) textEl.classList.add('step-3');
     if (step === 4) textEl.classList.add('step-4');
-
-    // 음악 플레이어 표시 (2단계)
-    const musicEl = document.getElementById('flow-music');
-    const musicUrl = (CONTENT[selected].musicUrl || '').trim();
-
-    if (step === 2 && musicUrl) {
-      musicEl.style.display = 'flex';
-      setTimeout(() => musicEl.classList.add('visible'), 100);
-    } else {
-      musicEl.classList.remove('visible');
-      if (step !== 2) setTimeout(() => { musicEl.style.display = 'none'; }, 600);
-    }
 
     // 종료 버튼 (4단계)
     const endBtn = document.getElementById('flow-end-btn');
@@ -799,19 +775,127 @@ const FLOW_DURATION = {
     }
   }
 
+  /* ──────────────────────────────────────────
+     오디오 (COMPLETE 전용)
+  ────────────────────────────────────────── */
+  const audio = document.getElementById('audio-player');
+  let isPlaying = false;
+
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    document.getElementById('complete-music-bar').style.width = pct + '%';
+  });
+
+  audio.addEventListener('ended', () => {
+    isPlaying = false;
+    document.getElementById('complete-music-btn').classList.remove('playing');
+    document.getElementById('complete-music-label').textContent = '음악 듣기';
+    stopParticles();
+  });
+
+  function toggleCompleteMusic() {
+    const btn = document.getElementById('complete-music-btn');
+    const label = document.getElementById('complete-music-label');
+    const progress = document.getElementById('complete-music-progress');
+    if (isPlaying) {
+      audio.pause();
+      isPlaying = false;
+      btn.classList.remove('playing');
+      label.textContent = '음악 듣기';
+      stopParticles();
+    } else {
+      audio.play().then(() => {
+        isPlaying = true;
+        btn.classList.add('playing');
+        label.textContent = '재생 중';
+        progress.classList.add('show');
+        startParticles(selected);
+      }).catch(() => {});
+    }
+  }
+
+  function seekCompleteMusic(e) {
+    if (!audio.duration) return;
+    const wrap = document.getElementById('complete-music-progress');
+    const rect = wrap.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+  }
+
+  function stopCompleteMusic() {
+    audio.pause();
+    audio.currentTime = 0;
+    isPlaying = false;
+    const btn = document.getElementById('complete-music-btn');
+    if (btn) btn.classList.remove('playing');
+    const bar = document.getElementById('complete-music-bar');
+    if (bar) bar.style.width = '0%';
+    const progress = document.getElementById('complete-music-progress');
+    if (progress) progress.classList.remove('show');
+    stopParticles();
+  }
+
+  function exitFlow() {
+    clearTimeout(flowTimer);
+    // 배경색은 선택된 감정 색으로 복원 (선택 상태 유지)
+    // selected가 있으면 해당 감정 배경 유지, 없으면 초기화
+    if (!selected) {
+      document.body.classList.remove(...EMOTION_CLASSES);
+      document.body.style.background = '';
+    }
+    showScreen('emotion');
+  }
+
   function goComplete() {
-    stopMusic();
     clearTimeout(flowTimer);
     showScreen('complete');
+
+    // COMPLETE 애니메이션 트리거 (재진입 대응)
+    const completeScreen = document.getElementById('s-complete');
+    completeScreen.classList.remove('visible');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => completeScreen.classList.add('visible'));
+    });
+
+    // 글귀 세팅 (quotes.js)
+    const quote = (typeof getTodayQuote === 'function')
+      ? getTodayQuote(selected)
+      : '';
+    const quoteEl = document.getElementById('complete-quote');
+    quoteEl.innerHTML = quote.replace(/\n/g, '<br>');
+
+    // 음악 버튼 세팅
+    const musicUrl = (CONTENT[selected].musicUrl || '').trim();
+    const musicBtn = document.getElementById('complete-music-btn');
+    if (musicUrl) {
+      audio.src = musicUrl;
+      document.getElementById('complete-music-bar').style.width = '0%';
+      document.getElementById('complete-music-label').textContent = '음악 듣기';
+      musicBtn.style.display = 'flex';
+    } else {
+      musicBtn.style.display = 'none';
+    }
+
+    // extras 페이드인 (1.8초 딜레이 — 종료 메시지 읽고 나서)
+    const extras = document.getElementById('complete-extras');
+    extras.style.display = 'flex';
+    setTimeout(() => extras.classList.add('visible'), 1800);
   }
 
   function restart() {
-    stopMusic();
+    stopCompleteMusic();
     clearTimeout(flowTimer);
+    // COMPLETE 애니메이션 초기화
+    document.getElementById('s-complete').classList.remove('visible');
+    // extras 초기화
+    const extras = document.getElementById('complete-extras');
+    extras.classList.remove('visible');
+    extras.style.display = 'none';
     selected = null;
     document.querySelectorAll('.e-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('confirm-btn').disabled = true;
     document.body.classList.remove(...EMOTION_CLASSES);
+    document.body.style.background = '';
     showScreen('emotion');
     window.scrollTo(0,0);
   }
@@ -869,6 +953,7 @@ const FLOW_DURATION = {
   }
 
   function startParticles(emotion) {
+    cancelAnimationFrame(animFrame);
     currentEmotion = emotion;
     const cfg = PARTICLE_CONFIG[emotion];
     if (!cfg) return;
@@ -915,9 +1000,10 @@ const FLOW_DURATION = {
     animFrame = requestAnimationFrame(animate);
   }
 
-  // 터치 반응
+  // 터치 반응 — COMPLETE 화면에서 음악 재생 중일 때만 동작
   document.addEventListener('touchstart', (e) => {
-    if (!isPlaying) return;
+    const completeActive = document.getElementById('s-complete').classList.contains('active');
+    if (!completeActive || !isPlaying) return;
     const touch = e.touches[0];
     for (let i = 0; i < 3; i++) {
       particles.push({
@@ -938,6 +1024,17 @@ const FLOW_DURATION = {
      Init
   ────────────────────────────────────────── */
   renderGrid();
+
+  // 페이지 숨김 시 오디오 일시정지 (모바일 백그라운드 전환 대응)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && isPlaying) {
+      audio.pause();
+      isPlaying = false;
+      document.getElementById('complete-music-btn').classList.remove('playing');
+      document.getElementById('complete-music-label').textContent = '음악 듣기';
+      stopParticles();
+    }
+  });
 </script>
 </body>
 </html>
