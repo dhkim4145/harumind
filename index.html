@@ -512,16 +512,15 @@ const FLOW_DURATION = {
     transform: translateY(0);
   }
 
-  /* COMPLETE 하단 — 글귀 + 음악 */
+  /* COMPLETE 하단 — 글귀 */
   .complete-extras {
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
     width: 100%;
     margin-top: 48px;
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity 1.4s ease;
   }
   .complete-extras.visible {
     opacity: 1;
@@ -529,95 +528,14 @@ const FLOW_DURATION = {
 
   .complete-quote {
     font-family: 'Noto Serif KR', serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 300;
     color: var(--text-muted);
-    line-height: 2;
+    line-height: 2.2;
     text-align: center;
-    letter-spacing: .02em;
-    padding: 0 8px;
-    border-top: 1px solid var(--border);
-    padding-top: 28px;
+    letter-spacing: .03em;
+    padding: 28px 8px 0;
     width: 100%;
-  }
-
-  /* 음악 토글 버튼 */
-  .complete-music-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 10px 20px;
-    cursor: pointer;
-    transition: border-color .2s ease;
-  }
-  .complete-music-btn:hover {
-    border-color: var(--border-hover);
-  }
-  .complete-music-btn.playing {
-    border-color: var(--accent-border);
-  }
-
-  .complete-music-icon {
-    width: 28px; height: 28px;
-    background: var(--accent-dim);
-    border: 1px solid var(--accent-border);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: background .2s ease;
-  }
-  .complete-music-btn.playing .complete-music-icon {
-    background: rgba(196,168,130,0.2);
-  }
-
-  .cplay-icon {
-    width:0; height:0;
-    border-style:solid;
-    border-width:4px 0 4px 7px;
-    border-color:transparent transparent transparent rgba(196,168,130,0.8);
-    margin-left:2px;
-  }
-  .cpause-icon { display:none; gap:2px; }
-  .cpause-bar {
-    width:2px; height:8px;
-    background: rgba(196,168,130,0.8);
-    border-radius:1px;
-  }
-  .complete-music-btn.playing .cplay-icon  { display:none; }
-  .complete-music-btn.playing .cpause-icon { display:flex; }
-
-  .complete-music-label {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 11px;
-    font-weight: 300;
-    color: var(--text-muted);
-    letter-spacing: .08em;
-  }
-  .complete-music-btn.playing .complete-music-label {
-    color: var(--accent);
-    opacity: .7;
-  }
-
-  /* progress */
-  .complete-music-progress {
-    width: 100%;
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 1px;
-    position: relative;
-    cursor: pointer;
-    display: none;
-  }
-  .complete-music-progress.show { display: block; }
-  .complete-music-bar {
-    height: 100%; width: 0%;
-    background: rgba(196,168,130,0.4);
-    border-radius: 1px;
-    pointer-events: none;
-    transition: width .1s linear;
   }
 
   /* 파티클 캔버스 */
@@ -712,32 +630,14 @@ const FLOW_DURATION = {
     <div class="complete-sub">충분합니다</div>
     <div class="complete-close">내일의 나는 내일의 내가 봅니다</div>
 
-    <!-- 글귀 + 음악 (페이드인) -->
+    <!-- 글귀 (페이드인) -->
     <div class="complete-extras" id="complete-extras">
       <div class="complete-quote" id="complete-quote"></div>
-
-      <button class="complete-music-btn" id="complete-music-btn" onclick="toggleCompleteMusic()" style="display:none">
-        <div class="complete-music-icon">
-          <div class="cplay-icon"></div>
-          <div class="cpause-icon">
-            <div class="cpause-bar"></div>
-            <div class="cpause-bar"></div>
-          </div>
-        </div>
-        <span class="complete-music-label" id="complete-music-label">음악 듣기</span>
-      </button>
-
-      <div class="complete-music-progress" id="complete-music-progress" onclick="seekCompleteMusic(event)">
-        <div class="complete-music-bar" id="complete-music-bar"></div>
-      </div>
     </div>
 
-    <!-- 다시 시작 (extras 이후 등장) -->
+    <!-- 다시 시작 -->
     <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
   </div>
-
-  <!-- hidden audio -->
-  <audio id="audio-player" preload="none"></audio>
 
 
 </div>
@@ -888,63 +788,6 @@ const FLOW_DURATION = {
   /* ──────────────────────────────────────────
      오디오 (COMPLETE 전용)
   ────────────────────────────────────────── */
-  const audio = document.getElementById('audio-player');
-  let isPlaying = false;
-
-  audio.addEventListener('timeupdate', () => {
-    if (!audio.duration) return;
-    const pct = (audio.currentTime / audio.duration) * 100;
-    document.getElementById('complete-music-bar').style.width = pct + '%';
-  });
-
-  audio.addEventListener('ended', () => {
-    isPlaying = false;
-    document.getElementById('complete-music-btn').classList.remove('playing');
-    document.getElementById('complete-music-label').textContent = '음악 듣기';
-    stopParticles();
-  });
-
-  function toggleCompleteMusic() {
-    const btn = document.getElementById('complete-music-btn');
-    const label = document.getElementById('complete-music-label');
-    const progress = document.getElementById('complete-music-progress');
-    if (isPlaying) {
-      audio.pause();
-      isPlaying = false;
-      btn.classList.remove('playing');
-      label.textContent = '음악 듣기';
-      stopParticles();
-    } else {
-      audio.play().then(() => {
-        isPlaying = true;
-        btn.classList.add('playing');
-        label.textContent = '재생 중';
-        progress.classList.add('show');
-        startParticles(selected);
-      }).catch(() => {});
-    }
-  }
-
-  function seekCompleteMusic(e) {
-    if (!audio.duration) return;
-    const wrap = document.getElementById('complete-music-progress');
-    const rect = wrap.getBoundingClientRect();
-    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
-  }
-
-  function stopCompleteMusic() {
-    audio.pause();
-    audio.currentTime = 0;
-    isPlaying = false;
-    const btn = document.getElementById('complete-music-btn');
-    if (btn) btn.classList.remove('playing');
-    const bar = document.getElementById('complete-music-bar');
-    if (bar) bar.style.width = '0%';
-    const progress = document.getElementById('complete-music-progress');
-    if (progress) progress.classList.remove('show');
-    stopParticles();
-  }
-
   function exitFlow() {
     clearTimeout(flowTimer);
     clearTimeout(tapIgnoreTimer);
@@ -981,33 +824,20 @@ const FLOW_DURATION = {
     const quoteEl = document.getElementById('complete-quote');
     quoteEl.innerHTML = quote.replace(/\n/g, '<br>');
 
-    // 음악 버튼 세팅
-    const musicUrl = (CONTENT[selected].musicUrl || '').trim();
-    const musicBtn = document.getElementById('complete-music-btn');
-    if (musicUrl) {
-      audio.src = musicUrl;
-      document.getElementById('complete-music-bar').style.width = '0%';
-      document.getElementById('complete-music-label').textContent = '음악 듣기';
-      musicBtn.style.display = 'flex';
-    } else {
-      musicBtn.style.display = 'none';
-    }
-
-    // extras 페이드인 (1.8초 딜레이 — 종료 메시지 읽고 나서)
+    // 글귀 페이드인 (1.8초 딜레이)
     const extras = document.getElementById('complete-extras');
     const restartBtn = document.getElementById('complete-restart');
     restartBtn.classList.remove('visible');
     extras.style.display = 'flex';
     setTimeout(() => {
       extras.classList.add('visible');
-      // extras 페이드인 완료(1.2s) 후 1초 뒤 다시시작 등장
+      // 글귀 페이드인 완료 후 1초 뒤 다시 시작 등장
       setTimeout(() => restartBtn.classList.add('visible'), 1000);
     }, 1800);
   }
 
   function restart() {
     const lastEmoji = selected ? CONTENT[selected].emoji : null;
-    stopCompleteMusic();
     clearTimeout(flowTimer);
     // COMPLETE 애니메이션 초기화
     document.getElementById('s-complete').classList.remove('visible');
@@ -1143,25 +973,7 @@ const FLOW_DURATION = {
     animFrame = requestAnimationFrame(animate);
   }
 
-  // 터치 반응 — COMPLETE 화면에서 음악 재생 중일 때만 동작
-  document.addEventListener('touchstart', (e) => {
-    const completeActive = document.getElementById('s-complete').classList.contains('active');
-    if (!completeActive || !isPlaying) return;
-    const touch = e.touches[0];
-    for (let i = 0; i < 3; i++) {
-      particles.push({
-        x: touch.clientX + (Math.random() - 0.5) * 30,
-        y: touch.clientY + (Math.random() - 0.5) * 30,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8 - 0.3,
-        size: Math.random() * 2.5 + 1,
-        opacity: 0.55, drift: 0.03,
-        shake: false, glow: true, fall: false,
-        color: 'rgba(196,168,130,',
-        phase: Math.random() * Math.PI * 2
-      });
-    }
-  });
+  // 터치 반응 — 현재 미사용 (음악 제거로 비활성화)
 
   // FLOW 전체 화면 탭 — 선택적 스킵
   document.getElementById('s-flow').addEventListener('click', (e) => {
@@ -1179,15 +991,9 @@ const FLOW_DURATION = {
   ────────────────────────────────────────── */
   renderGrid();
 
-  // 페이지 숨김 시 오디오 일시정지 (모바일 백그라운드 전환 대응)
+  // 페이지 숨김 시 처리 (모바일 백그라운드 전환 대응)
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && isPlaying) {
-      audio.pause();
-      isPlaying = false;
-      document.getElementById('complete-music-btn').classList.remove('playing');
-      document.getElementById('complete-music-label').textContent = '음악 듣기';
-      stopParticles();
-    }
+    // 추후 필요 시 확장
   });
 </script>
 </body>
