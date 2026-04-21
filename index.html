@@ -94,12 +94,12 @@ const FLOW_COMMON = {
 };
 
 // 단계별 자동 전환 시간 (ms)
-// 3단계: 4000ms 표시 후 → 2500ms 정지(텍스트 유지, 아무 변화 없음) → 4단계
+// 3단계: 4000ms 표시 후 → 4000ms 정지(텍스트 유지, 아무 변화 없음) → 4단계
 const FLOW_DURATION = {
   1: 3500,
   2: 3500,
   3: 4000,
-  '3-pause': 2500
+  '3-pause': 4000
   // 4단계는 버튼으로 전환
 };
 </script>
@@ -206,25 +206,9 @@ const FLOW_DURATION = {
     letter-spacing:.28em;
     color:var(--accent);
     opacity:.65;
-    margin-bottom:6px;
+    margin-bottom:24px;
   }
 
-  .time-pill {
-    display:inline-flex; align-items:center; gap:5px;
-    font-size:11px; color:var(--text-muted);
-    letter-spacing:.08em;
-    margin-bottom:22px;
-  }
-
-  .time-dot {
-    width:4px; height:4px;
-    background:var(--accent); border-radius:50%;
-    opacity:.7;
-    animation: blink 3s ease infinite;
-  }
-  @keyframes blink {
-    0%,100%{opacity:.7} 50%{opacity:.2}
-  }
 
   .h-title {
     font-family:'Noto Serif KR', serif;
@@ -314,6 +298,7 @@ const FLOW_DURATION = {
     text-align: center;
     flex-direction: column;
     gap: 16px;
+    position: relative;
   }
 
   .transition-text {
@@ -426,6 +411,9 @@ const FLOW_DURATION = {
     font-size: 18px;
     color: var(--text-secondary);
     letter-spacing: .04em;
+    transition: opacity 1.4s cubic-bezier(.22,1,.36,1),
+                transform 1.4s cubic-bezier(.22,1,.36,1),
+                filter 1.4s cubic-bezier(.22,1,.36,1);
   }
 
   /* 종료 버튼 (4단계) */
@@ -537,6 +525,36 @@ const FLOW_DURATION = {
   }
 
   .complete-restart {
+    border: none;
+    border-radius: 0;
+    padding: 10px 32px;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    background: transparent;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1), color .2s ease;
+    margin-top: 16px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(72,69,79,0.3);
+  }
+
+  .complete-restart:hover {
+    color: var(--text-secondary);
+  }
+
+  .complete-restart.visible {
+    opacity: 0.45;
+    transform: translateY(0);
+  }
+
+  /* 앱 종료 버튼 */
+  .complete-close-btn {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 32px;
@@ -545,7 +563,7 @@ const FLOW_DURATION = {
     font-size: 12px;
     font-weight: 400;
     letter-spacing: .1em;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     background: transparent;
     opacity: 0;
     transform: translateY(10px);
@@ -553,14 +571,30 @@ const FLOW_DURATION = {
     margin-top: 48px;
   }
 
-  .complete-restart:hover {
+  .complete-close-btn:hover {
     border-color: var(--border-hover);
-    color: var(--text-secondary);
+    color: var(--text-primary);
   }
 
-  .complete-restart.visible {
+  .complete-close-btn.visible {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  /* 종료 오버레이 */
+  .close-overlay {
+    position: fixed;
+    inset: 0;
+    background: #0c0c10;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 2s ease;
+  }
+
+  .close-overlay.active {
+    opacity: 1;
+    pointer-events: all;
   }
 
   /* COMPLETE 진입 시 visible 클래스로 애니메이션 트리거 */
@@ -598,18 +632,6 @@ const FLOW_DURATION = {
     width: 100%;
   }
 
-  /* 파티클 캔버스 */
-  #particle-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 1.5s ease;
-  }
-  #particle-canvas.active { opacity: 1; }
-
   /* ── 잔상 이모지 ── */
   .echo-emoji {
     position: fixed;
@@ -635,9 +657,6 @@ const FLOW_DURATION = {
   }
 </style>
 
-<!-- PARTICLE CANVAS -->
-<canvas id="particle-canvas"></canvas>
-
 <!-- 잔상 이모지 -->
 <div class="echo-emoji" id="echo-emoji"></div>
 
@@ -647,10 +666,6 @@ const FLOW_DURATION = {
   <div class="screen active" id="s-emotion">
     <div class="header">
       <div class="wordmark">하루마음</div>
-      <div class="time-pill">
-        <div class="time-dot"></div>
-        <span id="clock">밤 11:00</span>
-      </div>
       <div class="h-title">지금 가장 가까운<br>감정 하나만 고르세요</div>
     </div>
 
@@ -663,6 +678,7 @@ const FLOW_DURATION = {
 
   <!-- ══════════════ SCREEN 2: TRANSITION ══════════════ -->
   <div class="screen" id="s-transition">
+    <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <div class="transition-text" id="transition-line1"></div>
     <div class="transition-text transition-line2" id="transition-line2"></div>
   </div>
@@ -702,26 +718,18 @@ const FLOW_DURATION = {
       <div class="complete-quote" id="complete-quote"></div>
     </div>
 
-    <!-- 다시 시작 -->
+    <!-- 앱 종료 + 다시 시작 -->
+    <button class="complete-close-btn" id="complete-close-btn" onclick="closeApp()">오늘 하루 닫기</button>
     <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
   </div>
+
+  <!-- 종료 오버레이 -->
+  <div class="close-overlay" id="close-overlay" onclick="restoreFromClose()"></div>
 
 
 </div>
 
 <script>
-  /* ──────────────────────────────────────────
-     시계
-  ────────────────────────────────────────── */
-  function tick() {
-    const now = new Date();
-    const h = now.getHours(), m = String(now.getMinutes()).padStart(2,'0');
-    const period = h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : '밤';
-    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    document.getElementById('clock').textContent = `${period} ${h12}:${m}`;
-  }
-  tick(); setInterval(tick, 30000);
-
   /* ──────────────────────────────────────────
      감정 카드 렌더
   ────────────────────────────────────────── */
@@ -784,13 +792,10 @@ const FLOW_DURATION = {
     line1.classList.remove('visible');
     line2.classList.remove('visible');
 
-    // 1줄 페이드인
-    setTimeout(() => {
+    flowTimer = setTimeout(() => {
       line1.classList.add('visible');
-      // 2줄 페이드인 (0.5s 딜레이는 CSS에 있음)
       line2.classList.add('visible');
-      // 1.2초 후 FLOW로 자동 전환
-      setTimeout(() => startFlow(), 2800);
+      flowTimer = setTimeout(() => startFlow(), 2800);
     }, 300);
   }
 
@@ -853,7 +858,7 @@ const FLOW_DURATION = {
       textEl.textContent = text;
 
       // 3단계는 조금 더 늦게 등장 — 정지점 강조
-      const fadeDelay = (step === 3) ? 200 : 80;
+      const fadeDelay = (step === 3) ? 200 : (step === 4) ? 300 : 80;
       setTimeout(() => textEl.classList.add('visible'), fadeDelay);
     }, blankDelay);
 
@@ -925,12 +930,18 @@ const FLOW_DURATION = {
     // 글귀 페이드인 (1.8초 딜레이)
     const extras = document.getElementById('complete-extras');
     const restartBtn = document.getElementById('complete-restart');
+    const closeBtn = document.getElementById('complete-close-btn');
     restartBtn.classList.remove('visible');
+    closeBtn.classList.remove('visible');
     extras.style.display = 'flex';
     setTimeout(() => {
       extras.classList.add('visible');
-      // 글귀 페이드인 완료 후 1초 뒤 다시 시작 등장
-      setTimeout(() => restartBtn.classList.add('visible'), 1000);
+      // 글귀 페이드인 완료 후 1초 뒤 앱 종료 등장
+      setTimeout(() => {
+        closeBtn.classList.add('visible');
+        // 앱 종료 후 0.8초 뒤 다시 시작 등장
+        setTimeout(() => restartBtn.classList.add('visible'), 800);
+      }, 1000);
     }, 1800);
   }
 
@@ -940,6 +951,7 @@ const FLOW_DURATION = {
     // COMPLETE 애니메이션 초기화
     document.getElementById('s-complete').classList.remove('visible');
     document.getElementById('complete-restart').classList.remove('visible');
+    document.getElementById('complete-close-btn').classList.remove('visible');
     // extras 초기화
     const extras = document.getElementById('complete-extras');
     extras.classList.remove('visible');
@@ -971,6 +983,24 @@ const FLOW_DURATION = {
     }
   }
 
+  function closeApp() {
+    const overlay = document.getElementById('close-overlay');
+    overlay.classList.add('active');
+  }
+
+  function restoreFromClose() {
+    // 탭하면 오버레이 페이드아웃 후 HOME으로
+    const overlay = document.getElementById('close-overlay');
+    overlay.style.transition = 'opacity 1s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      overlay.style.transition = '';
+      overlay.style.opacity = '';
+      restart();
+    }, 1000);
+  }
+
   /* ──────────────────────────────────────────
      화면 전환
   ────────────────────────────────────────── */
@@ -979,99 +1009,6 @@ const FLOW_DURATION = {
     document.getElementById('s-' + id).classList.add('active');
     window.scrollTo(0, 0);
   }
-
-  /* ──────────────────────────────────────────
-     파티클 엔진 (기존 유지)
-  ────────────────────────────────────────── */
-  const canvas = document.getElementById('particle-canvas');
-  const ctx = canvas.getContext('2d');
-  let particles = [];
-  let animFrame = null;
-  let currentEmotion = '';
-
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
-  const PARTICLE_CONFIG = {
-    피곤함: { count:15, color:'rgba(180,190,220,', speedX:.05, speedY:.08, size:1.2, opacity:.25, drift:.01 },
-    불안함: { count:30, color:'rgba(180,160,220,', speedX:.3, speedY:.15, size:1.0, opacity:.35, drift:.08, shake:true },
-    공허함: { count:3,  color:'rgba(200,200,200,', speedX:.02, speedY:.03, size:1.5, opacity:.2,  drift:.005 },
-    쓸쓸함: { count:20, color:'rgba(196,168,130,', speedX:.05, speedY:.25, size:1.0, opacity:.3,  drift:.02, fall:true },
-    복잡함: { count:35, color:'rgba(150,180,200,', speedX:.2, speedY:.12, size:1.0, opacity:.3,  drift:.05, multiDir:true },
-    괜찮음: { count:25, color:'rgba(196,168,130,', speedX:.08, speedY:.06, size:1.8, opacity:.4,  drift:.02, glow:true }
-  };
-
-  function createParticle(cfg) {
-    const dir = cfg.multiDir ? (Math.random() - 0.5) * 2 : 1;
-    return {
-      x: Math.random() * canvas.width,
-      y: cfg.fall ? Math.random() * canvas.height * 0.3 : Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * cfg.speedX * dir,
-      vy: cfg.fall ? Math.random() * cfg.speedY + 0.1 : (Math.random() - 0.5) * cfg.speedY,
-      size: Math.random() * cfg.size + 0.5,
-      opacity: Math.random() * cfg.opacity + 0.05,
-      drift: cfg.drift,
-      shake: cfg.shake || false,
-      glow: cfg.glow || false,
-      fall: cfg.fall || false,
-      color: cfg.color,
-      phase: Math.random() * Math.PI * 2
-    };
-  }
-
-  function startParticles(emotion) {
-    cancelAnimationFrame(animFrame);
-    currentEmotion = emotion;
-    const cfg = PARTICLE_CONFIG[emotion];
-    if (!cfg) return;
-    particles = [];
-    for (let i = 0; i < cfg.count; i++) particles.push(createParticle(cfg));
-    canvas.classList.add('active');
-    animate();
-  }
-
-  function stopParticles() {
-    canvas.classList.remove('active');
-    cancelAnimationFrame(animFrame);
-    setTimeout(() => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles = [];
-    }, 1500);
-  }
-
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const cfg = PARTICLE_CONFIG[currentEmotion];
-    if (!cfg) return;
-    particles.forEach(p => {
-      p.phase += 0.02;
-      if (p.shake) p.x += Math.sin(p.phase * 3) * 0.4;
-      p.x += p.vx + Math.sin(p.phase) * p.drift;
-      p.y += p.vy + Math.cos(p.phase * 0.7) * p.drift;
-      if (p.fall) {
-        if (p.y > canvas.height) { p.y = -5; p.x = Math.random() * canvas.width; }
-      } else {
-        if (p.x < -10) p.x = canvas.width + 10;
-        if (p.x > canvas.width + 10) p.x = -10;
-        if (p.y < -10) p.y = canvas.height + 10;
-        if (p.y > canvas.height + 10) p.y = -10;
-      }
-      ctx.beginPath();
-      if (p.glow) { ctx.shadowBlur = 8; ctx.shadowColor = p.color + '0.5)'; }
-      else ctx.shadowBlur = 0;
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = p.color + p.opacity + ')';
-      ctx.fill();
-    });
-    ctx.shadowBlur = 0;
-    animFrame = requestAnimationFrame(animate);
-  }
-
-  // 터치 반응 — 현재 미사용 (음악 제거로 비활성화)
 
   // FLOW 전체 화면 탭 — 선택적 스킵
   document.getElementById('s-flow').addEventListener('click', (e) => {
@@ -1089,10 +1026,7 @@ const FLOW_DURATION = {
   ────────────────────────────────────────── */
   renderGrid();
 
-  // 페이지 숨김 시 처리 (모바일 백그라운드 전환 대응)
-  document.addEventListener('visibilitychange', () => {
-    // 추후 필요 시 확장
-  });
+
 </script>
 </body>
 </html>
