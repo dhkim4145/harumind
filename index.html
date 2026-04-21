@@ -139,14 +139,33 @@ const FLOW_DURATION = {
     width:700px; height:700px;
     background:radial-gradient(circle, rgba(196,168,130,0.035) 0%, transparent 65%);
     pointer-events:none; z-index:0;
-    transition: opacity 1.5s ease;
+    transition: opacity 2s ease;
+    animation: glowDrift 60s linear infinite;
   }
 
-  /* FLOW 단계별 glow 감소 */
-  body.flow-step-1::after { opacity: 0.9; }
-  body.flow-step-2::after { opacity: 0.6; }
-  body.flow-step-3::after { opacity: 0.2; }
-  body.flow-step-4::after { opacity: 0.4; }
+  @keyframes glowDrift {
+    0%   { transform: translateX(-50%) rotate(0deg)   scale(1);    }
+    50%  { transform: translateX(-50%) rotate(180deg) scale(1.04); }
+    100% { transform: translateX(-50%) rotate(360deg) scale(1);    }
+  }
+
+  /* FLOW 단계별 glow 반응 — 움직임 → 느려짐 → 거의 정지 → 완전 정지 */
+  body.flow-step-1::after {
+    opacity: 0.9;
+    animation-duration: 60s;
+  }
+  body.flow-step-2::after {
+    opacity: 0.6;
+    animation-duration: 90s;
+  }
+  body.flow-step-3::after {
+    opacity: 0.15;
+    animation-duration: 180s;
+  }
+  body.flow-step-4::after {
+    opacity: 0.3;
+    animation-play-state: paused;
+  }
 
   .app {
     position:relative; z-index:1;
