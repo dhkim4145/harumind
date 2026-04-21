@@ -138,42 +138,6 @@ const FLOW_DURATION = {
     pointer-events:none; z-index:0;
   }
 
-  /* soft top glow */
-  body::after {
-    content:'';
-    position:fixed; top:-30%; left:50%; transform:translateX(-50%);
-    width:700px; height:700px;
-    background:radial-gradient(circle, rgba(196,168,130,0.06) 0%, transparent 65%);
-    pointer-events:none; z-index:0;
-    opacity: 1;
-    transition: opacity 2s ease;
-    animation: glowDrift 60s linear infinite;
-  }
-
-  @keyframes glowDrift {
-    0%   { transform: translateX(-50%) rotate(0deg)   scale(1);    }
-    50%  { transform: translateX(-50%) rotate(180deg) scale(1.06); }
-    100% { transform: translateX(-50%) rotate(360deg) scale(1);    }
-  }
-
-  /* FLOW 단계별 glow 반응 — 움직임 → 느려짐 → 거의 정지 → 완전 정지 */
-  body.flow-step-1::after {
-    opacity: 1;
-    animation-duration: 60s;
-  }
-  body.flow-step-2::after {
-    opacity: 0.6;
-    animation-duration: 90s;
-  }
-  body.flow-step-3::after {
-    opacity: 0.15;
-    animation-duration: 180s;
-  }
-  body.flow-step-4::after {
-    opacity: 0.3;
-    animation-play-state: paused;
-  }
-
   .app {
     position:relative; z-index:1;
     max-width:420px; margin:0 auto;
@@ -771,10 +735,6 @@ const FLOW_DURATION = {
       tapIgnoreTimer = setTimeout(() => { tapAllowed = true; }, tapDelay);
     }
 
-    // 배경 glow 단계별 반응
-    document.body.classList.remove('flow-step-1','flow-step-2','flow-step-3','flow-step-4');
-    document.body.classList.add('flow-step-' + step);
-
     // 도트 업데이트
     document.querySelectorAll('.flow-dot').forEach(d => {
       const s = parseInt(d.dataset.step);
@@ -842,7 +802,6 @@ const FLOW_DURATION = {
     clearTimeout(tapIgnoreTimer);
     tapAllowed = false;
     currentStep = 0;
-    document.body.classList.remove('flow-step-1','flow-step-2','flow-step-3','flow-step-4');
     document.getElementById('transition-line1').classList.remove('visible');
     document.getElementById('transition-line2').classList.remove('visible');
     // 배경색은 선택된 감정 색으로 복원 (선택 상태 유지)
@@ -858,7 +817,6 @@ const FLOW_DURATION = {
     clearTimeout(flowTimer);
     clearTimeout(tapIgnoreTimer);
     tapAllowed = false;
-    document.body.classList.remove('flow-step-1','flow-step-2','flow-step-3','flow-step-4');
     showScreen('complete');
 
     // COMPLETE 애니메이션 트리거 (재진입 대응)
