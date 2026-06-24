@@ -30,7 +30,7 @@
 <canvas id="aurora"></canvas>
 <div class="ripple-overlay" id="ripple-overlay"></div>
 <div id="screen-react"></div>
-<div class="screen-wash" id="screen-wash" style="background:white;"></div>
+<div class="screen-wash" id="screen-wash"></div>
 <canvas id="complete-fx"></canvas>
 
 
@@ -595,18 +595,7 @@ const FLOW_DURATION = {
     transition: opacity 0.3s ease;
   }
 
-  /* 불안함 — 미세 떨림 */
-  @keyframes screen-tremble {
-    0%   { transform: translate(0, 0); }
-    20%  { transform: translate(-1.5px, 0.5px); }
-    40%  { transform: translate(1px, -0.5px); }
-    60%  { transform: translate(-0.5px, 1px); }
-    80%  { transform: translate(1px, 0); }
-    100% { transform: translate(0, 0); }
-  }
-  .screen-trembling {
-    animation: screen-tremble 0.4s ease-in-out infinite !important;
-  }
+  /* screen-tremble 제거 — 문구 기준으로 이전 */
 
 </style>
 
@@ -909,43 +898,67 @@ const FLOW_DURATION = {
 
 
 
-  // ===== 누르는 동안 화면 반응 =====
-  const SCREEN_REACT = {
-    피곤함: function(el) {
-      el.style.background = 'rgba(0,0,0,0.18)';
+  // ===== 누르는 동안 화면 반응 — 문구 기준 =====
+  const TEXT_SCREEN_REACT = {
+    '힘을 풉니다': function(el) {
+      // 어두워짐 — 긴장이 내려가는
+      el.style.background = 'rgba(0,0,0,0.15)';
       el.style.opacity = '1';
     },
-    불안함: function(el) {
-      el.style.background = 'rgba(140,100,180,0.06)';
-      el.style.opacity = '1';
-      document.body.classList.add('screen-trembling');
-    },
-    공허함: function(el) {
-      el.style.background = 'rgba(0,0,0,0.22)';
-      el.style.filter = 'grayscale(0.3)';
-      el.style.opacity = '1';
-    },
-    쓸쓸함: function(el) {
-      el.style.background = 'radial-gradient(ellipse at 50% 100%, rgba(196,150,110,0.14) 0%, rgba(0,0,0,0) 70%)';
-      el.style.opacity = '1';
-    },
-    복잡함: function(el) {
-      el.style.background = 'rgba(60,160,160,0.06)';
-      el.style.opacity = '1';
-      document.body.classList.add('screen-trembling');
-      setTimeout(() => document.body.classList.remove('screen-trembling'), 400);
-    },
-    괜찮음: function(el) {
+    '숨을 내쉽니다': function(el) {
+      // 살짝 밝아짐 — 숨 내쉼 = 이완
       el.style.background = 'rgba(255,255,255,0.05)';
+      el.style.opacity = '1';
+    },
+    '비워둡니다': function(el) {
+      // 아무것도 없음 — 비움 = 정지
+    },
+    '여기 있습니다': function(el) {
+      // 가장자리 번짐 — 존재감
+      el.style.background = 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 40%, rgba(196,150,110,0.12) 100%)';
+      el.style.opacity = '1';
+    },
+    '내려놓습니다': function(el) {
+      // 위에서 아래로 어두워짐 — 내려놓는 방향
+      el.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 100%)';
+      el.style.opacity = '1';
+    },
+    '그대로입니다': function(el) {
+      // 아무것도 없음 — 침묵
+    },
+    '그대로 둡니다': function(el) {
+      // 아주 살짝 어두워짐 — 내려놓음
+      el.style.background = 'rgba(0,0,0,0.10)';
+      el.style.opacity = '1';
+    },
+    '정리하지 않아도 됩니다': function(el) {
+      // 아무것도 없음 — 허락 = 정지
+    },
+    '괜찮습니다': function(el) {
+      // 살짝 밝아짐 — 안도
+      el.style.background = 'rgba(255,255,255,0.06)';
+      el.style.opacity = '1';
+    },
+    '오늘은 여기까지입니다': function(el) {
+      // 천천히 어두워짐 — 마감
+      el.style.background = 'rgba(0,0,0,0.18)';
       el.style.opacity = '1';
     }
   };
+
+  function getCurrentFlowText() {
+    if (currentStep === 1) return FLOW_STEP1[selected] || '';
+    return FLOW_COMMON[currentStep] || '';
+  }
 
   function startScreenReact() {
     const el = document.getElementById('screen-react');
     if (!el || !selected) return;
     el.style.filter = '';
-    const fn = SCREEN_REACT[selected];
+    el.style.background = '';
+    el.style.opacity = '0';
+    const text = getCurrentFlowText();
+    const fn = TEXT_SCREEN_REACT[text];
     if (fn) fn(el);
   }
 
@@ -955,7 +968,6 @@ const FLOW_DURATION = {
     el.style.opacity = '0';
     el.style.filter = '';
     el.style.background = '';
-    document.body.classList.remove('screen-trembling');
   }
 
   // ===== AURORA 배경 =====
