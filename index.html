@@ -28,36 +28,40 @@
 </head>
 <body>
 <canvas id="aurora"></canvas>
+<div class="ripple-overlay" id="ripple-overlay"></div>
+<div class="screen-wash" id="screen-wash" style="background:white;"></div>
+<canvas id="complete-fx"></canvas>
+
 
 <script>
 const CONTENT = {
   피곤함: {
-    emoji: "😮‍💨",
+    color: "rgba(100,120,180,0.7)",
     transition: ["피곤했던 오늘", "그대로 둡니다"],
     completeEmotion: "피곤했던 오늘 그대로"
   },
   불안함: {
-    emoji: "🌀",
+    color: "rgba(140,100,180,0.7)",
     transition: ["불안했던 오늘", "여기서 멈춥니다"],
     completeEmotion: "불안했던 오늘 그대로"
   },
   공허함: {
-    emoji: "🌑",
+    color: "rgba(80,80,90,0.6)",
     transition: ["비어있던 오늘", "그대로 둡니다"],
     completeEmotion: "비어있던 오늘 그대로"
   },
   쓸쓸함: {
-    emoji: "🍂",
+    color: "rgba(196,150,110,0.7)",
     transition: ["쓸쓸했던 오늘", "그대로 둡니다"],
     completeEmotion: "쓸쓸했던 오늘 그대로"
   },
   복잡함: {
-    emoji: "🌊",
+    color: "rgba(60,160,160,0.7)",
     transition: ["복잡했던 오늘", "정리하지 않아도 됩니다"],
     completeEmotion: "복잡했던 오늘 그대로"
   },
   괜찮음: {
-    emoji: "🌙",
+    color: "rgba(196,168,80,0.7)",
     transition: ["괜찮았던 오늘", "그대로입니다"],
     completeEmotion: "괜찮았던 오늘 그대로"
   }
@@ -168,6 +172,19 @@ const FLOW_DURATION = {
   .e-card.selected { border-color:var(--accent); background:var(--accent-dim); }
 
   .e-emoji { font-size:21px; line-height:1; }
+  .e-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .e-card:hover .e-dot {
+    transform: scale(1.3);
+    box-shadow: 0 0 8px currentColor;
+  }
+  .e-card.selected .e-dot {
+    transform: scale(1.5);
+    box-shadow: 0 0 12px 2px rgba(255,255,255,0.15);
+  }
   .e-word {
     font-family:'Noto Serif KR', serif;
     font-size:14px; font-weight:400;
@@ -362,6 +379,37 @@ const FLOW_DURATION = {
   canvas#aurora.visible { opacity: 1; }
   .screen { position: relative; z-index: 1; }
 
+
+  /* 감정별 Hold 버튼 색상 */
+  .hold-btn { --btn-color: rgba(196,168,130,0.4); --btn-glow: rgba(196,168,130,0.2); }
+  .emotion-피곤함 .hold-btn { --btn-color: rgba(100,120,180,0.5); --btn-glow: rgba(80,100,160,0.25); }
+  .emotion-불안함 .hold-btn { --btn-color: rgba(140,100,180,0.5); --btn-glow: rgba(120,80,160,0.25); }
+  .emotion-공허함 .hold-btn { --btn-color: rgba(80,80,90,0.5);  --btn-glow: rgba(200,200,210,0.12); }
+  .emotion-쓸쓸함 .hold-btn { --btn-color: rgba(160,110,70,0.5); --btn-glow: rgba(196,150,100,0.25); }
+  .emotion-복잡함 .hold-btn { --btn-color: rgba(60,140,140,0.5); --btn-glow: rgba(60,160,160,0.25); }
+  .emotion-괜찮음 .hold-btn { --btn-color: rgba(180,155,80,0.5); --btn-glow: rgba(196,168,80,0.28); }
+
+  .hold-btn {
+    border-color: var(--btn-color);
+    transition: border-color .4s, box-shadow .4s, color .3s;
+  }
+  .hold-btn.holding {
+    border-color: var(--btn-color);
+    box-shadow: 0 0 20px var(--btn-glow), 0 0 40px var(--btn-glow);
+    color: var(--text-primary);
+  }
+  .hold-btn::before {
+    background: var(--btn-color);
+  }
+
+  /* 문구 페이드 */
+  .hold-btn-label {
+    transition: opacity .3s ease;
+  }
+  .hold-btn.holding .hold-btn-label {
+    opacity: 0;
+  }
+
   /* Hold to Calm 버튼 */
   .hold-btn-wrap {
     position: fixed; bottom: 0; left: 0; right: 0;
@@ -404,7 +452,140 @@ const FLOW_DURATION = {
   }
   .hold-btn-label { position: relative; z-index: 1; }
 
-  </style>
+  
+  /* 파문(ripple) 효과 */
+  .ripple-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ripple-circle {
+    position: absolute; border-radius: 50%;
+    opacity: 0; transform: scale(0);
+    animation: ripple-expand 1.2s ease-out forwards;
+  }
+  @keyframes ripple-expand {
+    0%   { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(8); opacity: 0; }
+  }
+  .screen-wash {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 6; opacity: 0;
+  }
+  .screen-wash.flash { opacity: 0.18; transition: opacity 0.15s ease-in; }
+  .screen-wash.fade  { opacity: 0;    transition: opacity 0.8s ease-out; }
+  canvas#complete-fx {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 2; opacity: 0; transition: opacity 0.8s ease;
+  }
+  canvas#complete-fx.visible { opacity: 1; }
+
+
+  /* 감정별 transition 진입 애니메이션 */
+
+  /* 피곤함 — 위에서 내려앉음 */
+  .transition-enter-피곤함 {
+    opacity: 0 !important;
+    transform: translateY(-20px) !important;
+    filter: blur(2px) !important;
+    transition: opacity 1.4s cubic-bezier(.22,1,.36,1),
+                transform 1.4s cubic-bezier(.22,1,.36,1),
+                filter 1.4s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-피곤함.visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    filter: blur(0) !important;
+  }
+
+  /* 불안함 — 미세하게 흔들리다 멈춤 */
+  .transition-enter-불안함 {
+    opacity: 0 !important;
+    transform: translateX(0) !important;
+    filter: blur(2px) !important;
+    transition: opacity 1s cubic-bezier(.22,1,.36,1),
+                filter 1s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-불안함.visible {
+    opacity: 1 !important;
+    filter: blur(0) !important;
+    animation: tremble-settle 0.8s ease-out forwards;
+  }
+  @keyframes tremble-settle {
+    0%   { transform: translateX(-4px); }
+    20%  { transform: translateX(3px); }
+    40%  { transform: translateX(-2px); }
+    60%  { transform: translateX(1px); }
+    80%  { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+  }
+
+  /* 공허함 — 아주 천천히 페이드인 */
+  .transition-enter-공허함 {
+    opacity: 0 !important;
+    transform: none !important;
+    filter: blur(4px) !important;
+    transition: opacity 2.4s cubic-bezier(.4,0,.2,1),
+                filter 2.4s cubic-bezier(.4,0,.2,1) !important;
+  }
+  .transition-enter-공허함.visible {
+    opacity: 0.7 !important;
+    filter: blur(0) !important;
+  }
+
+  /* 쓸쓸함 — 오른쪽에서 천천히 흘러들어옴 */
+  .transition-enter-쓸쓸함 {
+    opacity: 0 !important;
+    transform: translateX(24px) !important;
+    filter: blur(2px) !important;
+    transition: opacity 1.6s cubic-bezier(.22,1,.36,1),
+                transform 1.6s cubic-bezier(.22,1,.36,1),
+                filter 1.6s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-쓸쓸함.visible {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    filter: blur(0) !important;
+  }
+
+  /* 복잡함 — 각각 다른 방향에서 */
+  .transition-enter-복잡함-1 {
+    opacity: 0 !important;
+    transform: translateX(-18px) !important;
+    filter: blur(2px) !important;
+    transition: opacity 1s cubic-bezier(.22,1,.36,1),
+                transform 1s cubic-bezier(.22,1,.36,1),
+                filter 1s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-복잡함-1.visible {
+    opacity: 1 !important; transform: translateX(0) !important; filter: blur(0) !important;
+  }
+  .transition-enter-복잡함-2 {
+    opacity: 0 !important;
+    transform: translateX(18px) !important;
+    filter: blur(2px) !important;
+    transition: opacity 1s cubic-bezier(.22,1,.36,1),
+                transform 1s cubic-bezier(.22,1,.36,1),
+                filter 1s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-복잡함-2.visible {
+    opacity: 1 !important; transform: translateX(0) !important; filter: blur(0) !important;
+  }
+
+  /* 괜찮음 — 중앙에서 자연스럽게 퍼짐 */
+  .transition-enter-괜찮음 {
+    opacity: 0 !important;
+    transform: scale(0.94) !important;
+    filter: blur(1px) !important;
+    transition: opacity 1.2s cubic-bezier(.22,1,.36,1),
+                transform 1.2s cubic-bezier(.22,1,.36,1),
+                filter 1.2s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .transition-enter-괜찮음.visible {
+    opacity: 1 !important; transform: scale(1) !important; filter: blur(0) !important;
+  }
+
+</style>
 
 <div class="echo-emoji" id="echo-emoji"></div>
 
@@ -454,7 +635,7 @@ const FLOW_DURATION = {
   <!-- SCREEN 4: COMPLETE -->
   <div class="screen" id="s-complete">
     <div class="complete-title">오늘은 여기까지입니다</div>
-    <span class="complete-moon">🌙</span>
+    <span class="complete-moon" id="complete-moon"></span>
     <div class="complete-emotion" id="complete-emotion"></div>
     <div class="complete-sub">충분합니다</div>
     <div class="complete-close">내일은 내일의 내가 봅니다</div>
@@ -485,7 +666,7 @@ const FLOW_DURATION = {
       card.className = 'e-card';
       card.dataset.key = name;
       card.innerHTML = `
-        <div class="e-emoji">${data.emoji}</div>
+        <div class="e-dot" style="background:${data.color};"></div>
         <div class="e-word">${name}</div>
         <div class="e-desc">${EMOTION_DESC[name] || ''}</div>
       `;
@@ -504,6 +685,8 @@ const FLOW_DURATION = {
     document.body.classList.remove(...EMOTION_CLASSES);
     document.body.classList.add('emotion-' + name);
     startAurora(name);
+    const confirmBtn = document.getElementById('confirm-btn');
+    if (confirmBtn) confirmBtn.textContent = CONFIRM_LABELS[name] || '오늘은 여기까지입니다';
   }
 
   let flowTimer = null;
@@ -519,13 +702,44 @@ const FLOW_DURATION = {
     const line2 = document.getElementById('transition-line2');
     line1.textContent = data.transition[0];
     line2.textContent = data.transition[1];
-    line1.classList.remove('visible');
-    line2.classList.remove('visible');
+
+    // 감정별 클래스 초기화
+    line1.className = 'transition-text';
+    line2.className = 'transition-text transition-line2';
+
+    // 감정별 진입 클래스 적용
+    if (selected === '복잡함') {
+      line1.classList.add('transition-enter-복잡함-1');
+      line2.classList.add('transition-enter-복잡함-2');
+    } else {
+      const cls = 'transition-enter-' + selected;
+      line1.classList.add(cls);
+      line2.classList.add(cls);
+    }
+
+    // Aurora 진입 시 밝아짐 (공통)
+    if (auroraCanvas && auroraCtx) {
+      let a = 0, dec = false;
+      const burst = () => {
+        if (!dec) { a += 0.012; if (a >= 0.12) dec = true; }
+        else { a -= 0.005; if (a <= 0) return; }
+        auroraCtx.fillStyle = 'rgba(255,255,255,' + a + ')';
+        auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
+        requestAnimationFrame(burst);
+      };
+      requestAnimationFrame(burst);
+    }
+
+    const line2Delay = selected === '공허함' ? 2000 : selected === '피곤함' ? 1600 : 1200;
+    const flowDelay  = selected === '공허함' ? 4000 : 3200;
+
     flowTimer = setTimeout(() => {
       line1.classList.add('visible');
-      line2.classList.add('visible');
-      flowTimer = setTimeout(() => startFlow(), 2800);
-    }, 300);
+      flowTimer = setTimeout(() => {
+        line2.classList.add('visible');
+        flowTimer = setTimeout(() => startFlow(), flowDelay);
+      }, line2Delay);
+    }, 400);
   }
 
   function startFlow() {
@@ -598,7 +812,12 @@ const FLOW_DURATION = {
     });
 
     document.getElementById('complete-emotion').textContent = CONTENT[selected].completeEmotion;
+    const moonEl = document.getElementById('complete-moon');
+    if (moonEl) {
+      moonEl.style.cssText = 'display:inline-block;width:10px;height:10px;border-radius:50%;background:' + CONTENT[selected].color + ';margin-bottom:20px;';
+    }
 
+    playCompleteFX(selected);
     const quote = (typeof getTodayQuote === 'function') ? getTodayQuote(selected) : '';
     const quoteEl = document.getElementById('complete-quote');
     quoteEl.innerHTML = quote.replace(/\n/g, '<br>');
@@ -622,6 +841,10 @@ const FLOW_DURATION = {
     extras.classList.remove('visible');
     extras.style.display = 'none';
     hideHoldBtn();
+    if (auroraCanvas) {
+      auroraCanvas.style.transition = '';
+      auroraCanvas.style.opacity = '0';
+    }
     stopAurora();
     selected = null;
     document.querySelectorAll('.e-card').forEach(c => c.classList.remove('selected'));
@@ -660,6 +883,15 @@ const FLOW_DURATION = {
 
 
   // ===== AURORA 배경 =====
+  const CONFIRM_LABELS = {
+    피곤함: '오늘 하루, 여기서 내려놓겠습니다',
+    불안함: '오늘은 여기서 멈추겠습니다',
+    공허함: '오늘은 그냥 이대로 두겠습니다',
+    쓸쓸함: '오늘 하루, 그대로 마감합니다',
+    복잡함: '정리하지 않아도 됩니다. 마감합니다',
+    괜찮음: '오늘은 여기까지입니다 🌙'
+  };
+
   const AURORA_COLORS = {
     피곤함: [[26,31,46],[18,24,40]],
     불안함: [[26,21,40],[20,16,36]],
@@ -689,6 +921,8 @@ const FLOW_DURATION = {
   function startAurora(emotion) {
     if (!auroraCanvas) return;
     auroraEmotion = emotion;
+    auroraCanvas.style.transition = 'opacity 1.2s ease';
+    auroraCanvas.style.opacity = '';
     auroraCanvas.classList.add('visible');
     if (auroraAnim) cancelAnimationFrame(auroraAnim);
     drawAurora();
@@ -787,16 +1021,22 @@ const FLOW_DURATION = {
     function onComplete() {
       holdActive = false;
       cancelAnimationFrame(holdRAF);
-      btn.classList.remove('holding');
-      btn.style.setProperty('--bar-pct', '0%');
+      btn.style.setProperty('--bar-pct', '100%');
       clearTimeout(flowTimer);
       clearTimeout(tapIgnoreTimer);
       tapAllowed = false;
-      if (currentStep >= 4) {
-        goComplete();
-      } else {
-        runFlowStep(currentStep + 1);
-      }
+      // 잠깐 채워진 상태 보여주고 넘어감
+      const stepAtComplete = currentStep;
+      setTimeout(() => {
+        btn.classList.remove('holding');
+        btn.style.setProperty('--bar-pct', '0%');
+        playStepReward(stepAtComplete);
+        if (stepAtComplete >= 4) {
+          setTimeout(() => goComplete(), 400);
+        } else {
+          runFlowStep(stepAtComplete + 1);
+        }
+      }, 200);
     }
 
     function onEnd(e) {
@@ -850,7 +1090,217 @@ const FLOW_DURATION = {
     initAurora();
     initHold();
   });
-  renderGrid();
+
+  // ===== 문구별 연출 시스템 (재설계) =====
+  // 문구 → 연출 매핑
+  // 힘을 풉니다  → Aurora 어두워짐 (긴장이 내려가는)
+  // 숨을 내쉽니다 → 화면 부드러운 수축 (내쉼)
+  // 비워둡니다   → 완전한 정지 (비움)
+  // 여기 있습니다 → 파문 하나 퍼졌다 사라짐 (존재감)
+  // 내려놓습니다  → 빛이 아래로 흘러내림
+  // 그대로입니다  → 아무 연출 없음 (침묵이 보상)
+  // 그대로 둡니다 → 파문이 퍼졌다 잔잔히 사라짐
+  // 정리하지 않아도 됩니다 → 흩어진 채 그냥 있음 (선이 머뭄)
+  // 괜찮습니다   → 화면 아주 살짝 밝아졌다 원래로
+  // 오늘은 여기까지입니다 → Aurora 천천히 꺼짐
+
+  // 문구별 연출 함수 매핑
+  const TEXT_FX_MAP = {
+    '힘을 풉니다':           fxRelax,
+    '숨을 내쉽니다':         fxBreathe,
+    '비워둡니다':            fxEmpty,
+    '여기 있습니다':         fxPresence,
+    '내려놓습니다':          fxLetGo,
+    '그대로입니다':          fxSilence,
+    '그대로 둡니다':         fxSettle,
+    '정리하지 않아도 됩니다': fxStay,
+    '괜찮습니다':            fxOkay,
+    '오늘은 여기까지입니다':  fxClose
+  };
+
+  function getCurrentText() {
+    if (currentStep === 1) return FLOW_STEP1[selected] || '';
+    return FLOW_COMMON[currentStep] || '';
+  }
+
+  function playStepReward(step) {
+    const text = step === 1 ? (FLOW_STEP1[selected] || '') : (FLOW_COMMON[step] || '');
+    const fn = TEXT_FX_MAP[text];
+    if (fn) fn();
+  }
+
+  // ===== 연출 함수들 =====
+
+  // 힘을 풉니다 — Aurora 한 톤 어두워짐
+  function fxRelax() {
+    if (!auroraCanvas || !auroraCtx) return;
+    let alpha = 0;
+    const darken = () => {
+      alpha += 0.015; if (alpha > 0.25) return;
+      auroraCtx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+      auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
+      requestAnimationFrame(darken);
+    };
+    darken();
+  }
+
+  // 숨을 내쉽니다 — 파문 하나, 숨 내쉬듯 느리게
+  function fxBreathe() {
+    const overlay = document.getElementById('ripple-overlay');
+    if (!overlay) return;
+    const c = document.createElement('div');
+    c.className = 'ripple-circle';
+    c.style.cssText = 'width:60px;height:60px;border:1px solid rgba(140,100,180,0.5);animation-duration:2s;';
+    overlay.appendChild(c);
+    setTimeout(() => c.remove(), 2100);
+  }
+
+  // 비워둡니다 — 완전한 정지, 0.8초 아무것도 없음
+  function fxEmpty() {
+    // 아무것도 하지 않음 — 정지가 연출
+    // Aurora만 계속 흐름
+  }
+
+  // 여기 있습니다 — 작은 파문 하나
+  function fxPresence() {
+    const overlay = document.getElementById('ripple-overlay');
+    if (!overlay) return;
+    const c = document.createElement('div');
+    c.className = 'ripple-circle';
+    c.style.cssText = 'width:40px;height:40px;border:1px solid rgba(196,150,110,0.6);animation-duration:1.6s;';
+    overlay.appendChild(c);
+    setTimeout(() => c.remove(), 1700);
+  }
+
+  // 내려놓습니다 — 빛이 아래로 흘러내림
+  function fxLetGo() {
+    const wash = document.getElementById('screen-wash');
+    if (!wash) return;
+    wash.style.cssText = 'background:linear-gradient(180deg,rgba(60,160,160,0.08) 0%,rgba(0,0,0,0) 100%);transition:opacity 0.3s ease-in;';
+    wash.style.opacity = '1';
+    setTimeout(() => { wash.style.transition = 'opacity 1.2s ease-out'; wash.style.opacity = '0'; }, 300);
+    setTimeout(() => { wash.style.cssText = ''; }, 1600);
+  }
+
+  // 그대로입니다 — 침묵 (아무 연출 없음)
+  function fxSilence() {
+    // 의도적으로 비움 — 침묵이 보상
+  }
+
+  // 그대로 둡니다 — 파문 퍼졌다 잔잔히
+  function fxSettle() {
+    const overlay = document.getElementById('ripple-overlay');
+    if (!overlay) return;
+    const c = document.createElement('div');
+    c.className = 'ripple-circle';
+    c.style.cssText = 'width:50px;height:50px;border:1px solid rgba(196,168,130,0.45);animation-duration:1.8s;';
+    overlay.appendChild(c);
+    setTimeout(() => c.remove(), 1900);
+  }
+
+  // 정리하지 않아도 됩니다 — 선들이 흩어진 채 머뭄
+  function fxStay() {
+    const cFXel = document.getElementById('complete-fx');
+    if (!cFXel) return;
+    if (!cFX) initCompleteFX();
+    cFX.classList.add('visible');
+    const w=cFX.width, h=cFX.height, ctx=cFXCtx;
+    const ls = Array.from({length:5}, () => ({
+      x1:w*0.2+Math.random()*w*0.6, y1:h*0.2+Math.random()*h*0.6,
+      x2:w*0.2+Math.random()*w*0.6, y2:h*0.2+Math.random()*h*0.6,
+      a: 0.25
+    }));
+    let t=0;
+    const d=()=>{
+      ctx.clearRect(0,0,w,h);
+      ls.forEach(l=>{
+        const fade = t > 60 ? Math.max(0, l.a - (t-60)/80*l.a) : l.a;
+        ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);
+        ctx.strokeStyle='rgba(60,160,160,'+fade+')'; ctx.lineWidth=1; ctx.stroke();
+      });
+      t++;
+      if (t<140) cFXAnim=requestAnimationFrame(d);
+      else { ctx.clearRect(0,0,w,h); cFX.classList.remove('visible'); }
+    };
+    d();
+  }
+
+  // 괜찮습니다 — 살짝 밝아졌다 원래로
+  function fxOkay() {
+    if (!auroraCanvas || !auroraCtx) return;
+    let alpha = 0, dec = false;
+    const glow = () => {
+      if (!dec) { alpha += 0.008; if (alpha >= 0.07) dec = true; }
+      else { alpha -= 0.004; if (alpha <= 0) return; }
+      auroraCtx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+      auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
+      requestAnimationFrame(glow);
+    };
+    glow();
+  }
+
+  // 오늘은 여기까지입니다 — Aurora 천천히 꺼지며 완료로
+  function fxClose() {
+    if (!auroraCanvas) return;
+    auroraCanvas.style.transition = 'opacity 0.6s ease-out';
+    auroraCanvas.style.opacity = '0';
+    setTimeout(() => {
+      if (auroraAnim) cancelAnimationFrame(auroraAnim);
+    }, 700);
+  }
+
+  // ===== 최종 완료 연출 =====
+  let cFX, cFXCtx, cFXAnim;
+  function initCompleteFX() {
+    cFX = document.getElementById('complete-fx');
+    if (!cFX) return;
+    cFXCtx = cFX.getContext('2d');
+    cFX.width = window.innerWidth; cFX.height = window.innerHeight;
+  }
+
+  function playCompleteFX(emotion) {
+    if (!cFX) initCompleteFX();
+    if (!cFX) return;
+    if (cFXAnim) cancelAnimationFrame(cFXAnim);
+    cFXCtx.clearRect(0, 0, cFX.width, cFX.height);
+    cFX.classList.add('visible');
+    const fns = {
+      피곤함: fxFall, 불안함: fxWave, 공허함: fxDot,
+      쓸쓸함: fxScatter, 복잡함: fxLines, 괜찮음: fxGold
+    };
+    (fns[emotion] || fxGold)();
+    setTimeout(() => { cFX.classList.remove('visible'); cancelAnimationFrame(cFXAnim); }, 3000);
+  }
+
+  function fxFall() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx;
+    const ps=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h*0.5,vy:0.5+Math.random()*1.5,a:0.6+Math.random()*0.4,r:1.5+Math.random()*2.5}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.y+=p.vy;p.a-=0.004;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+p.a+')';ctx.fill();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+  function fxWave() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2;let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);[t*2,t*2-50,t*2-100].filter(r=>r>0).forEach(r=>{const a=Math.max(0,0.4-r/280);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1.5;ctx.stroke();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+  function fxDot() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx;let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const a=t<60?t/60*0.7:Math.max(0,0.7-(t-60)/120*0.7);ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+  function fxScatter() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx;
+    const ps=Array.from({length:35},()=>{const ang=Math.random()*Math.PI*2,sp=0.8+Math.random()*1.5;return{x:w/2,y:h/2,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,a:0.7+Math.random()*0.3,r:1.5+Math.random()*2};});
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a-=0.005;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+p.a+')';ctx.fill();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+  function fxLines() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx;
+    const ls=Array.from({length:8},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.2+Math.random()*h*0.6,x2:w*0.2+Math.random()*w*0.6,y2:h*0.2+Math.random()*h*0.6,a:0.5+Math.random()*0.3}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ls.forEach(l=>{const a=Math.max(0,l.a-t/200);ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+a+')';ctx.lineWidth=1;ctx.stroke();l.x2+=(w/2-l.x2)*0.015;l.y2+=(h/2-l.y2)*0.015;});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+  function fxGold() {
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx;let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const a=t<60?t/60*0.18:Math.max(0,0.18-(t-60)/120*0.18);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.6);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+  }
+
+    renderGrid();
 </script>
 </body>
 </html>
