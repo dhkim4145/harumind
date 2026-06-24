@@ -29,6 +29,7 @@
 <body>
 <canvas id="aurora"></canvas>
 <div class="ripple-overlay" id="ripple-overlay"></div>
+<div id="screen-react"></div>
 <div class="screen-wash" id="screen-wash" style="background:white;"></div>
 <canvas id="complete-fx"></canvas>
 
@@ -585,6 +586,28 @@ const FLOW_DURATION = {
     opacity: 1 !important; transform: scale(1) !important; filter: blur(0) !important;
   }
 
+
+  /* 누르는 동안 화면 반응 오버레이 */
+  #screen-react {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 4;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  /* 불안함 — 미세 떨림 */
+  @keyframes screen-tremble {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(-1.5px, 0.5px); }
+    40%  { transform: translate(1px, -0.5px); }
+    60%  { transform: translate(-0.5px, 1px); }
+    80%  { transform: translate(1px, 0); }
+    100% { transform: translate(0, 0); }
+  }
+  .screen-trembling {
+    animation: screen-tremble 0.4s ease-in-out infinite !important;
+  }
+
 </style>
 
 <div class="echo-emoji" id="echo-emoji"></div>
@@ -833,7 +856,7 @@ const FLOW_DURATION = {
   }
 
   function restart() {
-    const lastEmoji = selected ? CONTENT[selected].emoji : null;
+    const lastColor = selected ? CONTENT[selected].color : null;
     clearTimeout(flowTimer);
     document.getElementById('s-complete').classList.remove('visible');
     document.getElementById('complete-restart').classList.remove('visible');
@@ -841,6 +864,9 @@ const FLOW_DURATION = {
     extras.classList.remove('visible');
     extras.style.display = 'none';
     hideHoldBtn();
+    stopScreenReact();
+    if (cFX) { cFX.classList.remove('visible'); }
+    if (cFXAnim) { cancelAnimationFrame(cFXAnim); }
     if (auroraCanvas) {
       auroraCanvas.style.transition = '';
       auroraCanvas.style.opacity = '0';
@@ -854,9 +880,9 @@ const FLOW_DURATION = {
     showScreen('emotion');
     window.scrollTo(0,0);
 
-    if (lastEmoji) {
+    if (lastColor) {
       const echoEl = document.getElementById('echo-emoji');
-      echoEl.textContent = lastEmoji;
+      echoEl.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + lastColor + ';';
       echoEl.classList.remove('visible', 'fadeout');
       setTimeout(() => {
         echoEl.classList.add('visible');
@@ -864,7 +890,7 @@ const FLOW_DURATION = {
           echoEl.classList.add('fadeout');
           echoEl.classList.remove('visible');
           setTimeout(() => {
-            echoEl.textContent = '';
+            echoEl.style.cssText = '';
             echoEl.classList.remove('fadeout');
           }, 1500);
         }, 2000);
@@ -881,6 +907,56 @@ const FLOW_DURATION = {
   // 화면 탭으로 넘기는 기능 제거 — Hold to Calm으로 대체
   // s-flow 클릭은 exit/end 버튼만 처리
 
+
+
+  // ===== 누르는 동안 화면 반응 =====
+  const SCREEN_REACT = {
+    피곤함: function(el) {
+      el.style.background = 'rgba(0,0,0,0.18)';
+      el.style.opacity = '1';
+    },
+    불안함: function(el) {
+      el.style.background = 'rgba(140,100,180,0.06)';
+      el.style.opacity = '1';
+      document.body.classList.add('screen-trembling');
+    },
+    공허함: function(el) {
+      el.style.background = 'rgba(0,0,0,0.22)';
+      el.style.filter = 'grayscale(0.3)';
+      el.style.opacity = '1';
+    },
+    쓸쓸함: function(el) {
+      el.style.background = 'radial-gradient(ellipse at 50% 100%, rgba(196,150,110,0.14) 0%, rgba(0,0,0,0) 70%)';
+      el.style.opacity = '1';
+    },
+    복잡함: function(el) {
+      el.style.background = 'rgba(60,160,160,0.06)';
+      el.style.opacity = '1';
+      document.body.classList.add('screen-trembling');
+      setTimeout(() => document.body.classList.remove('screen-trembling'), 400);
+    },
+    괜찮음: function(el) {
+      el.style.background = 'rgba(255,255,255,0.05)';
+      el.style.opacity = '1';
+    }
+  };
+
+  function startScreenReact() {
+    const el = document.getElementById('screen-react');
+    if (!el || !selected) return;
+    el.style.filter = '';
+    const fn = SCREEN_REACT[selected];
+    if (fn) fn(el);
+  }
+
+  function stopScreenReact() {
+    const el = document.getElementById('screen-react');
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.filter = '';
+    el.style.background = '';
+    document.body.classList.remove('screen-trembling');
+  }
 
   // ===== AURORA 배경 =====
   const CONFIRM_LABELS = {
@@ -1003,6 +1079,7 @@ const FLOW_DURATION = {
       holdActive = true;
       holdStartTime = Date.now();
       btn.classList.add('holding');
+      startScreenReact();
       animateBar();
     }
 
@@ -1027,6 +1104,7 @@ const FLOW_DURATION = {
       tapAllowed = false;
       // 잠깐 채워진 상태 보여주고 넘어감
       const stepAtComplete = currentStep;
+      stopScreenReact();
       setTimeout(() => {
         btn.classList.remove('holding');
         btn.style.setProperty('--bar-pct', '0%');
@@ -1046,6 +1124,7 @@ const FLOW_DURATION = {
       cancelAnimationFrame(holdRAF);
       btn.classList.remove('holding');
       btn.style.setProperty('--bar-pct', '0%');
+      stopScreenReact();
     }
 
     btn.addEventListener('mousedown', onStart);
