@@ -27,6 +27,7 @@
 <script src="quotes.js"></script>
 </head>
 <body>
+<canvas id="aurora"></canvas>
 
 <script>
 const CONTENT = {
@@ -349,7 +350,61 @@ const FLOW_DURATION = {
   .echo-emoji.fadeout { opacity: 0; transition: opacity 1.5s ease; }
 
   @media(max-width:440px){ .app { max-width:100%; } }
-</style>
+
+  canvas#aurora {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  canvas#aurora.visible { opacity: 1; }
+  .screen { position: relative; z-index: 1; }
+
+  /* Hold to Calm 버튼 */
+  .hold-btn-wrap {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: none;
+    justify-content: center;
+    padding: 0 32px 48px;
+    z-index: 10;
+  }
+  .hold-btn-wrap.visible { display: flex; }
+  .hold-btn {
+    width: 100%; max-width: 320px;
+    height: 64px;
+    border-radius: 32px;
+    border: 1px solid var(--accent-border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    letter-spacing: .06em;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .3s, color .3s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .hold-btn::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: var(--bar-pct, 0%);
+    background: var(--accent-dim);
+    border-radius: 32px;
+    transition: none;
+  }
+  .hold-btn.holding {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .hold-btn-label { position: relative; z-index: 1; }
+
+  </style>
 
 <div class="echo-emoji" id="echo-emoji"></div>
 
@@ -389,6 +444,12 @@ const FLOW_DURATION = {
       오늘은 여기까지 하겠습니다
     </button>
   </div>
+
+<div class="hold-btn-wrap" id="hold-wrap">
+  <button class="hold-btn" id="hold-btn">
+    <span class="hold-btn-label">누르고 있으면 넘어갑니다</span>
+  </button>
+</div>
 
   <!-- SCREEN 4: COMPLETE -->
   <div class="screen" id="s-complete">
@@ -442,6 +503,7 @@ const FLOW_DURATION = {
     document.getElementById('confirm-btn').disabled = false;
     document.body.classList.remove(...EMOTION_CLASSES);
     document.body.classList.add('emotion-' + name);
+    startAurora(name);
   }
 
   let flowTimer = null;
@@ -469,6 +531,7 @@ const FLOW_DURATION = {
   function startFlow() {
     showScreen('flow');
     runFlowStep(1);
+    showHoldBtn();
   }
 
   function runFlowStep(step) {
@@ -476,11 +539,6 @@ const FLOW_DURATION = {
     clearTimeout(tapIgnoreTimer);
     currentStep = step;
     tapAllowed = false;
-
-    const tapDelay = (step === 3) ? 1500 : (step === 4) ? Infinity : 500;
-    if (tapDelay !== Infinity) {
-      tapIgnoreTimer = setTimeout(() => { tapAllowed = true; }, tapDelay);
-    }
 
     document.querySelectorAll('.flow-dot').forEach(d => {
       const s = parseInt(d.dataset.step);
@@ -507,21 +565,11 @@ const FLOW_DURATION = {
     }, blankDelay);
 
     const endBtn = document.getElementById('flow-end-btn');
-    if (step === 4) {
-      endBtn.style.display = 'block';
-      setTimeout(() => endBtn.classList.add('visible'), 1000);
-    } else {
-      endBtn.classList.remove('visible');
-      endBtn.style.display = 'none';
-    }
+    endBtn.classList.remove('visible');
+    endBtn.style.display = 'none';
 
-    if (step === 3) {
-      flowTimer = setTimeout(() => {
-        flowTimer = setTimeout(() => runFlowStep(4), FLOW_DURATION['3-pause']);
-      }, FLOW_DURATION[3]);
-    } else if (FLOW_DURATION[step]) {
-      flowTimer = setTimeout(() => runFlowStep(step + 1), FLOW_DURATION[step]);
-    }
+    // 모든 단계 Hold to Calm으로만 넘어감 — 자동 타이머 없음
+    setTimeout(() => updateHoldLabel(), 100);
   }
 
   function exitFlow() {
@@ -531,7 +579,8 @@ const FLOW_DURATION = {
     currentStep = 0;
     document.getElementById('transition-line1').classList.remove('visible');
     document.getElementById('transition-line2').classList.remove('visible');
-    if (!selected) document.body.classList.remove(...EMOTION_CLASSES);
+    if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); }
+    hideHoldBtn();
     showScreen('emotion');
   }
 
@@ -539,6 +588,7 @@ const FLOW_DURATION = {
     clearTimeout(flowTimer);
     clearTimeout(tapIgnoreTimer);
     tapAllowed = false;
+    hideHoldBtn();
     showScreen('complete');
 
     const completeScreen = document.getElementById('s-complete');
@@ -571,6 +621,8 @@ const FLOW_DURATION = {
     const extras = document.getElementById('complete-extras');
     extras.classList.remove('visible');
     extras.style.display = 'none';
+    hideHoldBtn();
+    stopAurora();
     selected = null;
     document.querySelectorAll('.e-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('confirm-btn').disabled = true;
@@ -603,15 +655,201 @@ const FLOW_DURATION = {
     window.scrollTo(0, 0);
   }
 
-  document.getElementById('s-flow').addEventListener('click', (e) => {
-    if (e.target.closest('.flow-end-btn') || e.target.closest('.flow-exit-btn')) return;
-    if (!tapAllowed || currentStep === 4) return;
-    clearTimeout(flowTimer);
-    clearTimeout(tapIgnoreTimer);
-    tapAllowed = false;
-    runFlowStep(currentStep + 1);
-  });
+  // 화면 탭으로 넘기는 기능 제거 — Hold to Calm으로 대체
+  // s-flow 클릭은 exit/end 버튼만 처리
 
+
+  // ===== AURORA 배경 =====
+  const AURORA_COLORS = {
+    피곤함: [[26,31,46],[18,24,40]],
+    불안함: [[26,21,40],[20,16,36]],
+    공허함: [[18,18,18],[10,10,10]],
+    쓸쓸함: [[32,22,18],[20,14,12]],
+    복잡함: [[15,30,34],[10,18,22]],
+    괜찮음: [[22,26,44],[16,20,36]]
+  };
+
+  let auroraCanvas, auroraCtx, auroraAnim, auroraEmotion = null;
+  let auroraT = 0;
+
+  function initAurora() {
+    auroraCanvas = document.getElementById('aurora');
+    if (!auroraCanvas) return;
+    auroraCtx = auroraCanvas.getContext('2d');
+    resizeAurora();
+    window.addEventListener('resize', resizeAurora);
+  }
+
+  function resizeAurora() {
+    if (!auroraCanvas) return;
+    auroraCanvas.width = window.innerWidth;
+    auroraCanvas.height = window.innerHeight;
+  }
+
+  function startAurora(emotion) {
+    if (!auroraCanvas) return;
+    auroraEmotion = emotion;
+    auroraCanvas.classList.add('visible');
+    if (auroraAnim) cancelAnimationFrame(auroraAnim);
+    drawAurora();
+  }
+
+  function stopAurora() {
+    if (auroraCanvas) auroraCanvas.classList.remove('visible');
+    if (auroraAnim) cancelAnimationFrame(auroraAnim);
+    auroraEmotion = null;
+  }
+
+  function drawAurora() {
+    if (!auroraEmotion) return;
+    const colors = AURORA_COLORS[auroraEmotion] || AURORA_COLORS['괜찮음'];
+    const w = auroraCanvas.width, h = auroraCanvas.height;
+    const ctx = auroraCtx;
+    auroraT += 0.003;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // 베이스 배경
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, `rgb(${colors[0].join(',')})`);
+    bg.addColorStop(1, `rgb(${colors[1].join(',')})`);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // 오로라 레이어 1
+    const x1 = w * (0.3 + Math.sin(auroraT * 0.7) * 0.2);
+    const y1 = h * (0.2 + Math.cos(auroraT * 0.5) * 0.1);
+    const r1 = w * (0.6 + Math.sin(auroraT * 0.3) * 0.1);
+    const g1 = ctx.createRadialGradient(x1, y1, 0, x1, y1, r1);
+    const c0 = colors[0];
+    g1.addColorStop(0, `rgba(${Math.min(c0[0]+20,255)},${Math.min(c0[1]+15,255)},${Math.min(c0[2]+30,255)},0.35)`);
+    g1.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g1;
+    ctx.fillRect(0, 0, w, h);
+
+    // 오로라 레이어 2
+    const x2 = w * (0.7 + Math.cos(auroraT * 0.6) * 0.2);
+    const y2 = h * (0.4 + Math.sin(auroraT * 0.4) * 0.15);
+    const r2 = w * (0.5 + Math.cos(auroraT * 0.4) * 0.1);
+    const g2 = ctx.createRadialGradient(x2, y2, 0, x2, y2, r2);
+    g2.addColorStop(0, `rgba(${Math.min(c0[0]+10,255)},${Math.min(c0[1]+25,255)},${Math.min(c0[2]+20,255)},0.25)`);
+    g2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(0, 0, w, h);
+
+    auroraAnim = requestAnimationFrame(drawAurora);
+  }
+
+  // ===== HOLD TO CALM =====
+  const HOLD_MAP = {
+    피곤함: { 1: 1200, 2: 1500, 3: 2000, 4: 1500 },
+    불안함: { 1: 1500, 2: 2000, 3: 3000, 4: 1500 },
+    공허함: { 1: 2000, 2: 2500, 3: 3500, 4: 1500 },
+    쓸쓸함: { 1: 1500, 2: 2000, 3: 3000, 4: 1500 },
+    복잡함: { 1: 1800, 2: 2000, 3: 2500, 4: 1500 },
+    괜찮음: { 1: 1000, 2: 1200, 3: 1500, 4: 1200 }
+  };
+  function getHoldDuration() {
+    const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];
+    return map[currentStep] || 1600;
+  }
+  let holdActive = false, holdRAF = null, holdStartTime = null;
+
+  function initHold() {
+    const btn = document.getElementById('hold-btn');
+    if (!btn) return;
+
+    function getBar() {
+      return btn.querySelector('span.hold-bar') || null;
+    }
+
+    function onStart(e) {
+      e.preventDefault();
+      if (currentStep === 0 || holdActive) return;
+      holdActive = true;
+      holdStartTime = Date.now();
+      btn.classList.add('holding');
+      animateBar();
+    }
+
+    function animateBar() {
+      if (!holdActive) return;
+      const elapsed = Date.now() - holdStartTime;
+      const pct = Math.min(elapsed / getHoldDuration() * 100, 100);
+      btn.style.setProperty('--bar-pct', pct + '%');
+      if (pct >= 100) {
+        onComplete();
+        return;
+      }
+      holdRAF = requestAnimationFrame(animateBar);
+    }
+
+    function onComplete() {
+      holdActive = false;
+      cancelAnimationFrame(holdRAF);
+      btn.classList.remove('holding');
+      btn.style.setProperty('--bar-pct', '0%');
+      clearTimeout(flowTimer);
+      clearTimeout(tapIgnoreTimer);
+      tapAllowed = false;
+      if (currentStep >= 4) {
+        goComplete();
+      } else {
+        runFlowStep(currentStep + 1);
+      }
+    }
+
+    function onEnd(e) {
+      e.preventDefault();
+      if (!holdActive) return;
+      holdActive = false;
+      cancelAnimationFrame(holdRAF);
+      btn.classList.remove('holding');
+      btn.style.setProperty('--bar-pct', '0%');
+    }
+
+    btn.addEventListener('mousedown', onStart);
+    btn.addEventListener('touchstart', onStart, { passive: false });
+    btn.addEventListener('mouseup', onEnd);
+    btn.addEventListener('mouseleave', onEnd);
+    btn.addEventListener('touchend', onEnd);
+    btn.addEventListener('touchcancel', onEnd);
+  }
+
+  const HOLD_LABELS = {
+    1: '누르고 있으면 넘어갑니다',
+    2: '조금 더 머물러요',
+    3: '충분히 머물러도 됩니다',
+    4: '오늘을 마감합니다'
+  };
+
+  function showHoldBtn() {
+    const wrap = document.getElementById('hold-wrap');
+    if (wrap) wrap.classList.add('visible');
+    updateHoldLabel();
+  }
+
+  function updateHoldLabel() {
+    const label = document.querySelector('.hold-btn-label');
+    if (label) label.textContent = HOLD_LABELS[currentStep] || HOLD_LABELS[1];
+  }
+
+  function hideHoldBtn() {
+    const wrap = document.getElementById('hold-wrap');
+    if (wrap) wrap.classList.remove('visible');
+    const btn = document.getElementById('hold-btn');
+    if (btn) {
+      btn.classList.remove('holding');
+      btn.style.setProperty('--bar-pct', '0%');
+    }
+    holdActive = false;
+    if (holdRAF) cancelAnimationFrame(holdRAF);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initAurora();
+    initHold();
+  });
   renderGrid();
 </script>
 </body>
