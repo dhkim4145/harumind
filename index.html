@@ -956,7 +956,7 @@ const FLOW_DURATION = {
       if (!audioCtx) {
         audioCtx = new AudioCtor();
         masterGain = audioCtx.createGain();
-        masterGain.gain.setValueAtTime(0.24, audioCtx.currentTime);
+        masterGain.gain.setValueAtTime(0.36, audioCtx.currentTime);
         masterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') {
@@ -1089,53 +1089,64 @@ const FLOW_DURATION = {
     playSoftTone(freq * 2.01, 0.18, 'sine', volume * 0.32, when + 0.012, Math.min(freq * 4, 3200), 0.008, panValue * -0.6);
   }
 
+  function playMobilePresence(freq = 1800, when = 0, volume = 0.012, panValue = 0) {
+    playSoftTone(freq, 0.12, 'triangle', volume, when, 2800, 0.006, panValue);
+  }
+
   function playSoundTestBloom() {
-    playSoftTone(196, 0.42, 'sine', 0.032, 0, 760, 0.025, -0.12);
-    playTinyChime(392, 0.035, 0.016, 0.14);
-    playTinyChime(494, 0.085, 0.009, -0.08);
-    playAirNoise(0.34, 0.0065, 980, 0.02, 0.05);
+    playMobilePresence(1760, 0.012, 0.012, 0.04);
+    playSoftTone(196, 0.42, 'sine', 0.04, 0, 840, 0.025, -0.12);
+    playTinyChime(392, 0.035, 0.023, 0.14);
+    playTinyChime(494, 0.085, 0.013, -0.08);
+    playAirNoise(0.34, 0.0085, 1180, 0.02, 0.05);
   }
 
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base * 0.5, 0.92, 'sine', 0.022, 0, 420, 0.07, -0.08);
-    playSoftTone(base, 0.74, 'sine', 0.038, 0.018, 680, 0.045, 0.08);
-    playTinyChime(Math.min(base * 2, 640), 0.09, 0.013, 0.18);
-    playTinyChime(Math.min(base * 2.5, 760), 0.18, 0.007, -0.16);
-    playAirNoise(0.62, 0.0075, 820, 0.02, 0);
+    playMobilePresence(1680, 0.018, 0.011, 0.06);
+    playSoftTone(base * 0.5, 0.92, 'sine', 0.028, 0, 480, 0.07, -0.08);
+    playSoftTone(base, 0.74, 'sine', 0.05, 0.018, 780, 0.045, 0.08);
+    playTinyChime(Math.min(base * 2, 640), 0.09, 0.019, 0.18);
+    playTinyChime(Math.min(base * 2.5, 760), 0.18, 0.011, -0.16);
+    playAirNoise(0.62, 0.0095, 980, 0.02, 0);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playSoftTone(164, 0.52, 'sine', 0.04, 0, 620, 0.03, -0.1);
-      playTinyChime(328, 0.035, 0.014, 0.14);
-      playAirNoise(0.32, 0.006, 720, 0.02, 0.05);
+      playMobilePresence(1880, 0.012, 0.013, 0.08);
+      playSoftTone(164, 0.52, 'sine', 0.052, 0, 720, 0.03, -0.1);
+      playTinyChime(328, 0.035, 0.021, 0.14);
+      playAirNoise(0.32, 0.008, 940, 0.02, 0.05);
     } else if (step === 2) {
-      playSoftTone(196, 0.54, 'sine', 0.038, 0, 760, 0.028, 0.08);
-      playTinyChime(392, 0.04, 0.015, -0.12);
-      playTinyChime(494, 0.11, 0.007, 0.12);
-      playAirNoise(0.44, 0.008, 940, 0.02, -0.04);
+      playMobilePresence(2040, 0.012, 0.014, -0.06);
+      playSoftTone(196, 0.54, 'sine', 0.05, 0, 860, 0.028, 0.08);
+      playTinyChime(392, 0.04, 0.023, -0.12);
+      playTinyChime(494, 0.11, 0.011, 0.12);
+      playAirNoise(0.44, 0.01, 1120, 0.02, -0.04);
     } else if (step === 4) {
-      playSoftTone(146, 0.62, 'sine', 0.032, 0, 520, 0.035, -0.04);
-      playSoftTone(292, 0.48, 'sine', 0.016, 0.045, 780, 0.03, 0.1);
-      playAirNoise(0.38, 0.0055, 640, 0.025, 0);
+      playMobilePresence(1620, 0.014, 0.011, 0.02);
+      playSoftTone(146, 0.62, 'sine', 0.042, 0, 620, 0.035, -0.04);
+      playSoftTone(292, 0.48, 'sine', 0.022, 0.045, 880, 0.03, 0.1);
+      playAirNoise(0.38, 0.0075, 820, 0.025, 0);
     }
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.12, 'sine', 0.048, 0, 680, 0.08, -0.06);
-    playSoftTone(247, 1.02, 'sine', 0.03, 0.055, 760, 0.08, 0.08);
-    playSoftTone(330, 0.88, 'sine', 0.018, 0.12, 980, 0.07, 0);
-    playTinyChime(392, 0.18, 0.012, -0.14);
-    playTinyChime(494, 0.3, 0.008, 0.14);
-    playAirNoise(0.86, 0.0065, 820, 0.08, 0);
+    playMobilePresence(1840, 0.018, 0.012, 0);
+    playSoftTone(196, 1.12, 'sine', 0.062, 0, 760, 0.08, -0.06);
+    playSoftTone(247, 1.02, 'sine', 0.04, 0.055, 860, 0.08, 0.08);
+    playSoftTone(330, 0.88, 'sine', 0.025, 0.12, 1120, 0.07, 0);
+    playTinyChime(392, 0.18, 0.018, -0.14);
+    playTinyChime(494, 0.3, 0.012, 0.14);
+    playAirNoise(0.86, 0.0085, 980, 0.08, 0);
   }
 
   function playCompleteCloseSound() {
-    playSoftTone(130, 0.78, 'sine', 0.038, 0, 520, 0.045, 0);
-    playSoftTone(260, 0.58, 'sine', 0.018, 0.035, 720, 0.04, -0.1);
-    playTinyChime(390, 0.08, 0.0065, 0.12);
-    playAirNoise(0.58, 0.006, 560, 0.025, 0);
+    playMobilePresence(1520, 0.018, 0.01, 0.04);
+    playSoftTone(130, 0.78, 'sine', 0.048, 0, 620, 0.045, 0);
+    playSoftTone(260, 0.58, 'sine', 0.024, 0.035, 840, 0.04, -0.1);
+    playTinyChime(390, 0.08, 0.01, 0.12);
+    playAirNoise(0.58, 0.0075, 760, 0.025, 0);
   }
 
   let flowTimer = null;
