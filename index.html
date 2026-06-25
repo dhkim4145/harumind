@@ -15,6 +15,16 @@
 <meta property="og:image" content="https://harumind.kr/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="675" />  
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#0c0c10" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="하루마음" />
+<meta name="application-name" content="하루마음" />
 <meta name="naver-site-verification" content="9a17421f3eca307a085f00983e810d49b7172fdd" />
 <!-- HARUMIND_BUILD: sound-cta-tune-20260625-3 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JX8PENN22H"></script>
@@ -779,22 +789,40 @@ const FLOW_DURATION = {
   .transition-hint.visible { opacity: 1; }
 
   /* transition 진행 바 */
-  .transition-progress {
-    width: 118px;
-    height: 1px;
-    margin-top: 2px;
-    background: rgba(234,230,222,0.08);
+  .transition-breath {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 10px;
     opacity: 0;
     transition: opacity 0.8s ease;
-    overflow: hidden;
   }
-  .transition-progress.visible { opacity: 1; }
-  .transition-progress-bar {
-    height: 100%;
-    width: 0%;
-    background: rgba(196,168,130,0.58);
-    opacity: 0.78;
-    transition: none;
+  .transition-breath.visible { opacity: 1; }
+  .transition-breath-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+    color: rgba(234,230,222,0.44);
+    opacity: 0.2;
+    animation: transitionBreathDot 3.8s cubic-bezier(.4,0,.2,1) infinite;
+  }
+  .transition-breath-dot:nth-child(2) { animation-delay: .45s; }
+  .transition-breath-dot:nth-child(3) { animation-delay: .9s; }
+  .transition-breath-dot:nth-child(4) { animation-delay: 1.35s; }
+
+  @keyframes transitionBreathDot {
+    0%, 74%, 100% {
+      opacity: 0.18;
+      transform: scale(0.82);
+      box-shadow: none;
+    }
+    24% {
+      opacity: 0.62;
+      transform: scale(1.08);
+      box-shadow: 0 0 10px rgba(234,230,222,0.08);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -834,8 +862,11 @@ const FLOW_DURATION = {
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"></button>
     <div class="transition-text" id="transition-line1"></div>
     <div class="transition-text transition-line2" id="transition-line2"></div>
-    <div class="transition-progress" id="transition-progress">
-      <div class="transition-progress-bar" id="transition-progress-bar"></div>
+    <div class="transition-breath" id="transition-breath" aria-hidden="true">
+      <span class="transition-breath-dot"></span>
+      <span class="transition-breath-dot"></span>
+      <span class="transition-breath-dot"></span>
+      <span class="transition-breath-dot"></span>
     </div>
     <div class="transition-hint" id="transition-hint">네 번만 천천히 머물면 오늘은 닫힙니다</div>
   </div>
@@ -1241,34 +1272,17 @@ const FLOW_DURATION = {
 
     const line2Delay = selected === '공허함' ? 2000 : selected === '피곤함' ? 1600 : 1200;
     const flowDelay  = selected === '공허함' ? 4000 : 3200;
-    const totalDelay = 400 + line2Delay + flowDelay;
 
     // 힌트 텍스트
     const hint = document.getElementById('transition-hint');
     if (hint) { hint.classList.remove('visible'); }
 
-    // 진행 바 초기화
-    const prog = document.getElementById('transition-progress');
-    const progBar = document.getElementById('transition-progress-bar');
-    if (prog && progBar) {
-      prog.classList.remove('visible');
-      progBar.style.transition = 'none';
-      progBar.style.width = '0%';
-    }
+    const breath = document.getElementById('transition-breath');
+    if (breath) breath.classList.remove('visible');
 
     flowTimer = setTimeout(() => {
       line1.classList.add('visible');
-
-      // 진행 바 시작
-      if (prog && progBar) {
-        prog.classList.add('visible');
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            progBar.style.transition = `width ${line2Delay + flowDelay}ms linear`;
-            progBar.style.width = '100%';
-          });
-        });
-      }
+      if (breath) breath.classList.add('visible');
 
       flowTimer = setTimeout(() => {
         line2.classList.add('visible');
@@ -1277,8 +1291,7 @@ const FLOW_DURATION = {
         if (hint) hint.classList.add('visible');
 
         flowTimer = setTimeout(() => {
-          // 진행 바 숨김
-          if (prog) prog.classList.remove('visible');
+          if (breath) breath.classList.remove('visible');
           if (hint) hint.classList.remove('visible');
           startFlow();
         }, flowDelay);
@@ -1387,9 +1400,9 @@ const FLOW_DURATION = {
     stopScreenReact();
     resetSettled();
     hideHoldBtn();
-    const _prog = document.getElementById('transition-progress');
+    const _breath = document.getElementById('transition-breath');
     const _hint = document.getElementById('transition-hint');
-    if (_prog) _prog.classList.remove('visible');
+    if (_breath) _breath.classList.remove('visible');
     if (_hint) _hint.classList.remove('visible');
     showScreen('emotion');
   }
