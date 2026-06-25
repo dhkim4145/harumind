@@ -1011,7 +1011,7 @@ const FLOW_DURATION = {
     return audioCtx.currentTime;
   }
 
-  function playSoftTone(freq, duration, type = 'sine', volume = 0.025, when = 0, filterFreq = 700, attack = 0.045) {
+  function playSoftTone(freq, duration, type = 'sine', volume = 0.025, when = 0, filterFreq = 900, attack = 0.028, panValue = 0) {
     const baseNow = getAudioNow();
     if (baseNow === null) return;
     try {
@@ -1019,24 +1019,34 @@ const FLOW_DURATION = {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       const filter = audioCtx.createBiquadFilter();
+      const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
       osc.type = type;
       osc.frequency.setValueAtTime(freq, now);
-      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.92), now + duration);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq * 0.985), now + Math.min(duration, 0.28));
+      osc.detune.setValueAtTime(-4, now);
+      osc.detune.linearRampToValueAtTime(2, now + Math.min(duration, 0.38));
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(filterFreq, now);
-      filter.Q.setValueAtTime(0.2, now);
+      filter.frequency.exponentialRampToValueAtTime(Math.max(160, filterFreq * 0.52), now + duration);
+      filter.Q.setValueAtTime(0.55, now);
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.linearRampToValueAtTime(volume, now + attack);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      gain.gain.setTargetAtTime(0.0001, now + attack, Math.max(0.08, duration * 0.35));
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(masterGain);
+      if (pan) {
+        pan.pan.setValueAtTime(panValue, now);
+        gain.connect(pan);
+        pan.connect(masterGain);
+      } else {
+        gain.connect(masterGain);
+      }
       osc.start(now);
       osc.stop(now + duration + 0.06);
     } catch (err) {}
   }
 
-  function playAirNoise(duration = 0.45, volume = 0.012, filterFreq = 360, when = 0) {
+  function playAirNoise(duration = 0.45, volume = 0.012, filterFreq = 760, when = 0, panValue = 0) {
     const baseNow = getAudioNow();
     if (baseNow === null) return;
     try {
@@ -1051,86 +1061,81 @@ const FLOW_DURATION = {
       const src = audioCtx.createBufferSource();
       const filter = audioCtx.createBiquadFilter();
       const gain = audioCtx.createGain();
+      const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
       src.buffer = buffer;
-      filter.type = 'lowpass';
+      filter.type = 'bandpass';
       filter.frequency.setValueAtTime(filterFreq, now);
-      filter.Q.setValueAtTime(0.35, now);
+      filter.frequency.exponentialRampToValueAtTime(Math.max(180, filterFreq * 0.46), now + duration);
+      filter.Q.setValueAtTime(0.7, now);
       gain.gain.setValueAtTime(0.0001, now);
       gain.gain.linearRampToValueAtTime(volume, now + 0.025);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      gain.gain.setTargetAtTime(0.0001, now + 0.04, Math.max(0.08, duration * 0.28));
       src.connect(filter);
       filter.connect(gain);
-      gain.connect(masterGain);
+      if (pan) {
+        pan.pan.setValueAtTime(panValue, now);
+        gain.connect(pan);
+        pan.connect(masterGain);
+      } else {
+        gain.connect(masterGain);
+      }
       src.start(now);
       src.stop(now + duration + 0.03);
     } catch (err) {}
   }
 
+  function playTinyChime(freq, when = 0, volume = 0.012, panValue = 0) {
+    playSoftTone(freq, 0.32, 'sine', volume, when, Math.min(freq * 2.8, 2400), 0.012, panValue);
+    playSoftTone(freq * 2.01, 0.18, 'sine', volume * 0.32, when + 0.012, Math.min(freq * 4, 3200), 0.008, panValue * -0.6);
+  }
+
   function playSoundTestBloom() {
-    playSoftTone(174, 0.44, 'sine', 0.03, 0, 520);
-    playSoftTone(620, 0.42, 'sine', 0.024, 0.014, 1150);
-    playSoftTone(780, 0.34, 'sine', 0.013, 0.04, 1150);
-    playSoftTone(980, 0.26, 'sine', 0.004, 0.08, 1200);
-    playSoftTone(246, 0.48, 'sine', 0.016, 0.045, 760);
-    playSoftTone(98, 0.48, 'sine', 0.012, 0.015, 360);
-    playAirNoise(0.38, 0.008, 520, 0.015);
+    playSoftTone(196, 0.42, 'sine', 0.032, 0, 760, 0.025, -0.12);
+    playTinyChime(392, 0.035, 0.016, 0.14);
+    playTinyChime(494, 0.085, 0.009, -0.08);
+    playAirNoise(0.34, 0.0065, 980, 0.02, 0.05);
   }
 
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base, 0.78, 'sine', 0.032, 0, 620);
-    playSoftTone(620, 0.56, 'sine', 0.018, 0.018, 1100);
-    playSoftTone(780, 0.5, 'sine', 0.015, 0.045, 1280);
-    playSoftTone(980, 0.38, 'triangle', 0.008, 0.085, 1350);
-    playSoftTone(Math.min(base * 3.2, 860), 0.52, 'sine', 0.011, 0.07, 1200);
-    playSoftTone(base * 0.5, 0.88, 'sine', 0.018, 0.04, 500);
-    playSoftTone(Math.min(base * 1.5, 520), 0.54, 'sine', 0.01, 0.06, 900);
-    playAirNoise(0.56, 0.0095, 520, 0.03);
+    playSoftTone(base * 0.5, 0.92, 'sine', 0.022, 0, 420, 0.07, -0.08);
+    playSoftTone(base, 0.74, 'sine', 0.038, 0.018, 680, 0.045, 0.08);
+    playTinyChime(Math.min(base * 2, 640), 0.09, 0.013, 0.18);
+    playTinyChime(Math.min(base * 2.5, 760), 0.18, 0.007, -0.16);
+    playAirNoise(0.62, 0.0075, 820, 0.02, 0);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playSoftTone(164, 0.62, 'sine', 0.043, 0, 560);
-      playSoftTone(620, 0.48, 'sine', 0.025, 0.02, 1150);
-      playSoftTone(820, 0.34, 'sine', 0.0045, 0.07, 1000);
-      playSoftTone(110, 0.7, 'sine', 0.025, 0.04, 400);
-      playSoftTone(328, 0.48, 'sine', 0.016, 0.06, 820);
-      playAirNoise(0.4, 0.0125, 480, 0.02);
+      playSoftTone(164, 0.52, 'sine', 0.04, 0, 620, 0.03, -0.1);
+      playTinyChime(328, 0.035, 0.014, 0.14);
+      playAirNoise(0.32, 0.006, 720, 0.02, 0.05);
     } else if (step === 2) {
-      playSoftTone(196, 0.58, 'sine', 0.04, 0, 720);
-      playSoftTone(680, 0.5, 'sine', 0.028, 0.025, 1200);
-      playSoftTone(820, 0.34, 'sine', 0.005, 0.075, 1050);
-      playSoftTone(392, 0.42, 'sine', 0.015, 0.08, 960);
-      playAirNoise(0.58, 0.019, 680, 0.02);
-      playSoftTone(147, 0.62, 'sine', 0.02, 0.12, 560);
+      playSoftTone(196, 0.54, 'sine', 0.038, 0, 760, 0.028, 0.08);
+      playTinyChime(392, 0.04, 0.015, -0.12);
+      playTinyChime(494, 0.11, 0.007, 0.12);
+      playAirNoise(0.44, 0.008, 940, 0.02, -0.04);
     } else if (step === 4) {
-      playSoftTone(146, 0.58, 'sine', 0.035, 0, 520);
-      playSoftTone(620, 0.46, 'sine', 0.02, 0.025, 1120);
-      playSoftTone(780, 0.34, 'sine', 0.004, 0.075, 980);
-      playSoftTone(292, 0.42, 'sine', 0.014, 0.05, 820);
-      playSoftTone(92, 0.74, 'sine', 0.022, 0.08, 360);
+      playSoftTone(146, 0.62, 'sine', 0.032, 0, 520, 0.035, -0.04);
+      playSoftTone(292, 0.48, 'sine', 0.016, 0.045, 780, 0.03, 0.1);
+      playAirNoise(0.38, 0.0055, 640, 0.025, 0);
     }
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.42, 'sine', 0.052, 0, 620, 0.09);
-    playSoftTone(220, 1.3, 'sine', 0.034, 0.08, 680, 0.1);
-    playSoftTone(164, 1.36, 'sine', 0.026, 0.12, 520, 0.11);
-    playSoftTone(392, 1.02, 'sine', 0.009, 0.2, 760, 0.12);
-    playSoftTone(440, 0.9, 'sine', 0.006, 0.26, 780, 0.12);
-    playSoftTone(620, 0.82, 'sine', 0.009, 0.18, 980, 0.12);
-    playSoftTone(780, 0.52, 'sine', 0.0025, 0.32, 900, 0.14);
-    playSoftTone(98, 1.46, 'sine', 0.024, 0.02, 360, 0.12);
-    playAirNoise(1.0, 0.008, 520, 0.12);
+    playSoftTone(196, 1.12, 'sine', 0.048, 0, 680, 0.08, -0.06);
+    playSoftTone(247, 1.02, 'sine', 0.03, 0.055, 760, 0.08, 0.08);
+    playSoftTone(330, 0.88, 'sine', 0.018, 0.12, 980, 0.07, 0);
+    playTinyChime(392, 0.18, 0.012, -0.14);
+    playTinyChime(494, 0.3, 0.008, 0.14);
+    playAirNoise(0.86, 0.0065, 820, 0.08, 0);
   }
 
   function playCompleteCloseSound() {
-    playSoftTone(130, 0.6, 'sine', 0.037, 0, 500);
-    playSoftTone(620, 0.48, 'sine', 0.021, 0.03, 1120);
-    playSoftTone(780, 0.32, 'sine', 0.004, 0.08, 980);
-    playSoftTone(260, 0.44, 'sine', 0.014, 0.05, 760);
-    playSoftTone(82, 0.78, 'sine', 0.023, 0.08, 340);
-    playAirNoise(0.48, 0.011, 500, 0.02);
+    playSoftTone(130, 0.78, 'sine', 0.038, 0, 520, 0.045, 0);
+    playSoftTone(260, 0.58, 'sine', 0.018, 0.035, 720, 0.04, -0.1);
+    playTinyChime(390, 0.08, 0.0065, 0.12);
+    playAirNoise(0.58, 0.006, 560, 0.025, 0);
   }
 
   let flowTimer = null;
