@@ -490,9 +490,20 @@ const FLOW_DURATION = {
   .complete-extras.visible { opacity: 1; }
   .complete-quote {
     font-family: 'Noto Serif KR', serif;
-    font-size: 13px; font-weight: 300; color: rgba(234,230,222,0.43);
-    line-height: 2.2; text-align: center; letter-spacing: .03em;
-    padding: 10px 8px 0; width: 100%;
+    font-size: 14px; font-weight: 300; color: rgba(234,230,222,0.58);
+    line-height: 2.08; text-align: center; letter-spacing: .025em;
+    padding: 8px 8px 0; width: 100%;
+  }
+  .complete-quote-label {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 10px; font-weight: 300; color: rgba(234,230,222,0.7);
+    letter-spacing: .14em; line-height: 1;
+    margin-bottom: 8px; opacity: 0.72;
+  }
+  .complete-quote-wrap {
+    width: 100%;
+    padding-top: 16px;
+    border-top: 1px solid rgba(234,230,222,0.075);
   }
 
   .echo-emoji {
@@ -846,7 +857,10 @@ const FLOW_DURATION = {
     <div class="complete-sub">충분합니다</div>
     <div class="complete-close">내일은 내일의 내가 봅니다</div>
     <div class="complete-extras" id="complete-extras">
-      <div class="complete-quote" id="complete-quote"></div>
+      <div class="complete-quote-wrap">
+        <div class="complete-quote-label">오늘의 한 문장</div>
+        <div class="complete-quote" id="complete-quote"></div>
+      </div>
     </div>
     <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
   </div>
@@ -929,7 +943,7 @@ const FLOW_DURATION = {
       if (!audioCtx) {
         audioCtx = new AudioCtor();
         masterGain = audioCtx.createGain();
-        masterGain.gain.setValueAtTime(0.078, audioCtx.currentTime);
+        masterGain.gain.setValueAtTime(0.105, audioCtx.currentTime);
         masterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') {
@@ -953,17 +967,19 @@ const FLOW_DURATION = {
     });
   }
 
-  function setSoundEnabled(enabled) {
+  function setSoundEnabled(enabled, options = {}) {
     soundEnabled = !!enabled;
     try {
       localStorage.setItem(SOUND_STORAGE_KEY, soundEnabled ? 'true' : 'false');
     } catch (err) {}
     updateSoundToggle();
     if (soundEnabled) initAudio();
+    if (soundEnabled && options.playTest) playSoundTestBloom();
   }
 
   function toggleSound() {
-    setSoundEnabled(!soundEnabled);
+    const nextEnabled = !soundEnabled;
+    setSoundEnabled(nextEnabled, { playTest: nextEnabled });
   }
 
   function loadSoundPreference() {
@@ -1037,45 +1053,51 @@ const FLOW_DURATION = {
     } catch (err) {}
   }
 
+  function playSoundTestBloom() {
+    playSoftTone(174, 0.34, 'sine', 0.018, 0, 460);
+    playSoftTone(246, 0.42, 'sine', 0.009, 0.035, 620);
+    playAirNoise(0.3, 0.0048, 340, 0.015);
+  }
+
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base, 0.72, 'sine', 0.022, 0, 560);
-    playSoftTone(base * 0.5, 0.82, 'sine', 0.013, 0.04, 420);
-    playSoftTone(Math.min(base * 1.5, 520), 0.48, 'sine', 0.006, 0.05, 720);
-    playAirNoise(0.5, 0.007, 320, 0.03);
+    playSoftTone(base, 0.72, 'sine', 0.025, 0, 560);
+    playSoftTone(base * 0.5, 0.82, 'sine', 0.015, 0.04, 420);
+    playSoftTone(Math.min(base * 1.5, 520), 0.48, 'sine', 0.007, 0.05, 720);
+    playAirNoise(0.5, 0.008, 320, 0.03);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playSoftTone(164, 0.56, 'sine', 0.031, 0, 520);
-      playSoftTone(110, 0.64, 'sine', 0.018, 0.04, 360);
-      playSoftTone(328, 0.42, 'sine', 0.011, 0.06, 760);
-      playAirNoise(0.36, 0.009, 300, 0.02);
+      playSoftTone(164, 0.56, 'sine', 0.036, 0, 520);
+      playSoftTone(110, 0.64, 'sine', 0.021, 0.04, 360);
+      playSoftTone(328, 0.42, 'sine', 0.013, 0.06, 760);
+      playAirNoise(0.36, 0.011, 300, 0.02);
     } else if (step === 2) {
-      playSoftTone(196, 0.5, 'sine', 0.026, 0, 680);
-      playSoftTone(392, 0.38, 'sine', 0.01, 0.08, 820);
-      playAirNoise(0.54, 0.014, 560, 0.02);
-      playSoftTone(147, 0.56, 'triangle', 0.013, 0.12, 520);
+      playSoftTone(196, 0.5, 'sine', 0.031, 0, 680);
+      playSoftTone(392, 0.38, 'sine', 0.012, 0.08, 820);
+      playAirNoise(0.54, 0.017, 560, 0.02);
+      playSoftTone(147, 0.56, 'triangle', 0.016, 0.12, 520);
     } else if (step === 4) {
-      playSoftTone(146, 0.5, 'sine', 0.023, 0, 420);
-      playSoftTone(292, 0.36, 'sine', 0.008, 0.04, 620);
-      playSoftTone(92, 0.62, 'sine', 0.014, 0.08, 300);
+      playSoftTone(146, 0.5, 'sine', 0.028, 0, 420);
+      playSoftTone(292, 0.36, 'sine', 0.01, 0.04, 620);
+      playSoftTone(92, 0.62, 'sine', 0.017, 0.08, 300);
     }
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.12, 'sine', 0.031, 0, 680);
-    playSoftTone(246, 1.02, 'sine', 0.021, 0.06, 820);
-    playSoftTone(392, 0.82, 'sine', 0.01, 0.12, 900);
-    playSoftTone(98, 1.18, 'sine', 0.017, 0, 380);
-    playAirNoise(0.76, 0.008, 500, 0.08);
+    playSoftTone(196, 1.12, 'sine', 0.043, 0, 680);
+    playSoftTone(246, 1.02, 'sine', 0.029, 0.06, 820);
+    playSoftTone(392, 0.82, 'sine', 0.014, 0.12, 900);
+    playSoftTone(98, 1.18, 'sine', 0.023, 0, 380);
+    playAirNoise(0.76, 0.011, 500, 0.08);
   }
 
   function playCompleteCloseSound() {
-    playSoftTone(130, 0.5, 'sine', 0.022, 0, 400);
-    playSoftTone(260, 0.38, 'sine', 0.008, 0.04, 560);
-    playSoftTone(82, 0.66, 'sine', 0.014, 0.06, 280);
-    playAirNoise(0.42, 0.007, 300, 0.02);
+    playSoftTone(130, 0.5, 'sine', 0.027, 0, 400);
+    playSoftTone(260, 0.38, 'sine', 0.01, 0.04, 560);
+    playSoftTone(82, 0.66, 'sine', 0.017, 0.06, 280);
+    playAirNoise(0.42, 0.009, 300, 0.02);
   }
 
   let flowTimer = null;
