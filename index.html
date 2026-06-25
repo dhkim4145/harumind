@@ -209,6 +209,7 @@ const FLOW_DURATION = {
     transition: all .18s ease; margin-top:16px;
   }
   .btn-primary { background:var(--accent); color:#1a1410; }
+  .btn-primary:not(:disabled) { box-shadow: 0 0 18px rgba(196,168,130,0.12); }
   .btn-primary:hover:not(:disabled) { background:#d4b892; transform:translateY(-1px); }
   .btn-primary:disabled { opacity:.28; cursor:not-allowed; }
   .sound-toggle {
@@ -515,7 +516,12 @@ const FLOW_DURATION = {
   .echo-emoji.visible { opacity: 0.15; }
   .echo-emoji.fadeout { opacity: 0; transition: opacity 1.5s ease; }
 
-  @media(max-width:440px){ .app { max-width:100%; } }
+  @media(max-width:440px){
+    .app { max-width:100%; }
+    #s-emotion .header { padding-top: 30px; padding-bottom: 20px; }
+    #s-emotion .emotion-grid { gap: 8px; }
+    #s-emotion #confirm-btn { margin-top: 9px; }
+  }
 
   canvas#aurora {
     position: fixed; top: 0; left: 0;
@@ -943,7 +949,7 @@ const FLOW_DURATION = {
       if (!audioCtx) {
         audioCtx = new AudioCtor();
         masterGain = audioCtx.createGain();
-        masterGain.gain.setValueAtTime(0.105, audioCtx.currentTime);
+        masterGain.gain.setValueAtTime(0.14, audioCtx.currentTime);
         masterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') {
@@ -1054,9 +1060,10 @@ const FLOW_DURATION = {
   }
 
   function playSoundTestBloom() {
-    playSoftTone(174, 0.34, 'sine', 0.018, 0, 460);
-    playSoftTone(246, 0.42, 'sine', 0.009, 0.035, 620);
-    playAirNoise(0.3, 0.0048, 340, 0.015);
+    playSoftTone(174, 0.38, 'sine', 0.022, 0, 440);
+    playSoftTone(246, 0.44, 'sine', 0.011, 0.04, 580);
+    playSoftTone(98, 0.42, 'sine', 0.009, 0.015, 300);
+    playAirNoise(0.34, 0.0062, 320, 0.015);
   }
 
   function playEmotionEnterSound(emotion) {
@@ -1086,11 +1093,12 @@ const FLOW_DURATION = {
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.12, 'sine', 0.043, 0, 680);
-    playSoftTone(246, 1.02, 'sine', 0.029, 0.06, 820);
-    playSoftTone(392, 0.82, 'sine', 0.014, 0.12, 900);
-    playSoftTone(98, 1.18, 'sine', 0.023, 0, 380);
-    playAirNoise(0.76, 0.011, 500, 0.08);
+    playSoftTone(196, 1.18, 'sine', 0.047, 0, 620);
+    playSoftTone(246, 1.08, 'sine', 0.033, 0.06, 720);
+    playSoftTone(164, 1.16, 'sine', 0.026, 0.08, 500);
+    playSoftTone(392, 0.78, 'sine', 0.013, 0.14, 760);
+    playSoftTone(98, 1.24, 'sine', 0.027, 0, 340);
+    playAirNoise(0.82, 0.013, 440, 0.08);
   }
 
   function playCompleteCloseSound() {
