@@ -994,7 +994,7 @@ const FLOW_DURATION = {
       if (!audioCtx) {
         audioCtx = new AudioCtor();
         masterGain = audioCtx.createGain();
-        masterGain.gain.setValueAtTime(0.36, audioCtx.currentTime);
+        masterGain.gain.setValueAtTime(0.48, audioCtx.currentTime);
         masterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === 'suspended') {
@@ -1135,9 +1135,9 @@ const FLOW_DURATION = {
       let drift = 0;
       for (let i = 0; i < frameCount; i++) {
         const t = i / sampleRate;
-        drift = drift * 0.992 + (Math.random() * 2 - 1) * 0.008;
-        const breath = 0.56 + Math.sin(t * Math.PI * 0.72) * 0.16;
-        data[i] = (Math.random() * 2 - 1) * 0.42 * breath + drift;
+        drift = drift * 0.992 + (Math.random() * 2 - 1) * 0.012;
+        const breath = 0.62 + Math.sin(t * Math.PI * 0.72) * 0.18;
+        data[i] = (Math.random() * 2 - 1) * 0.68 * breath + drift;
       }
 
       const src = audioCtx.createBufferSource();
@@ -1148,16 +1148,16 @@ const FLOW_DURATION = {
 
       src.buffer = buffer;
       highpass.type = 'highpass';
-      highpass.frequency.setValueAtTime(170, now);
-      highpass.Q.setValueAtTime(0.62, now);
+      highpass.frequency.setValueAtTime(110, now);
+      highpass.Q.setValueAtTime(0.55, now);
       lowpass.type = 'lowpass';
-      lowpass.frequency.setValueAtTime(980, now);
-      lowpass.frequency.exponentialRampToValueAtTime(520, now + duration);
-      lowpass.Q.setValueAtTime(0.46, now);
+      lowpass.frequency.setValueAtTime(2200, now);
+      lowpass.frequency.exponentialRampToValueAtTime(1250, now + duration);
+      lowpass.Q.setValueAtTime(0.38, now);
 
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.028, now + 0.7);
-      gain.gain.setValueAtTime(0.028, now + Math.max(0.75, duration - 1.2));
+      gain.gain.linearRampToValueAtTime(0.072, now + 0.65);
+      gain.gain.setValueAtTime(0.072, now + Math.max(0.75, duration - 1.2));
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
       if (pan) {
