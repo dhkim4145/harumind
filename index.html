@@ -180,31 +180,57 @@ const FLOW_DURATION = {
 
   .emotion-grid {
     display:grid; grid-template-columns:1fr 1fr;
-    gap:9px; margin-top:4px;
+    gap:8px; margin-top:6px;
   }
 
   .e-card {
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); padding:18px 15px; cursor:pointer;
-    transition: border-color .18s, transform .18s, background .18s;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.018);
+    border:1px solid rgba(234,230,222,0.045);
+    border-radius:10px; padding:18px 15px 17px; cursor:pointer;
+    transition: border-color .35s cubic-bezier(.22,1,.36,1),
+                transform .35s cubic-bezier(.22,1,.36,1),
+                background .35s cubic-bezier(.22,1,.36,1),
+                box-shadow .35s cubic-bezier(.22,1,.36,1);
     display:flex; flex-direction:column; gap:7px; user-select:none;
   }
-  .e-card:hover { border-color:var(--border-hover); transform:translateY(-2px); }
-  .e-card:focus-visible { outline:1px solid rgba(196,168,130,0.45); outline-offset:3px; }
-  .e-card.selected { border-color:var(--accent); background:var(--accent-dim); }
+  .e-card::after {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px; bottom: 10px;
+    height: 1px; border-radius: 999px;
+    background: linear-gradient(90deg, rgba(196,168,130,0), rgba(196,168,130,0.58), rgba(196,168,130,0));
+    opacity: 0;
+    transform: scaleX(0.32);
+    transition: opacity .45s cubic-bezier(.22,1,.36,1),
+                transform .55s cubic-bezier(.22,1,.36,1);
+  }
+  .e-card:hover {
+    border-color: rgba(234,230,222,0.085);
+    background: rgba(255,255,255,0.026);
+    transform: translateY(-1px);
+  }
+  .e-card:focus-visible { outline:1px solid rgba(196,168,130,0.32); outline-offset:3px; }
+  .e-card.selected {
+    border-color: rgba(196,168,130,0.22);
+    background: rgba(196,168,130,0.045);
+    box-shadow: inset 0 0 0 1px rgba(196,168,130,0.025);
+  }
+  .e-card.selected::after { opacity: 0.72; transform: scaleX(1); }
 
   .e-dot {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 7px; height: 7px; border-radius: 50%;
     flex-shrink: 0;
-    transition: transform .3s ease, box-shadow .3s ease;
+    opacity: 0.62;
+    transition: opacity .35s ease, box-shadow .35s ease;
   }
   .e-card:hover .e-dot {
-    transform: scale(1.3);
-    box-shadow: 0 0 8px currentColor;
+    opacity: 0.82;
   }
   .e-card.selected .e-dot {
-    transform: scale(1.5);
-    box-shadow: 0 0 12px 2px rgba(255,255,255,0.15);
+    opacity: 0.95;
+    box-shadow: 0 0 9px 1px rgba(234,230,222,0.08);
   }
   .e-word {
     font-family:'Noto Serif KR', serif;
@@ -214,18 +240,29 @@ const FLOW_DURATION = {
   .e-desc { font-size:11px; color:rgba(234,230,222,0.36); line-height:1.55; }
 
   .btn {
-    width:100%; border:none; border-radius:12px; padding:15px; cursor:pointer;
+    width:100%; border:1px solid rgba(196,168,130,0.1); border-radius:10px; padding:15px; cursor:pointer;
     font-family:'Noto Sans KR', sans-serif;
-    font-size:13px; font-weight:400; letter-spacing:.05em;
-    transition: all .18s ease; margin-top:16px;
+    font-size:12px; font-weight:300; letter-spacing:.055em;
+    transition: background .3s cubic-bezier(.22,1,.36,1),
+                border-color .3s cubic-bezier(.22,1,.36,1),
+                color .3s cubic-bezier(.22,1,.36,1),
+                box-shadow .3s cubic-bezier(.22,1,.36,1),
+                transform .3s cubic-bezier(.22,1,.36,1);
+    margin-top:17px;
   }
-  .btn-primary { background:var(--accent); color:#1a1410; }
+  .btn-primary { background:rgba(196,168,130,0.09); color:rgba(234,230,222,0.68); }
   .btn-primary:not(:disabled) {
-    background: #d2b489;
-    box-shadow: 0 0 0 1px rgba(255,235,205,0.16), 0 0 26px rgba(196,168,130,0.28);
+    background: rgba(196,168,130,0.16);
+    border-color: rgba(196,168,130,0.24);
+    color: rgba(234,230,222,0.82);
+    box-shadow: 0 0 18px rgba(196,168,130,0.075);
   }
-  .btn-primary:hover:not(:disabled) { background:#d9bd94; transform:translateY(-1px); }
-  .btn-primary:disabled { opacity:.28; cursor:not-allowed; }
+  .btn-primary:hover:not(:disabled) {
+    background: rgba(196,168,130,0.2);
+    border-color: rgba(196,168,130,0.32);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled { opacity:.24; cursor:not-allowed; }
   .sound-toggle {
     align-self: center;
     margin: 12px auto 0;
@@ -325,24 +362,56 @@ const FLOW_DURATION = {
     justify-content: center; align-items: center;
     padding: 0 32px; min-height: 100vh; position: relative;
   }
-  .flow-dots { display: flex; gap: 7px; margin-bottom: 0; }
-  .flow-dot {
-    width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted);
-    transition: background .4s ease, transform .4s ease, box-shadow .4s ease;
+  .flow-trace {
+    position: relative;
+    width: min(164px, 48vw);
+    height: 20px;
+    margin-bottom: 56px;
+    opacity: 0.86;
+    --flow-trace-progress: 0;
+    transition: opacity .9s cubic-bezier(.22,1,.36,1);
   }
-  .flow-dot.active { background: var(--accent); transform: scale(1.3); }
-  .flow-dot.done {
-    background: rgba(196,168,130,0.55);
-    box-shadow: 0 0 8px rgba(196,168,130,0.18);
+  .flow-trace::before,
+  .flow-trace-fill {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 1px;
+    border-radius: 999px;
+    transform: translateY(-50%);
   }
-  .flow-dot.active.done {
-    background: var(--accent);
-    box-shadow: 0 0 10px rgba(196,168,130,0.22);
+  .flow-trace::before {
+    right: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(234,230,222,0),
+      rgba(234,230,222,0.12) 18%,
+      rgba(234,230,222,0.2) 50%,
+      rgba(234,230,222,0.12) 82%,
+      rgba(234,230,222,0)
+    );
+    opacity: 0.58;
+    filter: blur(0.3px);
   }
-
-  .flow-step-indicator {
-    font-size: 10px; color: var(--text-muted);
-    letter-spacing: .12em; margin-top: 12px; margin-bottom: 52px; opacity: 0.6;
+  .flow-trace-fill {
+    width: calc(var(--flow-trace-progress) * 100%);
+    min-width: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(196,168,130,0),
+      rgba(196,168,130,0.4) 28%,
+      rgba(196,168,130,0.68) 72%,
+      rgba(196,168,130,0)
+    );
+    opacity: calc(0.22 + var(--flow-trace-progress) * 0.78);
+    filter: blur(0.25px);
+    box-shadow: 0 0 10px rgba(196,168,130,0.1);
+    transition: width .9s cubic-bezier(.22,1,.36,1),
+                opacity .9s cubic-bezier(.22,1,.36,1);
+  }
+  .flow-trace.complete {
+    opacity: 0;
   }
 
   .flow-text {
@@ -435,28 +504,28 @@ const FLOW_DURATION = {
   }
   /* 감정별 색상 + 글로우 */
   .emotion-피곤함 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(140,160,220,0.9), rgba(80,100,160,0.7));
-    box-shadow: 0 0 28px 8px rgba(100,120,180,0.3), 0 0 60px 20px rgba(80,100,160,0.15);
+    background: radial-gradient(circle at 38% 35%, rgba(140,160,220,0.82), rgba(80,100,160,0.62));
+    box-shadow: 0 0 22px 6px rgba(100,120,180,0.22), 0 0 46px 16px rgba(80,100,160,0.1);
   }
   .emotion-불안함 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(180,140,220,0.9), rgba(120,80,160,0.7));
-    box-shadow: 0 0 28px 8px rgba(140,100,180,0.3), 0 0 60px 20px rgba(120,80,160,0.15);
+    background: radial-gradient(circle at 38% 35%, rgba(180,140,220,0.82), rgba(120,80,160,0.62));
+    box-shadow: 0 0 22px 6px rgba(140,100,180,0.22), 0 0 46px 16px rgba(120,80,160,0.1);
   }
   .emotion-공허함 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(120,120,130,0.8), rgba(60,60,70,0.6));
-    box-shadow: 0 0 28px 8px rgba(80,80,90,0.25), 0 0 60px 20px rgba(60,60,70,0.1);
+    background: radial-gradient(circle at 38% 35%, rgba(120,120,130,0.72), rgba(60,60,70,0.54));
+    box-shadow: 0 0 22px 6px rgba(80,80,90,0.18), 0 0 46px 16px rgba(60,60,70,0.07);
   }
   .emotion-쓸쓸함 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(220,170,130,0.9), rgba(160,110,70,0.7));
-    box-shadow: 0 0 28px 8px rgba(196,150,110,0.3), 0 0 60px 20px rgba(160,110,70,0.15);
+    background: radial-gradient(circle at 38% 35%, rgba(220,170,130,0.82), rgba(160,110,70,0.62));
+    box-shadow: 0 0 22px 6px rgba(196,150,110,0.22), 0 0 46px 16px rgba(160,110,70,0.1);
   }
   .emotion-복잡함 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(100,200,200,0.9), rgba(40,130,130,0.7));
-    box-shadow: 0 0 28px 8px rgba(60,160,160,0.3), 0 0 60px 20px rgba(40,130,130,0.15);
+    background: radial-gradient(circle at 38% 35%, rgba(100,200,200,0.82), rgba(40,130,130,0.62));
+    box-shadow: 0 0 22px 6px rgba(60,160,160,0.22), 0 0 46px 16px rgba(40,130,130,0.1);
   }
   .emotion-괜찮음 .complete-moon {
-    background: radial-gradient(circle at 38% 35%, rgba(220,190,100,0.9), rgba(170,140,60,0.7));
-    box-shadow: 0 0 28px 8px rgba(196,168,80,0.3), 0 0 60px 20px rgba(170,140,60,0.15);
+    background: radial-gradient(circle at 38% 35%, rgba(220,190,100,0.82), rgba(170,140,60,0.62));
+    box-shadow: 0 0 22px 6px rgba(196,168,80,0.22), 0 0 46px 16px rgba(170,140,60,0.1);
   }
   .complete-emotion {
     font-family: 'Noto Serif KR', serif;
@@ -500,25 +569,39 @@ const FLOW_DURATION = {
 
   .complete-extras {
     display: none; flex-direction: column; align-items: center;
-    width: 100%; margin-top: 24px; opacity: 0; transition: opacity 1.4s ease;
+    width: 100%; margin-top: 26px; opacity: 0; transition: opacity 1.6s ease;
   }
   .complete-extras.visible { opacity: 1; }
   .complete-quote {
     font-family: 'Noto Serif KR', serif;
-    font-size: 14px; font-weight: 300; color: rgba(234,230,222,0.58);
-    line-height: 2.08; text-align: center; letter-spacing: .025em;
-    padding: 8px 8px 0; width: 100%;
+    font-size: 14px; font-weight: 300; color: rgba(234,230,222,0.54);
+    line-height: 2.12; text-align: center; letter-spacing: .025em;
+    padding: 12px 8px 0; width: 100%;
   }
   .complete-quote-label {
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 10px; font-weight: 300; color: rgba(234,230,222,0.7);
-    letter-spacing: .14em; line-height: 1;
-    margin-bottom: 8px; opacity: 0.72;
+    font-size: 9px; font-weight: 300; color: rgba(234,230,222,0.42);
+    letter-spacing: .16em; line-height: 1;
+    margin-bottom: 10px; opacity: 0.5;
   }
   .complete-quote-wrap {
+    position: relative;
     width: 100%;
-    padding-top: 16px;
-    border-top: 1px solid rgba(234,230,222,0.075);
+    padding-top: 20px;
+    border-top: none;
+  }
+  .complete-quote-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(156px, 46vw);
+    height: 1px;
+    border-radius: 999px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, rgba(234,230,222,0), rgba(234,230,222,0.22), rgba(234,230,222,0));
+    opacity: 0.5;
+    filter: blur(0.35px);
   }
 
   .echo-emoji {
@@ -788,47 +871,59 @@ const FLOW_DURATION = {
   }
   .transition-hint.visible { opacity: 1; }
 
-  /* transition 공기 입자 */
+  /* transition 숨결 라인 */
   .transition-breath {
     position: relative;
-    width: 86px;
-    height: 18px;
-    margin-top: 14px;
+    width: min(168px, 48vw);
+    height: 22px;
+    margin-top: 18px;
     opacity: 0;
     transition: opacity 0.8s ease;
   }
   .transition-breath.visible { opacity: 1; }
-  .transition-breath-dot {
+  .transition-breath-line {
     position: absolute;
-    left: 50%;
+    left: 0;
     top: 50%;
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: currentColor;
-    color: rgba(234,230,222,0.36);
+    width: 100%;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      rgba(234,230,222,0),
+      rgba(234,230,222,0.24) 18%,
+      rgba(234,230,222,0.48) 50%,
+      rgba(234,230,222,0.24) 82%,
+      rgba(234,230,222,0)
+    );
     opacity: 0;
-    animation: transitionBreathDot 4.6s cubic-bezier(.45,0,.2,1) infinite;
+    transform: translateY(-50%) scaleX(0.34);
+    filter: blur(0.6px);
+    transform-origin: center;
   }
-  .transition-breath-dot:nth-child(1) { transform: translate(-34px, -2px); animation-delay: 0s; }
-  .transition-breath-dot:nth-child(2) { transform: translate(-10px, 4px); animation-delay: 1.1s; }
-  .transition-breath-dot:nth-child(3) { transform: translate(16px, -5px); animation-delay: .55s; }
-  .transition-breath-dot:nth-child(4) { transform: translate(34px, 2px); animation-delay: 1.75s; }
+  .transition-breath.visible .transition-breath-line {
+    animation: transitionBreathLine 3.9s cubic-bezier(.45,0,.2,1) both;
+  }
+  .transition-text.space-open.visible {
+    filter: blur(0);
+    text-shadow: 0 0 14px rgba(234,230,222,0.055);
+  }
 
-  @keyframes transitionBreathDot {
-    0%, 100% {
+  @keyframes transitionBreathLine {
+    0% {
       opacity: 0;
-      filter: blur(1px);
-      box-shadow: none;
+      transform: translateY(-50%) scaleX(0.24);
+      filter: blur(1.4px);
     }
-    22% {
-      opacity: 0.42;
-      filter: blur(0);
-      box-shadow: 0 0 12px rgba(234,230,222,0.07);
+    34% {
+      opacity: 0.62;
+      transform: translateY(-50%) scaleX(1);
+      filter: blur(0.35px);
     }
-    62% {
-      opacity: 0.12;
-      filter: blur(1.5px);
+    100% {
+      opacity: 0;
+      transform: translateY(-50%) scaleX(0.82);
+      filter: blur(1.8px);
     }
   }
 
@@ -870,10 +965,7 @@ const FLOW_DURATION = {
     <div class="transition-text" id="transition-line1"></div>
     <div class="transition-text transition-line2" id="transition-line2"></div>
     <div class="transition-breath" id="transition-breath" aria-hidden="true">
-      <span class="transition-breath-dot"></span>
-      <span class="transition-breath-dot"></span>
-      <span class="transition-breath-dot"></span>
-      <span class="transition-breath-dot"></span>
+      <span class="transition-breath-line"></span>
     </div>
     <div class="transition-hint" id="transition-hint">네 번만 천천히 머물면 오늘은 닫힙니다</div>
   </div>
@@ -882,13 +974,9 @@ const FLOW_DURATION = {
   <div class="screen" id="s-flow">
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"></button>
-    <div class="flow-dots" id="flow-dots">
-      <div class="flow-dot" data-step="1"></div>
-      <div class="flow-dot" data-step="2"></div>
-      <div class="flow-dot" data-step="3"></div>
-      <div class="flow-dot" data-step="4"></div>
+    <div class="flow-trace" id="flow-trace" aria-hidden="true">
+      <span class="flow-trace-fill"></span>
     </div>
-    <div class="flow-step-indicator" id="flow-step-indicator">1 / 4</div>
     <div class="flow-text" id="flow-text"></div>
     <div class="step-reward" id="step-reward" aria-live="polite"></div>
 
@@ -981,6 +1069,38 @@ const FLOW_DURATION = {
     쓸쓸함: 164,
     복잡함: 220,
     괜찮음: 246
+  };
+  const TRANSITION_SPACE_PRESET = {
+    피곤함: {
+      duration: 3.9, gain: 0.054, highpass: 82, lowpassStart: 1450, lowpassEnd: 720,
+      noise: 0.5, drift: 0.012, breathBase: 0.62, breathDepth: 0.14, breathRate: 0.52,
+      panStart: -0.04, panEnd: 0.04
+    },
+    불안함: {
+      duration: 3.7, gain: 0.049, highpass: 170, lowpassStart: 2450, lowpassEnd: 1320,
+      noise: 0.48, drift: 0.007, breathBase: 0.56, breathDepth: 0.1, breathRate: 0.86,
+      panStart: 0.06, panEnd: -0.02
+    },
+    공허함: {
+      duration: 4.4, gain: 0.052, highpass: 64, lowpassStart: 1180, lowpassEnd: 520,
+      noise: 0.36, drift: 0.014, breathBase: 0.44, breathDepth: 0.08, breathRate: 0.42,
+      panStart: -0.1, panEnd: 0.1
+    },
+    쓸쓸함: {
+      duration: 3.9, gain: 0.054, highpass: 104, lowpassStart: 1780, lowpassEnd: 880,
+      noise: 0.48, drift: 0.011, breathBase: 0.58, breathDepth: 0.13, breathRate: 0.58,
+      panStart: -0.08, panEnd: 0.02
+    },
+    복잡함: {
+      duration: 3.8, gain: 0.053, highpass: 140, lowpassStart: 2850, lowpassEnd: 760,
+      noise: 0.62, drift: 0.01, breathBase: 0.64, breathDepth: 0.18, breathRate: 0.72,
+      panStart: 0.08, panEnd: -0.08
+    },
+    괜찮음: {
+      duration: 3.2, gain: 0.047, highpass: 132, lowpassStart: 2100, lowpassEnd: 1260,
+      noise: 0.42, drift: 0.006, breathBase: 0.54, breathDepth: 0.09, breathRate: 0.5,
+      panStart: -0.02, panEnd: 0.02
+    }
   };
   let audioCtx = null;
   let masterGain = null;
@@ -1122,22 +1242,28 @@ const FLOW_DURATION = {
     } catch (err) {}
   }
 
-  function playTransitionSpaceSound(duration = 3.8, when = 0) {
+  function playTransitionSpaceSound(emotion, duration, when = 0, options = {}) {
     const baseNow = getAudioNow();
     if (baseNow === null) return;
     try {
+      const preset = TRANSITION_SPACE_PRESET[emotion] || TRANSITION_SPACE_PRESET.괜찮음;
+      const tail = options.tail || 0;
+      const coreDuration = duration || preset.duration || 3.8;
+      const soundDuration = coreDuration + tail;
       const now = baseNow + when;
       const sampleRate = audioCtx.sampleRate;
-      const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+      const frameCount = Math.max(1, Math.floor(sampleRate * soundDuration));
       const buffer = audioCtx.createBuffer(1, frameCount, sampleRate);
       const data = buffer.getChannelData(0);
 
       let drift = 0;
       for (let i = 0; i < frameCount; i++) {
         const t = i / sampleRate;
-        drift = drift * 0.992 + (Math.random() * 2 - 1) * 0.012;
-        const breath = 0.62 + Math.sin(t * Math.PI * 0.72) * 0.18;
-        data[i] = (Math.random() * 2 - 1) * 0.68 * breath + drift;
+        const progress = i / frameCount;
+        const settle = emotion === '복잡함' ? 1 - progress * 0.38 : 1;
+        drift = drift * 0.992 + (Math.random() * 2 - 1) * preset.drift;
+        const breath = preset.breathBase + Math.sin(t * Math.PI * preset.breathRate) * preset.breathDepth;
+        data[i] = (Math.random() * 2 - 1) * preset.noise * breath * settle + drift;
       }
 
       const src = audioCtx.createBufferSource();
@@ -1148,21 +1274,24 @@ const FLOW_DURATION = {
 
       src.buffer = buffer;
       highpass.type = 'highpass';
-      highpass.frequency.setValueAtTime(110, now);
+      highpass.frequency.setValueAtTime(preset.highpass, now);
       highpass.Q.setValueAtTime(0.55, now);
       lowpass.type = 'lowpass';
-      lowpass.frequency.setValueAtTime(2200, now);
-      lowpass.frequency.exponentialRampToValueAtTime(1250, now + duration);
+      lowpass.frequency.setValueAtTime(preset.lowpassStart, now);
+      lowpass.frequency.exponentialRampToValueAtTime(preset.lowpassEnd, now + soundDuration);
       lowpass.Q.setValueAtTime(0.38, now);
 
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(0.072, now + 0.65);
-      gain.gain.setValueAtTime(0.072, now + Math.max(0.75, duration - 1.2));
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      gain.gain.linearRampToValueAtTime(preset.gain, now + 0.65);
+      gain.gain.setValueAtTime(preset.gain, now + Math.max(0.75, coreDuration - 1.0));
+      if (tail > 0) {
+        gain.gain.linearRampToValueAtTime(preset.gain * 0.34, now + coreDuration);
+      }
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + soundDuration);
 
       if (pan) {
-        pan.pan.setValueAtTime(-0.08, now);
-        pan.pan.linearRampToValueAtTime(0.08, now + duration);
+        pan.pan.setValueAtTime(preset.panStart, now);
+        pan.pan.linearRampToValueAtTime(preset.panEnd, now + soundDuration);
       }
 
       src.connect(highpass);
@@ -1175,7 +1304,7 @@ const FLOW_DURATION = {
         gain.connect(masterGain);
       }
       src.start(now);
-      src.stop(now + duration + 0.05);
+      src.stop(now + soundDuration + 0.05);
     } catch (err) {}
   }
 
@@ -1189,47 +1318,47 @@ const FLOW_DURATION = {
   }
 
   function playSoundTestBloom() {
-    playSoftTone(174, 0.58, 'sine', 0.032, 0, 620, 0.045, -0.08);
-    playTinyChime(348, 0.06, 0.012, 0.1);
-    playAirNoise(0.5, 0.0075, 820, 0.03, 0.04);
+    playSoftTone(174, 0.58, 'sine', 0.044, 0, 680, 0.045, -0.08);
+    playTinyChime(348, 0.06, 0.016, 0.1);
+    playAirNoise(0.5, 0.0095, 900, 0.03, 0.04);
   }
 
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base * 0.5, 1.1, 'sine', 0.021, 0, 420, 0.12, -0.08);
-    playSoftTone(base, 0.86, 'sine', 0.031, 0.04, 640, 0.09, 0.08);
-    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.0075, 0.12);
-    playAirNoise(0.8, 0.0065, 760, 0.04, 0);
+    playSoftTone(base * 0.5, 1.1, 'sine', 0.028, 0, 480, 0.12, -0.08);
+    playSoftTone(base, 0.86, 'sine', 0.043, 0.04, 760, 0.09, 0.08);
+    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.010, 0.12);
+    playAirNoise(0.8, 0.0085, 860, 0.04, 0);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playSoftTone(164, 0.62, 'sine', 0.034, 0, 560, 0.05, -0.1);
-      playTinyChime(328, 0.06, 0.010, 0.12);
-      playAirNoise(0.42, 0.0065, 760, 0.03, 0.05);
+      playSoftTone(164, 0.62, 'sine', 0.046, 0, 660, 0.05, -0.1);
+      playTinyChime(328, 0.06, 0.013, 0.12);
+      playAirNoise(0.42, 0.0085, 840, 0.03, 0.05);
     } else if (step === 2) {
-      playSoftTone(196, 0.66, 'sine', 0.033, 0, 640, 0.052, 0.08);
-      playTinyChime(392, 0.07, 0.011, -0.12);
-      playAirNoise(0.55, 0.0075, 820, 0.03, -0.04);
+      playSoftTone(196, 0.66, 'sine', 0.045, 0, 760, 0.052, 0.08);
+      playTinyChime(392, 0.07, 0.014, -0.12);
+      playAirNoise(0.55, 0.0095, 920, 0.03, -0.04);
     } else if (step === 4) {
-      playSoftTone(146, 0.78, 'sine', 0.03, 0, 500, 0.06, -0.04);
-      playSoftTone(292, 0.56, 'sine', 0.014, 0.06, 680, 0.05, 0.1);
-      playAirNoise(0.5, 0.0058, 700, 0.035, 0);
+      playSoftTone(146, 0.78, 'sine', 0.04, 0, 600, 0.06, -0.04);
+      playSoftTone(292, 0.56, 'sine', 0.02, 0.06, 820, 0.05, 0.1);
+      playAirNoise(0.5, 0.0078, 780, 0.035, 0);
     }
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.22, 'sine', 0.044, 0, 620, 0.1, -0.06);
-    playSoftTone(247, 1.08, 'sine', 0.027, 0.07, 720, 0.1, 0.08);
-    playSoftTone(330, 0.92, 'sine', 0.014, 0.16, 860, 0.08, 0);
-    playTinyChime(392, 0.24, 0.009, -0.12);
-    playAirNoise(0.94, 0.0065, 760, 0.08, 0);
+    playSoftTone(196, 1.22, 'sine', 0.056, 0, 760, 0.1, -0.06);
+    playSoftTone(247, 1.08, 'sine', 0.036, 0.07, 860, 0.1, 0.08);
+    playSoftTone(330, 0.92, 'sine', 0.02, 0.16, 980, 0.08, 0);
+    playTinyChime(392, 0.24, 0.012, -0.12);
+    playAirNoise(0.94, 0.0085, 880, 0.08, 0);
   }
 
   function playCompleteCloseSound() {
-    playSoftTone(130, 0.92, 'sine', 0.034, 0, 480, 0.07, 0);
-    playSoftTone(260, 0.68, 'sine', 0.014, 0.06, 620, 0.06, -0.1);
-    playAirNoise(0.72, 0.0058, 620, 0.04, 0);
+    playSoftTone(130, 0.92, 'sine', 0.046, 0, 580, 0.07, 0);
+    playSoftTone(260, 0.68, 'sine', 0.02, 0.06, 760, 0.06, -0.1);
+    playAirNoise(0.72, 0.0078, 720, 0.04, 0);
   }
 
   let flowTimer = null;
@@ -1241,11 +1370,20 @@ const FLOW_DURATION = {
     document.documentElement.style.setProperty('--flow-progress', 0);
     document.documentElement.style.setProperty('--hold-progress', 0);
     delete document.body.dataset.flowProgress;
+    updateFlowTrace(0);
     const rewardEl = document.getElementById('step-reward');
     if (rewardEl) {
       rewardEl.classList.remove('visible');
       rewardEl.textContent = '';
     }
+  }
+
+  function updateFlowTrace(doneCount, options = {}) {
+    const trace = document.getElementById('flow-trace');
+    if (!trace) return;
+    const progress = Math.max(0, Math.min(1, doneCount / 4));
+    trace.style.setProperty('--flow-trace-progress', progress);
+    trace.classList.toggle('complete', !!options.complete);
   }
 
   function colorWithAlpha(color, alpha) {
@@ -1336,7 +1474,9 @@ const FLOW_DURATION = {
       line1.classList.add('visible');
       if (breath) {
         breath.classList.add('visible');
-        playTransitionSpaceSound(selected === '공허함' ? 4.2 : 3.7);
+        line1.classList.add('space-open');
+        line2.classList.add('space-open');
+        playTransitionSpaceSound(selected, (line2Delay + flowDelay) / 1000, 0, { tail: 0.85 });
       }
 
       flowTimer = setTimeout(() => {
@@ -1347,6 +1487,8 @@ const FLOW_DURATION = {
 
         flowTimer = setTimeout(() => {
           if (breath) breath.classList.remove('visible');
+          line1.classList.remove('space-open');
+          line2.classList.remove('space-open');
           if (hint) hint.classList.remove('visible');
           startFlow();
         }, flowDelay);
@@ -1356,23 +1498,18 @@ const FLOW_DURATION = {
 
   function startFlow() {
     showScreen('flow');
+    hideHoldBtn();
     runFlowStep(1);
-    showHoldBtn();
+    flowTimer = setTimeout(() => {
+      if (currentStep === 1) showHoldBtn();
+    }, 560);
   }
 
   function runFlowStep(step) {
     clearTimeout(flowTimer);
     currentStep = step;
     document.documentElement.style.setProperty('--hold-progress', 0);
-
-    document.querySelectorAll('.flow-dot').forEach(d => {
-      const s = parseInt(d.dataset.step);
-      d.classList.remove('active', 'done');
-      if (s === step) d.classList.add('active');
-      else if (s < step) d.classList.add('done');
-    });
-
-    document.getElementById('flow-step-indicator').textContent = `${step} / 4`;
+    updateFlowTrace(completedSteps);
 
     const textEl = document.getElementById('flow-text');
     textEl.classList.remove('visible', 'rewarded');
@@ -1401,11 +1538,12 @@ const FLOW_DURATION = {
     completedSteps = Math.max(completedSteps, step);
     document.documentElement.style.setProperty('--flow-progress', completedSteps / 4);
     document.body.dataset.flowProgress = String(completedSteps);
-
-    document.querySelectorAll('.flow-dot').forEach(d => {
-      const s = parseInt(d.dataset.step);
-      if (s <= completedSteps) d.classList.add('done');
-    });
+    updateFlowTrace(completedSteps);
+    if (completedSteps >= 4) {
+      setTimeout(() => {
+        if (completedSteps >= 4) updateFlowTrace(completedSteps, { complete: true });
+      }, 420);
+    }
   }
 
   const STEP_REWARD_TEXT = {
@@ -1451,6 +1589,8 @@ const FLOW_DURATION = {
     resetFlowCompletion();
     document.getElementById('transition-line1').classList.remove('visible');
     document.getElementById('transition-line2').classList.remove('visible');
+    document.getElementById('transition-line1').classList.remove('space-open');
+    document.getElementById('transition-line2').classList.remove('space-open');
     if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); resetSettled(); }
     stopScreenReact();
     resetSettled();
