@@ -788,40 +788,47 @@ const FLOW_DURATION = {
   }
   .transition-hint.visible { opacity: 1; }
 
-  /* transition 진행 바 */
+  /* transition 공기 입자 */
   .transition-breath {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-top: 10px;
+    position: relative;
+    width: 86px;
+    height: 18px;
+    margin-top: 14px;
     opacity: 0;
     transition: opacity 0.8s ease;
   }
   .transition-breath.visible { opacity: 1; }
   .transition-breath-dot {
-    width: 4px;
-    height: 4px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
     border-radius: 50%;
     background: currentColor;
-    color: rgba(234,230,222,0.44);
-    opacity: 0.2;
-    animation: transitionBreathDot 3.8s cubic-bezier(.4,0,.2,1) infinite;
+    color: rgba(234,230,222,0.36);
+    opacity: 0;
+    animation: transitionBreathDot 4.6s cubic-bezier(.45,0,.2,1) infinite;
   }
-  .transition-breath-dot:nth-child(2) { animation-delay: .45s; }
-  .transition-breath-dot:nth-child(3) { animation-delay: .9s; }
-  .transition-breath-dot:nth-child(4) { animation-delay: 1.35s; }
+  .transition-breath-dot:nth-child(1) { transform: translate(-34px, -2px); animation-delay: 0s; }
+  .transition-breath-dot:nth-child(2) { transform: translate(-10px, 4px); animation-delay: 1.1s; }
+  .transition-breath-dot:nth-child(3) { transform: translate(16px, -5px); animation-delay: .55s; }
+  .transition-breath-dot:nth-child(4) { transform: translate(34px, 2px); animation-delay: 1.75s; }
 
   @keyframes transitionBreathDot {
-    0%, 74%, 100% {
-      opacity: 0.18;
-      transform: scale(0.82);
+    0%, 100% {
+      opacity: 0;
+      filter: blur(1px);
       box-shadow: none;
     }
-    24% {
-      opacity: 0.62;
-      transform: scale(1.08);
-      box-shadow: 0 0 10px rgba(234,230,222,0.08);
+    22% {
+      opacity: 0.42;
+      filter: blur(0);
+      box-shadow: 0 0 12px rgba(234,230,222,0.07);
+    }
+    62% {
+      opacity: 0.12;
+      filter: blur(1.5px);
     }
   }
 
@@ -1115,69 +1122,114 @@ const FLOW_DURATION = {
     } catch (err) {}
   }
 
+  function playTransitionSpaceSound(duration = 3.8, when = 0) {
+    const baseNow = getAudioNow();
+    if (baseNow === null) return;
+    try {
+      const now = baseNow + when;
+      const sampleRate = audioCtx.sampleRate;
+      const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+      const buffer = audioCtx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+
+      let drift = 0;
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        drift = drift * 0.992 + (Math.random() * 2 - 1) * 0.008;
+        const breath = 0.56 + Math.sin(t * Math.PI * 0.72) * 0.16;
+        data[i] = (Math.random() * 2 - 1) * 0.42 * breath + drift;
+      }
+
+      const src = audioCtx.createBufferSource();
+      const highpass = audioCtx.createBiquadFilter();
+      const lowpass = audioCtx.createBiquadFilter();
+      const gain = audioCtx.createGain();
+      const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+      src.buffer = buffer;
+      highpass.type = 'highpass';
+      highpass.frequency.setValueAtTime(170, now);
+      highpass.Q.setValueAtTime(0.62, now);
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(980, now);
+      lowpass.frequency.exponentialRampToValueAtTime(520, now + duration);
+      lowpass.Q.setValueAtTime(0.46, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.028, now + 0.7);
+      gain.gain.setValueAtTime(0.028, now + Math.max(0.75, duration - 1.2));
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      if (pan) {
+        pan.pan.setValueAtTime(-0.08, now);
+        pan.pan.linearRampToValueAtTime(0.08, now + duration);
+      }
+
+      src.connect(highpass);
+      highpass.connect(lowpass);
+      lowpass.connect(gain);
+      if (pan) {
+        gain.connect(pan);
+        pan.connect(masterGain);
+      } else {
+        gain.connect(masterGain);
+      }
+      src.start(now);
+      src.stop(now + duration + 0.05);
+    } catch (err) {}
+  }
+
   function playTinyChime(freq, when = 0, volume = 0.012, panValue = 0) {
-    playSoftTone(freq, 0.32, 'sine', volume, when, Math.min(freq * 2.8, 2400), 0.012, panValue);
-    playSoftTone(freq * 2.01, 0.18, 'sine', volume * 0.32, when + 0.012, Math.min(freq * 4, 3200), 0.008, panValue * -0.6);
+    playSoftTone(freq, 0.34, 'sine', volume * 0.72, when, Math.min(freq * 2.2, 1800), 0.018, panValue);
+    playSoftTone(freq * 2.01, 0.2, 'sine', volume * 0.18, when + 0.018, Math.min(freq * 3, 2400), 0.012, panValue * -0.5);
   }
 
   function playMobilePresence(freq = 1800, when = 0, volume = 0.012, panValue = 0) {
-    playSoftTone(freq, 0.12, 'triangle', volume, when, 2800, 0.006, panValue);
+    playSoftTone(freq, 0.1, 'sine', volume * 0.42, when, 1600, 0.012, panValue);
   }
 
   function playSoundTestBloom() {
-    playMobilePresence(1760, 0.012, 0.012, 0.04);
-    playSoftTone(196, 0.42, 'sine', 0.04, 0, 840, 0.025, -0.12);
-    playTinyChime(392, 0.035, 0.023, 0.14);
-    playTinyChime(494, 0.085, 0.013, -0.08);
-    playAirNoise(0.34, 0.0085, 1180, 0.02, 0.05);
+    playSoftTone(174, 0.58, 'sine', 0.032, 0, 620, 0.045, -0.08);
+    playTinyChime(348, 0.06, 0.012, 0.1);
+    playAirNoise(0.5, 0.0075, 820, 0.03, 0.04);
   }
 
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playMobilePresence(1680, 0.018, 0.011, 0.06);
-    playSoftTone(base * 0.5, 0.92, 'sine', 0.028, 0, 480, 0.07, -0.08);
-    playSoftTone(base, 0.74, 'sine', 0.05, 0.018, 780, 0.045, 0.08);
-    playTinyChime(Math.min(base * 2, 640), 0.09, 0.019, 0.18);
-    playTinyChime(Math.min(base * 2.5, 760), 0.18, 0.011, -0.16);
-    playAirNoise(0.62, 0.0095, 980, 0.02, 0);
+    playSoftTone(base * 0.5, 1.1, 'sine', 0.021, 0, 420, 0.12, -0.08);
+    playSoftTone(base, 0.86, 'sine', 0.031, 0.04, 640, 0.09, 0.08);
+    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.0075, 0.12);
+    playAirNoise(0.8, 0.0065, 760, 0.04, 0);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playMobilePresence(1880, 0.012, 0.013, 0.08);
-      playSoftTone(164, 0.52, 'sine', 0.052, 0, 720, 0.03, -0.1);
-      playTinyChime(328, 0.035, 0.021, 0.14);
-      playAirNoise(0.32, 0.008, 940, 0.02, 0.05);
+      playSoftTone(164, 0.62, 'sine', 0.034, 0, 560, 0.05, -0.1);
+      playTinyChime(328, 0.06, 0.010, 0.12);
+      playAirNoise(0.42, 0.0065, 760, 0.03, 0.05);
     } else if (step === 2) {
-      playMobilePresence(2040, 0.012, 0.014, -0.06);
-      playSoftTone(196, 0.54, 'sine', 0.05, 0, 860, 0.028, 0.08);
-      playTinyChime(392, 0.04, 0.023, -0.12);
-      playTinyChime(494, 0.11, 0.011, 0.12);
-      playAirNoise(0.44, 0.01, 1120, 0.02, -0.04);
+      playSoftTone(196, 0.66, 'sine', 0.033, 0, 640, 0.052, 0.08);
+      playTinyChime(392, 0.07, 0.011, -0.12);
+      playAirNoise(0.55, 0.0075, 820, 0.03, -0.04);
     } else if (step === 4) {
-      playMobilePresence(1620, 0.014, 0.011, 0.02);
-      playSoftTone(146, 0.62, 'sine', 0.042, 0, 620, 0.035, -0.04);
-      playSoftTone(292, 0.48, 'sine', 0.022, 0.045, 880, 0.03, 0.1);
-      playAirNoise(0.38, 0.0075, 820, 0.025, 0);
+      playSoftTone(146, 0.78, 'sine', 0.03, 0, 500, 0.06, -0.04);
+      playSoftTone(292, 0.56, 'sine', 0.014, 0.06, 680, 0.05, 0.1);
+      playAirNoise(0.5, 0.0058, 700, 0.035, 0);
     }
   }
 
   function playOkayRewardSound() {
-    playMobilePresence(1840, 0.018, 0.012, 0);
-    playSoftTone(196, 1.12, 'sine', 0.062, 0, 760, 0.08, -0.06);
-    playSoftTone(247, 1.02, 'sine', 0.04, 0.055, 860, 0.08, 0.08);
-    playSoftTone(330, 0.88, 'sine', 0.025, 0.12, 1120, 0.07, 0);
-    playTinyChime(392, 0.18, 0.018, -0.14);
-    playTinyChime(494, 0.3, 0.012, 0.14);
-    playAirNoise(0.86, 0.0085, 980, 0.08, 0);
+    playSoftTone(196, 1.22, 'sine', 0.044, 0, 620, 0.1, -0.06);
+    playSoftTone(247, 1.08, 'sine', 0.027, 0.07, 720, 0.1, 0.08);
+    playSoftTone(330, 0.92, 'sine', 0.014, 0.16, 860, 0.08, 0);
+    playTinyChime(392, 0.24, 0.009, -0.12);
+    playAirNoise(0.94, 0.0065, 760, 0.08, 0);
   }
 
   function playCompleteCloseSound() {
-    playMobilePresence(1520, 0.018, 0.01, 0.04);
-    playSoftTone(130, 0.78, 'sine', 0.048, 0, 620, 0.045, 0);
-    playSoftTone(260, 0.58, 'sine', 0.024, 0.035, 840, 0.04, -0.1);
-    playTinyChime(390, 0.08, 0.01, 0.12);
-    playAirNoise(0.58, 0.0075, 760, 0.025, 0);
+    playSoftTone(130, 0.92, 'sine', 0.034, 0, 480, 0.07, 0);
+    playSoftTone(260, 0.68, 'sine', 0.014, 0.06, 620, 0.06, -0.1);
+    playAirNoise(0.72, 0.0058, 620, 0.04, 0);
   }
 
   let flowTimer = null;
@@ -1282,7 +1334,10 @@ const FLOW_DURATION = {
 
     flowTimer = setTimeout(() => {
       line1.classList.add('visible');
-      if (breath) breath.classList.add('visible');
+      if (breath) {
+        breath.classList.add('visible');
+        playTransitionSpaceSound(selected === '공허함' ? 4.2 : 3.7);
+      }
 
       flowTimer = setTimeout(() => {
         line2.classList.add('visible');
