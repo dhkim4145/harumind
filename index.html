@@ -646,37 +646,42 @@ const FLOW_DURATION = {
   /* hold-btn 색상·글로우·페이드 — 감정별 CSS 변수 적용 */
   .hold-btn {
     border-color: var(--btn-color);
-    transition: border-color .4s, box-shadow .4s, color .3s;
+    transition: border-color .45s cubic-bezier(.22,1,.36,1),
+                background .45s cubic-bezier(.22,1,.36,1),
+                box-shadow .45s cubic-bezier(.22,1,.36,1),
+                color .35s ease,
+                opacity .35s ease;
   }
   .hold-btn.holding {
-    border-color: var(--btn-color);
-    box-shadow: 0 0 20px var(--btn-glow), 0 0 40px var(--btn-glow);
-    color: var(--text-primary);
+    border-color: rgba(234,230,222,0.12);
+    background: rgba(255,255,255,0.035);
+    box-shadow: 0 0 18px rgba(196,168,130,0.035);
+    color: rgba(234,230,222,0.6);
   }
   .hold-btn::before { background: var(--btn-color); }
   .hold-btn-label { transition: opacity .3s ease; }
-  .hold-btn.holding .hold-btn-label { opacity: 0.08; }
+  .hold-btn.holding .hold-btn-label { opacity: 0.42; }
 
   /* Hold to Calm 버튼 */
   .hold-btn-wrap {
     position: fixed; bottom: 0; left: 0; right: 0;
     display: none;
     justify-content: center;
-    padding: 0 32px 48px;
+    padding: 0 32px 42px;
     z-index: 10;
   }
   .hold-btn-wrap.visible { display: flex; }
   .hold-btn {
-    width: 100%; max-width: 320px;
-    height: 64px;
-    border-radius: 32px;
-    border: 1px solid var(--btn-color, var(--accent-border));
-    background: rgba(255,255,255,0.04);
-    color: var(--text-secondary);
+    width: min(292px, calc(100vw - 64px));
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid rgba(234,230,222,0.065);
+    background: rgba(255,255,255,0.018);
+    color: rgba(234,230,222,0.42);
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 300;
-    letter-spacing: .06em;
+    letter-spacing: .075em;
     cursor: pointer;
     position: relative;
     overflow: hidden;
@@ -686,13 +691,27 @@ const FLOW_DURATION = {
   .hold-btn::before {
     content: '';
     position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: var(--bar-pct, 0%);
-    background: var(--btn-color, var(--accent-dim));
-    border-radius: 32px;
+    left: 18px;
+    right: 18px;
+    bottom: 10px;
+    width: calc((100% - 36px) * var(--bar-pct, 0) / 100);
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(196,168,130,0), var(--btn-color, rgba(196,168,130,0.44)), rgba(196,168,130,0));
+    box-shadow: 0 0 10px var(--btn-glow, rgba(196,168,130,0.12));
+    opacity: 0.95;
     transition: none;
   }
-  .hold-btn-label { position: relative; z-index: 1; }
+  .hold-btn::after {
+    content: '';
+    position: absolute;
+    left: 18px; right: 18px; bottom: 10px;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(234,230,222,0), rgba(234,230,222,0.13), rgba(234,230,222,0));
+    opacity: 0.46;
+  }
+  .hold-btn-label { position: relative; z-index: 1; top: -2px; }
 
   
   /* 파문(ripple) 효과 */
@@ -1309,56 +1328,56 @@ const FLOW_DURATION = {
   }
 
   function playTinyChime(freq, when = 0, volume = 0.012, panValue = 0) {
-    playSoftTone(freq, 0.34, 'sine', volume * 0.72, when, Math.min(freq * 2.2, 1800), 0.018, panValue);
-    playSoftTone(freq * 2.01, 0.2, 'sine', volume * 0.18, when + 0.018, Math.min(freq * 3, 2400), 0.012, panValue * -0.5);
+    playSoftTone(freq, 0.34, 'sine', volume * 0.9, when, Math.min(freq * 2.6, 2200), 0.018, panValue);
+    playSoftTone(freq * 2.01, 0.2, 'sine', volume * 0.26, when + 0.018, Math.min(freq * 3.3, 2800), 0.012, panValue * -0.5);
   }
 
   function playMobilePresence(freq = 1800, when = 0, volume = 0.012, panValue = 0) {
-    playSoftTone(freq, 0.1, 'sine', volume * 0.42, when, 1600, 0.012, panValue);
+    playSoftTone(freq, 0.1, 'sine', volume * 0.62, when, 2200, 0.012, panValue);
   }
 
   function playSoundTestBloom() {
-    playSoftTone(174, 0.58, 'sine', 0.044, 0, 680, 0.045, -0.08);
-    playTinyChime(348, 0.06, 0.016, 0.1);
-    playAirNoise(0.5, 0.0095, 900, 0.03, 0.04);
+    playSoftTone(174, 0.62, 'sine', 0.064, 0, 900, 0.045, -0.08);
+    playTinyChime(348, 0.06, 0.022, 0.1);
+    playAirNoise(0.5, 0.012, 1100, 0.03, 0.04);
   }
 
   function playEmotionEnterSound(emotion) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base * 0.5, 1.1, 'sine', 0.028, 0, 480, 0.12, -0.08);
-    playSoftTone(base, 0.86, 'sine', 0.043, 0.04, 760, 0.09, 0.08);
-    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.010, 0.12);
-    playAirNoise(0.8, 0.0085, 860, 0.04, 0);
+    playSoftTone(base * 0.5, 1.1, 'sine', 0.04, 0, 640, 0.12, -0.08);
+    playSoftTone(base, 0.9, 'sine', 0.064, 0.04, 980, 0.09, 0.08);
+    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.014, 0.12);
+    playAirNoise(0.82, 0.011, 1050, 0.04, 0);
   }
 
   function playStepCompleteSound(step) {
     if (step === 1) {
-      playSoftTone(164, 0.62, 'sine', 0.046, 0, 660, 0.05, -0.1);
-      playTinyChime(328, 0.06, 0.013, 0.12);
-      playAirNoise(0.42, 0.0085, 840, 0.03, 0.05);
+      playSoftTone(164, 0.64, 'sine', 0.066, 0, 860, 0.05, -0.1);
+      playTinyChime(328, 0.06, 0.018, 0.12);
+      playAirNoise(0.44, 0.011, 1020, 0.03, 0.05);
     } else if (step === 2) {
-      playSoftTone(196, 0.66, 'sine', 0.045, 0, 760, 0.052, 0.08);
-      playTinyChime(392, 0.07, 0.014, -0.12);
-      playAirNoise(0.55, 0.0095, 920, 0.03, -0.04);
+      playSoftTone(196, 0.68, 'sine', 0.064, 0, 980, 0.052, 0.08);
+      playTinyChime(392, 0.07, 0.02, -0.12);
+      playAirNoise(0.56, 0.012, 1120, 0.03, -0.04);
     } else if (step === 4) {
-      playSoftTone(146, 0.78, 'sine', 0.04, 0, 600, 0.06, -0.04);
-      playSoftTone(292, 0.56, 'sine', 0.02, 0.06, 820, 0.05, 0.1);
-      playAirNoise(0.5, 0.0078, 780, 0.035, 0);
+      playSoftTone(146, 0.8, 'sine', 0.056, 0, 760, 0.06, -0.04);
+      playSoftTone(292, 0.58, 'sine', 0.03, 0.06, 980, 0.05, 0.1);
+      playAirNoise(0.52, 0.01, 940, 0.035, 0);
     }
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.22, 'sine', 0.056, 0, 760, 0.1, -0.06);
-    playSoftTone(247, 1.08, 'sine', 0.036, 0.07, 860, 0.1, 0.08);
-    playSoftTone(330, 0.92, 'sine', 0.02, 0.16, 980, 0.08, 0);
-    playTinyChime(392, 0.24, 0.012, -0.12);
-    playAirNoise(0.94, 0.0085, 880, 0.08, 0);
+    playSoftTone(196, 1.24, 'sine', 0.074, 0, 960, 0.1, -0.06);
+    playSoftTone(247, 1.1, 'sine', 0.05, 0.07, 1080, 0.1, 0.08);
+    playSoftTone(330, 0.94, 'sine', 0.03, 0.16, 1280, 0.08, 0);
+    playTinyChime(392, 0.24, 0.017, -0.12);
+    playAirNoise(0.96, 0.011, 1080, 0.08, 0);
   }
 
   function playCompleteCloseSound() {
-    playSoftTone(130, 0.92, 'sine', 0.046, 0, 580, 0.07, 0);
-    playSoftTone(260, 0.68, 'sine', 0.02, 0.06, 760, 0.06, -0.1);
-    playAirNoise(0.72, 0.0078, 720, 0.04, 0);
+    playSoftTone(130, 0.94, 'sine', 0.064, 0, 760, 0.07, 0);
+    playSoftTone(260, 0.7, 'sine', 0.03, 0.06, 980, 0.06, -0.1);
+    playAirNoise(0.74, 0.01, 900, 0.04, 0);
   }
 
   let flowTimer = null;
@@ -1381,7 +1400,7 @@ const FLOW_DURATION = {
   function updateFlowTrace(doneCount, options = {}) {
     const trace = document.getElementById('flow-trace');
     if (!trace) return;
-    const progress = Math.max(0, Math.min(1, doneCount / 4));
+    const progress = Math.max(0, Math.min(1, Math.min(doneCount, 3) / 3));
     trace.style.setProperty('--flow-trace-progress', progress);
     trace.classList.toggle('complete', !!options.complete);
   }
@@ -1538,10 +1557,10 @@ const FLOW_DURATION = {
     completedSteps = Math.max(completedSteps, step);
     document.documentElement.style.setProperty('--flow-progress', completedSteps / 4);
     document.body.dataset.flowProgress = String(completedSteps);
-    updateFlowTrace(completedSteps);
+    updateFlowTrace(Math.min(completedSteps, 3));
     if (completedSteps >= 4) {
       setTimeout(() => {
-        if (completedSteps >= 4) updateFlowTrace(completedSteps, { complete: true });
+        if (completedSteps >= 4) updateFlowTrace(3, { complete: true });
       }, 420);
     }
   }
@@ -1966,7 +1985,7 @@ const FLOW_DURATION = {
       if (!holdActive) return;
       const elapsed = Date.now() - holdStartTime;
       const pct = Math.min(elapsed / getHoldDuration() * 100, 100);
-      btn.style.setProperty('--bar-pct', pct + '%');
+      btn.style.setProperty('--bar-pct', pct);
       document.documentElement.style.setProperty('--hold-progress', pct / 100);
       updateScreenReact(pct);
       if (pct >= 100) {
@@ -1979,7 +1998,7 @@ const FLOW_DURATION = {
     function onComplete() {
       holdActive = false;
       cancelAnimationFrame(holdRAF);
-      btn.style.setProperty('--bar-pct', '100%');
+      btn.style.setProperty('--bar-pct', 100);
       document.documentElement.style.setProperty('--hold-progress', 1);
       clearTimeout(flowTimer);
       const stepAtComplete = currentStep;
@@ -2000,7 +2019,7 @@ const FLOW_DURATION = {
       setTimeout(() => {
         stopScreenReact();
         btn.classList.remove('holding');
-        btn.style.setProperty('--bar-pct', '0%');
+        btn.style.setProperty('--bar-pct', 0);
         document.documentElement.style.setProperty('--hold-progress', 0);
         if (stepAtComplete >= 4) {
           setTimeout(() => goComplete(), 500);
@@ -2016,7 +2035,7 @@ const FLOW_DURATION = {
       holdActive = false;
       cancelAnimationFrame(holdRAF);
       btn.classList.remove('holding');
-      btn.style.setProperty('--bar-pct', '0%');
+      btn.style.setProperty('--bar-pct', 0);
       document.documentElement.style.setProperty('--hold-progress', 0);
       stopScreenReact();
     }
@@ -2053,7 +2072,7 @@ const FLOW_DURATION = {
     const btn = document.getElementById('hold-btn');
     if (btn) {
       btn.classList.remove('holding');
-      btn.style.setProperty('--bar-pct', '0%');
+      btn.style.setProperty('--bar-pct', 0);
     }
     document.documentElement.style.setProperty('--hold-progress', 0);
     holdActive = false;
