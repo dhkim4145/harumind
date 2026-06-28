@@ -32,11 +32,11 @@ const CONTENT = {
 };
 
 const FLOW_STEP1 = {
-  피곤함: "힘을 풉니다",
+  피곤함: "여기 머뭅니다",
   불안함: "숨을 내쉽니다",
   공허함: "비워둡니다",
   쓸쓸함: "여기 있습니다",
-  복잡함: "내려놓습니다",
+  복잡함: "흩어진 채 둡니다",
   괜찮음: "그대로입니다"
 };
 
@@ -74,7 +74,7 @@ const FLOW_DURATION = {
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-pressed', 'false');
       card.innerHTML = `
-        <div class="e-dot" style="background:${data.color};"></div>
+        <div class="e-dot" style="background:${data.color};--dot-color:${data.color};"></div>
         <div class="e-word">${name}</div>
         <div class="e-desc">${EMOTION_DESC[name] || ''}</div>
       `;
@@ -629,7 +629,7 @@ const FLOW_DURATION = {
 
     setTimeout(() => {
       el.classList.remove('visible');
-    }, step === 3 ? 1300 : 900);
+    }, step === 3 ? 1800 : 1300);
   }
 
   function emphasizeOkayReward() {
@@ -685,7 +685,7 @@ const FLOW_DURATION = {
     const qr = Math.round(234 - ambientNight * 18);
     const qg = Math.round(230 - ambientNight * 10);
     const qb = Math.round(222 + ambientNight * 8);
-    const qa = (0.58 - ambientNight * 0.1).toFixed(3);
+    const qa = (0.66 + ambientNight * 0.06).toFixed(3);
     quoteEl.style.color = 'rgba(' + qr + ',' + qg + ',' + qb + ',' + qa + ')';
 
     const extras = document.getElementById('complete-extras');
@@ -730,7 +730,7 @@ const FLOW_DURATION = {
 
     if (lastColor) {
       const echoEl = document.getElementById('echo-emoji');
-      echoEl.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:' + lastColor + ';';
+      echoEl.style.cssText = 'display:inline-block;width:14px;height:14px;border-radius:50%;background:' + lastColor + ';';
       echoEl.classList.remove('visible', 'fadeout');
       setTimeout(() => {
         echoEl.classList.add('visible');
@@ -819,10 +819,12 @@ const FLOW_DURATION = {
   //       'edge'=가장자리번짐 'top'=위에서내려옴 'silent'=없음
   const TEXT_REACT_TYPE = {
     '힘을 풉니다':           'dark',
+    '여기 머뭅니다':         'dark',
     '숨을 내쉽니다':         'bright',
     '비워둡니다':            'gray',
     '여기 있습니다':         'edge',
     '내려놓습니다':          'top',
+    '흩어진 채 둡니다':       'silent',
     '그대로입니다':          'silent',
     '그대로 둡니다':         'dark',
     '정리하지 않아도 됩니다': 'silent',
@@ -1059,7 +1061,7 @@ const FLOW_DURATION = {
         playStepCompleteSound(stepAtComplete);
       }
 
-      const nextDelay = stepAtComplete === 3 ? 900 : 600;
+      const nextDelay = stepAtComplete === 3 ? 1800 : 1300;
 
       setTimeout(() => {
         stopScreenReact();
@@ -1136,15 +1138,15 @@ const FLOW_DURATION = {
 
     // 계절 색온도 — 감정 색을 해치지 않는 선에서 아주 옅게
     let tint, season, tintA;
-    if (m === 11 || m <= 1)      { tint = 'rgba(120,150,205,'; season = 'winter'; tintA = 0.04; }  // 겨울 — 차갑게
-    else if (m >= 5 && m <= 7)   { tint = 'rgba(205,170,120,'; season = 'summer'; tintA = 0.04; }  // 여름 — 따뜻하게
-    else                          { tint = 'rgba(150,150,175,'; season = 'mid';    tintA = 0.024; } // 봄·가을 — 중립
+    if (m === 11 || m <= 1)      { tint = 'rgba(120,150,205,'; season = 'winter'; tintA = 0.11; }  // 겨울 — 차갑게
+    else if (m >= 5 && m <= 7)   { tint = 'rgba(205,170,120,'; season = 'summer'; tintA = 0.11; }  // 여름 — 따뜻하게
+    else                          { tint = 'rgba(150,150,175,'; season = 'mid';    tintA = 0.065; } // 봄·가을 — 중립
 
     // 시간대 깊이 — 새벽 3시 최대 ~ 오후 3시 최소로 부드럽게 보간 (계단식 X)
     const nightness = (Math.cos((hf - 3) / 24 * Math.PI * 2) + 1) / 2; // 0~1
     ambientNight = nightness;
-    const darkA = +(nightness * 0.05).toFixed(3);              // 더 은은하게
-    const topA  = +(tintA * (0.7 + nightness * 0.3)).toFixed(3); // 밤일수록 아주 살짝만 더
+    const darkA = +(nightness * 0.14).toFixed(3);              // 더 은은하게
+    const topA  = +(tintA * (0.8 + nightness * 0.2)).toFixed(3); // 밤일수록 아주 살짝만 더
 
     el.dataset.season = season;
     el.style.background =
@@ -1161,12 +1163,22 @@ const FLOW_DURATION = {
     const isSummer = (m >= 5 && m <= 7); // 6~8월
     if (!isSummer) { el.style.background = ''; return; } // 다른 계절은 적용 안 함
     const k = 0.7 + ambientNight * 0.3; // 밤일수록 아주 살짝만 더
-    const a1 = (0.04 * k).toFixed(3);
-    const a2 = (0.025 * k).toFixed(3);
+    const a1 = (0.11 * k).toFixed(3);
+    const a2 = (0.07 * k).toFixed(3);
     el.style.background =
       'radial-gradient(ellipse at 50% 64%, rgba(208,184,148,' + a1 + ') 0%, rgba(0,0,0,0) 60%),' +
       'radial-gradient(ellipse at 50% 30%, rgba(196,178,150,' + a2 + ') 0%, rgba(0,0,0,0) 70%)';
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on')));
+  }
+
+  function initCompleteMoonTap() {
+    const moonEl = document.getElementById('complete-moon');
+    if (!moonEl) return;
+    moonEl.addEventListener('click', () => {
+      moonEl.style.transition = 'transform .3s cubic-bezier(.22,1,.36,1)';
+      moonEl.style.transform = 'scale(1.08)';
+      setTimeout(() => { moonEl.style.transform = 'scale(1)'; }, 320);
+    });
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -1175,6 +1187,7 @@ const FLOW_DURATION = {
     initHold();
     applyAmbient();
     applySeasonHaze();
+    initCompleteMoonTap();
   });
 
   // ===== 문구별 연출 시스템 (재설계) =====
@@ -1193,10 +1206,12 @@ const FLOW_DURATION = {
   // 문구별 연출 함수 매핑
   const TEXT_FX_MAP = {
     '힘을 풉니다':           fxRelax,
+    '여기 머뭅니다':         fxRelax,
     '숨을 내쉽니다':         fxBreathe,
     '비워둡니다':            fxEmpty,
     '여기 있습니다':         fxPresence,
     '내려놓습니다':          fxLetGo,
+    '흩어진 채 둡니다':       fxStay,
     '그대로입니다':          fxSilence,
     '그대로 둡니다':         fxSettle,
     '정리하지 않아도 됩니다': fxStay,

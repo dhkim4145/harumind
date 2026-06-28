@@ -120,8 +120,8 @@
   }
   .e-card:focus-visible { outline:1px solid rgba(196,168,130,0.32); outline-offset:3px; }
   .e-card.selected {
-    border-color: rgba(196,168,130,0.14);
-    background: rgba(196,168,130,0.04);
+    border-color: rgba(196,168,130,0.38);
+    background: rgba(196,168,130,0.09);
   }
   .e-card.selected::after { opacity: 0.75; transform: scaleX(1); }
 
@@ -135,20 +135,21 @@
     opacity: 0.82;
   }
   .e-card.selected .e-dot {
-    opacity: 0.95;
-    box-shadow: 0 0 9px 1px rgba(234,230,222,0.08);
+    opacity: 1;
+    box-shadow: 0 0 0 3px rgba(234,230,222,0.08),
+                0 0 12px 2px var(--dot-color, currentColor);
   }
   .e-word {
     font-family:'Noto Serif KR', serif;
     font-size:15px; font-weight:400;
     color:rgba(234,230,222,0.88); letter-spacing:.01em;
-    transition: color .45s var(--ease), letter-spacing .6s var(--ease);
+    transition: color .45s var(--ease), letter-spacing .3s var(--ease);
   }
   .e-card:hover .e-word,
   .e-card.selected .e-word { color:var(--ink-1); }
   .e-card.selected .e-word { letter-spacing:.04em; }
   .e-desc {
-    font-size:11.5px; color:rgba(234,230,222,0.52); line-height:1.55;
+    font-size:12px; color:rgba(234,230,222,0.62); line-height:1.55;
     transition: color .45s var(--ease);
   }
   .e-card:hover .e-desc { color:rgba(234,230,222,0.6); }
@@ -167,14 +168,14 @@
   }
   .btn-primary { background:rgba(196,168,130,0.07); color:var(--ink-3); }
   .btn-primary:not(:disabled) {
-    background: rgba(196,168,130,0.1);
-    border-color: rgba(196,168,130,0.18);
-    color: rgba(234,230,222,0.82);
+    background: rgba(196,168,130,0.13);
+    border-color: rgba(196,168,130,0.28);
+    color: rgba(234,230,222,0.88);
     box-shadow: none;
   }
   .btn-primary:hover:not(:disabled) {
-    background: rgba(196,168,130,0.13);
-    border-color: rgba(196,168,130,0.22);
+    background: rgba(196,168,130,0.18);
+    border-color: rgba(196,168,130,0.34);
   }
   .btn-primary:disabled { opacity:.24; cursor:not-allowed; }
   .sound-toggle {
@@ -244,6 +245,15 @@
   .sound-icon-toggle:focus-visible {
     opacity: 0.72;
     outline: none;
+  }
+  .sound-icon-label {
+    display: block;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: .06em;
+    color: rgba(234,230,222,0.32);
+    margin-top: 18px;
+    white-space: nowrap;
   }
 
   body { transition: background 1.2s cubic-bezier(.4,0,.2,1); }
@@ -369,7 +379,7 @@
     margin-top: 18px;
     font-family: 'Noto Serif KR', serif;
     font-size: 12px; font-weight: 300;
-    color: rgba(234,230,222,0.42);
+    color: rgba(234,230,222,0.58);
     letter-spacing: .06em;
     opacity: 0;
     transform: translateY(6px);
@@ -402,6 +412,7 @@
   }
   .complete-moon {
     display: block;
+    cursor: default;
     width: 60px; height: 60px; border-radius: 50%;
     margin: 0 auto 28px;
     opacity: 0;
@@ -442,7 +453,7 @@
   }
   .complete-emotion {
     font-family: 'Noto Serif KR', serif;
-    font-size: 12px; font-weight: 300; color: rgba(234,230,222,0.5);
+    font-size: 12px; font-weight: 300; color: rgba(234,230,222,0.64);
     letter-spacing: .06em; margin-bottom: 20px;
     opacity: 0; transform: translateY(8px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1) .4s, transform 1s cubic-bezier(.22,1,.36,1) .4s;
@@ -456,7 +467,7 @@
   }
   .complete-close {
     font-family: 'Noto Serif KR', serif;
-    font-size: 11px; font-weight: 300; color: var(--text-secondary);
+    font-size: 12px; font-weight: 300; color: var(--text-secondary);
     letter-spacing: .08em; margin-bottom: 34px; margin-top: 30px;
     opacity: 0; transform: translateY(6px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1) 1.4s, transform 1s cubic-bezier(.22,1,.36,1) 1.4s;
@@ -487,7 +498,7 @@
   .complete-extras.visible { opacity: 1; }
   .complete-quote {
     font-family: 'Noto Serif KR', serif;
-    font-size: 14px; font-weight: 300; color: rgba(234,230,222,0.54);
+    font-size: 14px; font-weight: 300; color: rgba(234,230,222,0.66);
     line-height: 2.12; text-align: center; letter-spacing: .025em;
     padding: 12px 8px 0; width: 100%;
   }
@@ -523,7 +534,7 @@
     width: 8px; height: 8px;
     opacity: 0; pointer-events: none; z-index: 2; transition: opacity .8s ease;
   }
-  .echo-emoji.visible { opacity: 0.15; }
+  .echo-emoji.visible { opacity: 0.28; }
   .echo-emoji.fadeout { opacity: 0; transition: opacity 1.5s ease; }
 
   @media(max-width:440px){
@@ -555,7 +566,7 @@
   }
   #ambient.on { opacity: 1; }
   /* 감정색 가드 — 감정 선택 후엔 감정색이 주인공, ambient는 뒤로 물러남 */
-  body[class*="emotion-"] #ambient.on { opacity: 0.4; }
+  body[class*="emotion-"] #ambient.on { opacity: 0.55; }
 
   /* 여름 밤 습기 — 정적 헤이즈 (계절 한정, 무애니메이션, 아주 옅게) */
   #season-haze {
@@ -609,7 +620,7 @@
     position: relative;
     width: 80px; height: 80px;
     border-radius: 50%;
-    border: 1px solid var(--btn-color);
+    border: 1.5px solid var(--btn-color);
     opacity: 0.5;
     transition: opacity .7s var(--ease), transform .7s var(--ease);
   }
@@ -622,7 +633,7 @@
   }
   @keyframes orbBreath {
     0%, 100% { opacity: 0.38; transform: scale(1); }
-    50%      { opacity: 0.62; transform: scale(1.05); }
+    50%      { opacity: 0.72; transform: scale(1.08); }
   }
 
   /* 손을 올린 동안 안에서 차오르는 빛 — 진행률 연동 */
@@ -647,8 +658,8 @@
 
   .hold-btn-label {
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px; font-weight: 300; letter-spacing: .08em;
-    color: rgba(234,230,222,0.5);
+    font-size: 13px; font-weight: 300; letter-spacing: .06em;
+    color: rgba(234,230,222,0.72);
     transition: opacity .7s var(--ease);
   }
   /* 손을 올리면 안내는 조용히 사라진다 */
