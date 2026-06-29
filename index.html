@@ -46,14 +46,14 @@
 </style>
 </head>
 <body>
-<canvas id="aurora"></canvas>
+<canvas id="aurora" aria-hidden="true"></canvas>
 <div id="ambient" aria-hidden="true"></div>
 <div id="season-haze" aria-hidden="true"></div>
-<div class="ripple-overlay" id="ripple-overlay"></div>
-<div id="screen-settled"></div>
-<div id="screen-react"></div>
-<div class="screen-wash" id="screen-wash"></div>
-<canvas id="complete-fx"></canvas>
+<div class="ripple-overlay" id="ripple-overlay" aria-hidden="true"></div>
+<div id="screen-settled" aria-hidden="true"></div>
+<div id="screen-react" aria-hidden="true"></div>
+<div class="screen-wash" id="screen-wash" aria-hidden="true"></div>
+<canvas id="complete-fx" aria-hidden="true"></canvas>
 
 
 
@@ -65,7 +65,7 @@
 <div class="app">
 
   <!-- SCREEN 1: 감정 선택 -->
-  <div class="screen active" id="s-emotion">
+  <div class="screen active" id="s-emotion" role="region" aria-label="감정 선택" tabindex="-1">
     <div class="header">
       <div class="wordmark">하루마음</div>
       <div class="h-title">오늘 하루,<br>어떤 감정이 가장 가까웠나요</div>
@@ -81,39 +81,39 @@
   </div>
 
   <!-- SCREEN 2: TRANSITION -->
-  <div class="screen" id="s-transition">
+  <div class="screen" id="s-transition" role="region" aria-label="하루를 닫는 전환" tabindex="-1">
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"><span class="sound-icon-label">소리</span></button>
-    <div class="transition-text" id="transition-line1"></div>
-    <div class="transition-text transition-line2" id="transition-line2"></div>
+    <div class="transition-text" id="transition-line1" aria-live="polite"></div>
+    <div class="transition-text transition-line2" id="transition-line2" aria-live="polite"></div>
     <div class="transition-breath" id="transition-breath" aria-hidden="true">
       <span class="transition-breath-line"></span>
     </div>
   </div>
 
   <!-- SCREEN 3: FLOW -->
-  <div class="screen" id="s-flow">
+  <div class="screen" id="s-flow" role="region" aria-label="오늘에 머무르기" tabindex="-1">
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"><span class="sound-icon-label">소리</span></button>
     <div class="flow-trace" id="flow-trace" aria-hidden="true">
       <span class="flow-trace-fill"></span>
     </div>
-    <div class="flow-text" id="flow-text"></div>
+    <div class="flow-text" id="flow-text" aria-live="polite"></div>
     <div class="step-reward" id="step-reward" aria-live="polite"></div>
 
   </div>
 
 <div class="hold-btn-wrap" id="hold-wrap">
-  <button class="hold-btn" id="hold-btn" aria-label="손을 올려 머무르기">
+  <button class="hold-btn" id="hold-btn" aria-label="길게 눌러 머무르기" aria-keyshortcuts="Enter Space">
     <span class="hold-orb" aria-hidden="true"></span>
     <span class="hold-btn-label">손을 가볍게 올려두세요</span>
   </button>
 </div>
 
   <!-- SCREEN 4: COMPLETE -->
-  <div class="screen" id="s-complete">
+  <div class="screen" id="s-complete" role="region" aria-label="하루 마감 완료" tabindex="-1">
     <div class="complete-title">오늘은 여기까지입니다</div>
-    <span class="complete-moon" id="complete-moon"></span>
+    <span class="complete-moon" id="complete-moon" aria-hidden="true"></span>
     <div class="complete-emotion" id="complete-emotion"></div>
     <div class="complete-sub">충분합니다</div>
     <div class="complete-close">내일은 내일의 내가 봅니다</div>

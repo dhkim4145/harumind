@@ -53,6 +53,14 @@ const FLOW_DURATION = {
   '3-pause': 4000
 };
 
+const reducedMotionQuery = typeof window.matchMedia === 'function'
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : null;
+
+function prefersReducedMotion() {
+  return !!(reducedMotionQuery && reducedMotionQuery.matches);
+}
+
   let selected = null;
 
   const EMOTION_DESC = {
@@ -418,8 +426,28 @@ const FLOW_DURATION = {
   }
 
   let flowTimer = null;
+  let flowTextTimer = null;
+  let flowTextFadeTimer = null;
+  let stepAdvanceTimer = null;
+  let completeEnterTimer = null;
+  let lifecycleResumeAction = null;
+  let transitionRunToken = 0;
+  let transitionVisualToken = 0;
   let currentStep = 0;
   let completedSteps = 0;
+
+  function clearFlowTimers() {
+    clearTimeout(flowTimer);
+    clearTimeout(flowTextTimer);
+    clearTimeout(flowTextFadeTimer);
+    clearTimeout(stepAdvanceTimer);
+    clearTimeout(completeEnterTimer);
+    flowTimer = null;
+    flowTextTimer = null;
+    flowTextFadeTimer = null;
+    stepAdvanceTimer = null;
+    completeEnterTimer = null;
+  }
 
   function resetFlowCompletion() {
     completedSteps = 0;
@@ -449,24 +477,39 @@ const FLOW_DURATION = {
     return `rgba(${parts[0]},${parts[1]},${parts[2]},${alpha})`;
   }
 
-  function playTransitionEntry(color) {
+  function resetTransitionVisual() {
+    transitionVisualToken += 1;
     const wash = document.getElementById('screen-wash');
     if (!wash) return;
     wash.classList.remove('transition-enter', 'flash', 'fade');
+    wash.style.cssText = '';
+  }
+
+  function playTransitionEntry(color) {
+    const wash = document.getElementById('screen-wash');
+    if (!wash) return;
+    resetTransitionVisual();
+    if (prefersReducedMotion()) {
+      return;
+    }
+    const visualToken = transitionVisualToken;
     wash.style.background = `radial-gradient(circle at 50% 48%, ${colorWithAlpha(color, 0.18)} 0%, ${colorWithAlpha(color, 0.08)} 34%, rgba(0,0,0,0) 72%)`;
     wash.style.transform = 'scale(0.72)';
     wash.style.transition = 'opacity 0.85s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1)';
     wash.style.opacity = '0';
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        if (visualToken !== transitionVisualToken) return;
         wash.classList.add('transition-enter');
         wash.style.opacity = '1';
         wash.style.transform = 'scale(1)';
         setTimeout(() => {
+          if (visualToken !== transitionVisualToken) return;
           wash.style.opacity = '0';
           wash.style.transform = 'scale(1.08)';
         }, 900);
         setTimeout(() => {
+          if (visualToken !== transitionVisualToken) return;
           wash.classList.remove('transition-enter');
           wash.style.background = '';
           wash.style.transform = '';
@@ -479,6 +522,7 @@ const FLOW_DURATION = {
 
   function startTransition() {
     if (!selected) return;
+    const runToken = ++transitionRunToken;
     resetFlowCompletion();
     showScreen('transition');
     const data = CONTENT[selected];
@@ -504,9 +548,10 @@ const FLOW_DURATION = {
     }
 
     // Aurora 진입 시 밝아짐 (공통)
-    if (auroraCanvas && auroraCtx) {
+    if (auroraCanvas && auroraCtx && !prefersReducedMotion()) {
       let a = 0, dec = false;
       const burst = () => {
+        if (runToken !== transitionRunToken) return;
         if (!dec) { a += 0.012; if (a >= 0.12) dec = true; }
         else { a -= 0.005; if (a <= 0) return; }
         auroraCtx.fillStyle = 'rgba(255,255,255,' + a + ')';
@@ -563,6 +608,8 @@ const FLOW_DURATION = {
 
   function runFlowStep(step) {
     clearTimeout(flowTimer);
+    clearTimeout(flowTextTimer);
+    clearTimeout(flowTextFadeTimer);
     currentStep = step;
     const _closeBtn = document.getElementById('hold-btn');
     if (_closeBtn) _closeBtn.classList.toggle('closing', step === 4); // 4단계는 닫는 제스처
@@ -575,7 +622,7 @@ const FLOW_DURATION = {
     if (rewardEl) rewardEl.classList.remove('visible');
     const blankDelay = (step === 1) ? 0 : 300;
 
-    setTimeout(() => {
+    flowTextTimer = setTimeout(() => {
       textEl.classList.remove('step-3', 'step-4');
       textEl.textContent = '';
       let text = step === 1 ? (FLOW_STEP1[selected] || '') : (FLOW_COMMON[step] || '');
@@ -583,7 +630,7 @@ const FLOW_DURATION = {
       if (step === 4) textEl.classList.add('step-4');
       textEl.textContent = text;
       const fadeDelay = (step === 3) ? 200 : (step === 4) ? 500 : 80;
-      setTimeout(() => textEl.classList.add('visible'), fadeDelay);
+      flowTextFadeTimer = setTimeout(() => textEl.classList.add('visible'), fadeDelay);
     }, blankDelay);
 
 
@@ -642,7 +689,10 @@ const FLOW_DURATION = {
   }
 
   function exitFlow() {
-    clearTimeout(flowTimer);
+    clearFlowTimers();
+    transitionRunToken += 1;
+    resetTransitionVisual();
+    lifecycleResumeAction = null;
     currentStep = 0;
     resetFlowCompletion();
     document.getElementById('transition-line1').classList.remove('visible');
@@ -661,7 +711,8 @@ const FLOW_DURATION = {
   }
 
   function goComplete() {
-    clearTimeout(flowTimer);
+    clearFlowTimers();
+    lifecycleResumeAction = null;
     hideHoldBtn();
     playCompleteCloseSound();
     showScreen('complete');
@@ -700,7 +751,8 @@ const FLOW_DURATION = {
 
   function restart() {
     const lastColor = selected ? CONTENT[selected].color : null;
-    clearTimeout(flowTimer);
+    clearFlowTimers();
+    lifecycleResumeAction = null;
     resetFlowCompletion();
     document.getElementById('s-complete').classList.remove('visible');
     document.getElementById('complete-restart').classList.remove('visible');
@@ -728,7 +780,7 @@ const FLOW_DURATION = {
     showScreen('emotion');
     window.scrollTo(0,0);
 
-    if (lastColor) {
+    if (lastColor && !prefersReducedMotion()) {
       const echoEl = document.getElementById('echo-emoji');
       echoEl.style.cssText = 'display:inline-block;width:14px;height:14px;border-radius:50%;background:' + lastColor + ';';
       echoEl.classList.remove('visible', 'fadeout');
@@ -748,8 +800,69 @@ const FLOW_DURATION = {
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('s-' + id).classList.add('active');
+    const nextScreen = document.getElementById('s-' + id);
+    nextScreen.classList.add('active');
     window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      if (!nextScreen.classList.contains('active')) return;
+      try { nextScreen.focus({ preventScroll: true }); }
+      catch (err) { nextScreen.focus(); }
+    });
+  }
+
+  function resumeFlowStep(step) {
+    showScreen('flow');
+    hideHoldBtn();
+    runFlowStep(step);
+    flowTimer = setTimeout(() => {
+      if (currentStep === step) showHoldBtn();
+    }, 560);
+  }
+
+  function suspendForBackground() {
+    if (lifecycleResumeAction) return;
+    const activeScreen = document.querySelector('.screen.active');
+    if (!activeScreen) return;
+
+    if (activeScreen.id === 's-transition') {
+      lifecycleResumeAction = { type: 'transition' };
+      transitionRunToken += 1;
+      resetTransitionVisual();
+      clearFlowTimers();
+      return;
+    }
+
+    if (activeScreen.id !== 's-flow' || currentStep === 0) return;
+    const stepWasCompleted = completedSteps >= currentStep;
+    lifecycleResumeAction = stepWasCompleted
+      ? { type: currentStep >= 4 ? 'complete' : 'flow', step: currentStep + 1 }
+      : { type: 'flow', step: currentStep };
+    clearFlowTimers();
+    hideHoldBtn();
+  }
+
+  function resumeFromBackground() {
+    const action = lifecycleResumeAction;
+    if (!action) return;
+    lifecycleResumeAction = null;
+    if (action.type === 'transition') {
+      startTransition();
+    } else if (action.type === 'complete') {
+      goComplete();
+    } else if (action.type === 'flow') {
+      resumeFlowStep(action.step);
+    }
+  }
+
+  function initPageLifecycle() {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) suspendForBackground();
+      else resumeFromBackground();
+    });
+    window.addEventListener('pagehide', suspendForBackground);
+    window.addEventListener('pageshow', () => {
+      if (!document.hidden) resumeFromBackground();
+    });
   }
 
   // 화면 탭으로 넘기는 기능 제거 — Hold to Calm으로 대체
@@ -941,6 +1054,13 @@ const FLOW_DURATION = {
 
   function startAurora(emotion) {
     if (!auroraCanvas) return;
+    if (prefersReducedMotion()) {
+      if (auroraAnim) cancelAnimationFrame(auroraAnim);
+      auroraAnim = null;
+      auroraEmotion = null;
+      auroraCanvas.classList.remove('visible');
+      return;
+    }
     auroraEmotion = emotion;
     auroraCanvas.style.transition = 'opacity 1.2s ease';
     auroraCanvas.style.opacity = '';
@@ -956,7 +1076,7 @@ const FLOW_DURATION = {
   }
 
   function drawAurora() {
-    if (!auroraEmotion) return;
+    if (!auroraEmotion || prefersReducedMotion()) return;
     const colors = AURORA_COLORS[auroraEmotion] || AURORA_COLORS['괜찮음'];
     const w = auroraCanvas.width, h = auroraCanvas.height;
     const ctx = auroraCtx;
@@ -1015,7 +1135,7 @@ const FLOW_DURATION = {
   let holdResumeUsed = false;
 
   function releaseHoldPointer(btn) {
-    if (!btn || activePointerId === null || !btn.hasPointerCapture) return;
+    if (!btn || typeof activePointerId !== 'number' || !btn.hasPointerCapture) return;
     try {
       if (btn.hasPointerCapture(activePointerId)) btn.releasePointerCapture(activePointerId);
     } catch (err) {}
@@ -1045,26 +1165,38 @@ const FLOW_DURATION = {
     const btn = document.getElementById('hold-btn');
     if (!btn) return;
 
-    function onStart(e) {
-      e.preventDefault();
+    function beginHold(inputId) {
       if (currentStep === 0 || holdActive) return;
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-
       const resumeBufferedHold = !!(holdBuffered && holdCancelTimer);
       if (holdCancelTimer) clearTimeout(holdCancelTimer);
       holdCancelTimer = null;
       holdBuffered = false;
       if (resumeBufferedHold) holdResumeUsed = true;
       holdActive = true;
-      activePointerId = e.pointerId;
+      activePointerId = inputId;
       holdStartTime = performance.now() - (resumeBufferedHold ? holdElapsed : 0);
       if (!resumeBufferedHold) {
         holdElapsed = 0;
         document.documentElement.style.setProperty('--hold-progress', 0);
       }
-      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+      if (typeof inputId === 'number') {
+        try { btn.setPointerCapture(inputId); } catch (err) {}
+      }
       btn.classList.add('holding');
       animateBar();
+    }
+
+    function onPointerStart(e) {
+      e.preventDefault();
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      beginHold(e.pointerId);
+    }
+
+    function onKeyDown(e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      if (e.repeat) return;
+      beginHold('keyboard');
     }
 
     function animateBar() {
@@ -1109,7 +1241,8 @@ const FLOW_DURATION = {
 
       const nextDelay = stepAtComplete === 3 ? 1800 : 1300;
 
-      setTimeout(() => {
+      stepAdvanceTimer = setTimeout(() => {
+        stepAdvanceTimer = null;
         stopScreenReact();
         btn.classList.remove('holding');
         btn.style.setProperty('--bar-pct', 0);
@@ -1117,16 +1250,18 @@ const FLOW_DURATION = {
         holdStartTime = null;
         holdElapsed = 0;
         if (stepAtComplete >= 4) {
-          setTimeout(() => goComplete(), 500);
+          completeEnterTimer = setTimeout(() => {
+            completeEnterTimer = null;
+            goComplete();
+          }, 500);
         } else {
           runFlowStep(stepAtComplete + 1);
         }
       }, nextDelay);
     }
 
-    function pauseForResume(e) {
-      e.preventDefault();
-      if (!holdActive || e.pointerId !== activePointerId) return;
+    function pauseForResume(inputId) {
+      if (!holdActive || inputId !== activePointerId) return;
       if (holdResumeUsed) {
         resetHoldInteraction(btn);
         return;
@@ -1141,9 +1276,23 @@ const FLOW_DURATION = {
       holdCancelTimer = setTimeout(() => resetHoldInteraction(btn), HOLD_CANCEL_BUFFER_MS);
     }
 
-    btn.addEventListener('pointerdown', onStart);
-    btn.addEventListener('pointerup', pauseForResume);
-    btn.addEventListener('pointercancel', pauseForResume);
+    function onPointerEnd(e) {
+      e.preventDefault();
+      pauseForResume(e.pointerId);
+    }
+
+    function onKeyUp(e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (activePointerId !== 'keyboard') return;
+      e.preventDefault();
+      pauseForResume('keyboard');
+    }
+
+    btn.addEventListener('pointerdown', onPointerStart);
+    btn.addEventListener('pointerup', onPointerEnd);
+    btn.addEventListener('pointercancel', onPointerEnd);
+    btn.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
   }
 
   const HOLD_LABELS = {
@@ -1222,10 +1371,38 @@ const FLOW_DURATION = {
     const moonEl = document.getElementById('complete-moon');
     if (!moonEl) return;
     moonEl.addEventListener('click', () => {
+      if (prefersReducedMotion()) return;
       moonEl.style.transition = 'transform .3s cubic-bezier(.22,1,.36,1)';
       moonEl.style.transform = 'scale(1.08)';
       setTimeout(() => { moonEl.style.transform = 'scale(1)'; }, 320);
     });
+  }
+
+  function syncReducedMotion() {
+    if (prefersReducedMotion()) {
+      if (auroraAnim) cancelAnimationFrame(auroraAnim);
+      auroraAnim = null;
+      auroraEmotion = null;
+      if (auroraCanvas) auroraCanvas.classList.remove('visible');
+      if (cFXAnim) cancelAnimationFrame(cFXAnim);
+      cFXAnim = null;
+      if (cFX && cFXCtx) {
+        cFXCtx.clearRect(0, 0, cFX.width, cFX.height);
+        cFX.classList.remove('visible');
+      }
+    } else if (selected && !document.getElementById('s-complete').classList.contains('active')) {
+      startAurora(selected);
+    }
+  }
+
+  function initReducedMotion() {
+    if (!reducedMotionQuery) return;
+    if (typeof reducedMotionQuery.addEventListener === 'function') {
+      reducedMotionQuery.addEventListener('change', syncReducedMotion);
+    } else if (typeof reducedMotionQuery.addListener === 'function') {
+      reducedMotionQuery.addListener(syncReducedMotion);
+    }
+    syncReducedMotion();
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -1235,6 +1412,8 @@ const FLOW_DURATION = {
     applyAmbient();
     applySeasonHaze();
     initCompleteMoonTap();
+    initReducedMotion();
+    initPageLifecycle();
   });
 
   // ===== 문구별 연출 시스템 (재설계) =====
@@ -1272,6 +1451,7 @@ const FLOW_DURATION = {
   }
 
   function playStepReward(step) {
+    if (prefersReducedMotion()) return;
     const text = step === 1 ? (FLOW_STEP1[selected] || '') : (FLOW_COMMON[step] || '');
     const fn = TEXT_FX_MAP[text];
     if (fn) fn();
@@ -1406,6 +1586,7 @@ const FLOW_DURATION = {
   }
 
   function playCompleteFX(emotion) {
+    if (prefersReducedMotion()) return;
     if (!cFX) initCompleteFX();
     if (!cFX) return;
     if (cFXAnim) cancelAnimationFrame(cFXAnim);

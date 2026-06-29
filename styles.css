@@ -57,10 +57,12 @@
 
   .screen {
     display:none; flex-direction:column;
-    min-height:100vh; padding:0 22px 48px;
+    min-height:100vh; padding:0 22px calc(48px + env(safe-area-inset-bottom, 0px));
     animation: fadeUp .55s cubic-bezier(.22,1,.36,1);
   }
   .screen.active { display:flex; }
+  html, body, .app, .screen, #s-transition, #s-flow, #s-complete { min-height: 100dvh; }
+  .screen:focus { outline: none; }
 
   @keyframes fadeUp {
     from { opacity:0; transform:translateY(14px); }
@@ -392,7 +394,7 @@
   }
 
    .flow-exit-btn {
-    position: absolute; top: 24px; left: 22px;
+    position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); left: 22px;
     background: transparent; border: none; color: var(--text-muted);
     font-size: 20px; line-height: 1; cursor: pointer;
     padding: 4px 8px; opacity: 0.75; transition: opacity .2s ease; z-index: 10;
@@ -400,7 +402,7 @@
   .flow-exit-btn:hover { opacity: 1; }
 
   #s-complete {
-    align-items: center; padding: 96px 32px 64px;
+    align-items: center; padding: 96px 32px calc(64px + env(safe-area-inset-bottom, 0px));
     min-height: 100vh; text-align: center;
   }
   .complete-title {
@@ -597,7 +599,7 @@
     position: fixed; bottom: 0; left: 0; right: 0;
     display: none;
     justify-content: center;
-    padding: 0 32px 52px;
+    padding: 0 32px calc(52px + env(safe-area-inset-bottom, 0px));
     z-index: 10;
   }
   .hold-btn-wrap.visible { display: flex; }
@@ -614,6 +616,11 @@
     flex-direction: column;
     align-items: center;
     gap: 16px;
+  }
+  .hold-btn:focus-visible {
+    outline: 1px solid rgba(196,168,130,0.38);
+    outline-offset: 5px;
+    border-radius: 999px;
   }
 
   /* 호흡하는 원 */
