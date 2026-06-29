@@ -1008,7 +1008,7 @@ const FLOW_DURATION = {
     const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];
     return map[currentStep] || 1600;
   }
-  const HOLD_CANCEL_BUFFER_MS = 150;
+  const HOLD_CANCEL_BUFFER_MS = 800;
   let holdActive = false, holdRAF = null, holdStartTime = null;
   let holdElapsed = 0, activePointerId = null;
   let holdCancelTimer = null, holdBuffered = false;
