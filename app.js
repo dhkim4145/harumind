@@ -1008,30 +1008,66 @@ const FLOW_DURATION = {
     const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];
     return map[currentStep] || 1600;
   }
+  const HOLD_CANCEL_BUFFER_MS = 150;
   let holdActive = false, holdRAF = null, holdStartTime = null;
+  let holdElapsed = 0, activePointerId = null;
+  let holdCancelTimer = null, holdBuffered = false;
+
+  function releaseHoldPointer(btn) {
+    if (!btn || activePointerId === null || !btn.hasPointerCapture) return;
+    try {
+      if (btn.hasPointerCapture(activePointerId)) btn.releasePointerCapture(activePointerId);
+    } catch (err) {}
+  }
+
+  function resetHoldInteraction(btn = document.getElementById('hold-btn')) {
+    holdActive = false;
+    holdBuffered = false;
+    holdStartTime = null;
+    holdElapsed = 0;
+    if (holdRAF) cancelAnimationFrame(holdRAF);
+    holdRAF = null;
+    if (holdCancelTimer) clearTimeout(holdCancelTimer);
+    holdCancelTimer = null;
+    releaseHoldPointer(btn);
+    activePointerId = null;
+    if (btn) {
+      btn.classList.remove('holding');
+      btn.style.setProperty('--bar-pct', 0);
+    }
+    document.documentElement.style.setProperty('--hold-progress', 0);
+    stopScreenReact();
+  }
 
   function initHold() {
     const btn = document.getElementById('hold-btn');
     if (!btn) return;
 
-    function getBar() {
-      return btn.querySelector('span.hold-bar') || null;
-    }
-
     function onStart(e) {
       e.preventDefault();
       if (currentStep === 0 || holdActive) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+      const resumeBufferedHold = holdBuffered && holdCancelTimer;
+      if (holdCancelTimer) clearTimeout(holdCancelTimer);
+      holdCancelTimer = null;
+      holdBuffered = false;
       holdActive = true;
-      holdStartTime = Date.now();
-      document.documentElement.style.setProperty('--hold-progress', 0);
+      activePointerId = e.pointerId;
+      holdStartTime = performance.now() - (resumeBufferedHold ? holdElapsed : 0);
+      if (!resumeBufferedHold) {
+        holdElapsed = 0;
+        document.documentElement.style.setProperty('--hold-progress', 0);
+      }
+      try { btn.setPointerCapture(e.pointerId); } catch (err) {}
       btn.classList.add('holding');
       animateBar();
     }
 
     function animateBar() {
       if (!holdActive) return;
-      const elapsed = Date.now() - holdStartTime;
-      const pct = Math.min(elapsed / getHoldDuration() * 100, 100);
+      holdElapsed = performance.now() - holdStartTime;
+      const pct = Math.min(holdElapsed / getHoldDuration() * 100, 100);
       btn.style.setProperty('--bar-pct', pct);
       document.documentElement.style.setProperty('--hold-progress', pct / 100);
       updateScreenReact(pct);
@@ -1045,6 +1081,12 @@ const FLOW_DURATION = {
     function onComplete() {
       holdActive = false;
       cancelAnimationFrame(holdRAF);
+      holdRAF = null;
+      if (holdCancelTimer) clearTimeout(holdCancelTimer);
+      holdCancelTimer = null;
+      holdBuffered = false;
+      releaseHoldPointer(btn);
+      activePointerId = null;
       btn.style.setProperty('--bar-pct', 100);
       document.documentElement.style.setProperty('--hold-progress', 1);
       clearTimeout(flowTimer);
@@ -1068,6 +1110,8 @@ const FLOW_DURATION = {
         btn.classList.remove('holding');
         btn.style.setProperty('--bar-pct', 0);
         document.documentElement.style.setProperty('--hold-progress', 0);
+        holdStartTime = null;
+        holdElapsed = 0;
         if (stepAtComplete >= 4) {
           setTimeout(() => goComplete(), 500);
         } else {
@@ -1078,21 +1122,27 @@ const FLOW_DURATION = {
 
     function onEnd(e) {
       e.preventDefault();
-      if (!holdActive) return;
-      holdActive = false;
-      cancelAnimationFrame(holdRAF);
-      btn.classList.remove('holding');
-      btn.style.setProperty('--bar-pct', 0);
-      document.documentElement.style.setProperty('--hold-progress', 0);
-      stopScreenReact();
+      if (activePointerId !== null && e.pointerId !== activePointerId) return;
+      if (!holdActive && !holdBuffered) return;
+      resetHoldInteraction(btn);
     }
 
-    btn.addEventListener('mousedown', onStart);
-    btn.addEventListener('touchstart', onStart, { passive: false });
-    btn.addEventListener('mouseup', onEnd);
-    btn.addEventListener('mouseleave', onEnd);
-    btn.addEventListener('touchend', onEnd);
-    btn.addEventListener('touchcancel', onEnd);
+    function onCancel(e) {
+      e.preventDefault();
+      if (!holdActive || e.pointerId !== activePointerId) return;
+      holdActive = false;
+      cancelAnimationFrame(holdRAF);
+      holdRAF = null;
+      holdElapsed = Math.min(performance.now() - holdStartTime, getHoldDuration());
+      holdBuffered = true;
+      releaseHoldPointer(btn);
+      activePointerId = null;
+      holdCancelTimer = setTimeout(() => resetHoldInteraction(btn), HOLD_CANCEL_BUFFER_MS);
+    }
+
+    btn.addEventListener('pointerdown', onStart);
+    btn.addEventListener('pointerup', onEnd);
+    btn.addEventListener('pointercancel', onCancel);
   }
 
   const HOLD_LABELS = {
@@ -1118,13 +1168,9 @@ const FLOW_DURATION = {
     if (wrap) wrap.classList.remove('visible');
     const btn = document.getElementById('hold-btn');
     if (btn) {
-      btn.classList.remove('holding');
       btn.classList.remove('closing');
-      btn.style.setProperty('--bar-pct', 0);
     }
-    document.documentElement.style.setProperty('--hold-progress', 0);
-    holdActive = false;
-    if (holdRAF) cancelAnimationFrame(holdRAF);
+    resetHoldInteraction(btn);
   }
 
   // ===== 시간대/계절 분위기 (위젯·숫자 없이 공기로만) =====
