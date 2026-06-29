@@ -1012,6 +1012,7 @@ const FLOW_DURATION = {
   let holdActive = false, holdRAF = null, holdStartTime = null;
   let holdElapsed = 0, activePointerId = null;
   let holdCancelTimer = null, holdBuffered = false;
+  let holdResumeUsed = false;
 
   function releaseHoldPointer(btn) {
     if (!btn || activePointerId === null || !btn.hasPointerCapture) return;
@@ -1025,6 +1026,7 @@ const FLOW_DURATION = {
     holdBuffered = false;
     holdStartTime = null;
     holdElapsed = 0;
+    holdResumeUsed = false;
     if (holdRAF) cancelAnimationFrame(holdRAF);
     holdRAF = null;
     if (holdCancelTimer) clearTimeout(holdCancelTimer);
@@ -1048,10 +1050,11 @@ const FLOW_DURATION = {
       if (currentStep === 0 || holdActive) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-      const resumeBufferedHold = holdBuffered && holdCancelTimer;
+      const resumeBufferedHold = !!(holdBuffered && holdCancelTimer);
       if (holdCancelTimer) clearTimeout(holdCancelTimer);
       holdCancelTimer = null;
       holdBuffered = false;
+      if (resumeBufferedHold) holdResumeUsed = true;
       holdActive = true;
       activePointerId = e.pointerId;
       holdStartTime = performance.now() - (resumeBufferedHold ? holdElapsed : 0);
@@ -1085,6 +1088,7 @@ const FLOW_DURATION = {
       if (holdCancelTimer) clearTimeout(holdCancelTimer);
       holdCancelTimer = null;
       holdBuffered = false;
+      holdResumeUsed = false;
       releaseHoldPointer(btn);
       activePointerId = null;
       btn.style.setProperty('--bar-pct', 100);
@@ -1120,16 +1124,13 @@ const FLOW_DURATION = {
       }, nextDelay);
     }
 
-    function onEnd(e) {
-      e.preventDefault();
-      if (activePointerId !== null && e.pointerId !== activePointerId) return;
-      if (!holdActive && !holdBuffered) return;
-      resetHoldInteraction(btn);
-    }
-
-    function onCancel(e) {
+    function pauseForResume(e) {
       e.preventDefault();
       if (!holdActive || e.pointerId !== activePointerId) return;
+      if (holdResumeUsed) {
+        resetHoldInteraction(btn);
+        return;
+      }
       holdActive = false;
       cancelAnimationFrame(holdRAF);
       holdRAF = null;
@@ -1141,8 +1142,8 @@ const FLOW_DURATION = {
     }
 
     btn.addEventListener('pointerdown', onStart);
-    btn.addEventListener('pointerup', onEnd);
-    btn.addEventListener('pointercancel', onCancel);
+    btn.addEventListener('pointerup', pauseForResume);
+    btn.addEventListener('pointercancel', pauseForResume);
   }
 
   const HOLD_LABELS = {
