@@ -1154,7 +1154,7 @@ function prefersReducedMotion() {
     releaseHoldPointer(btn);
     activePointerId = null;
     if (btn) {
-      btn.classList.remove('holding');
+      btn.classList.remove('holding', 'paused', 'completed');
       btn.style.setProperty('--bar-pct', 0);
     }
     document.documentElement.style.setProperty('--hold-progress', 0);
@@ -1182,6 +1182,7 @@ function prefersReducedMotion() {
       if (typeof inputId === 'number') {
         try { btn.setPointerCapture(inputId); } catch (err) {}
       }
+      btn.classList.remove('paused', 'completed');
       btn.classList.add('holding');
       animateBar();
     }
@@ -1223,6 +1224,8 @@ function prefersReducedMotion() {
       holdResumeUsed = false;
       releaseHoldPointer(btn);
       activePointerId = null;
+      btn.classList.remove('paused');
+      btn.classList.add('completed');
       btn.style.setProperty('--bar-pct', 100);
       document.documentElement.style.setProperty('--hold-progress', 1);
       clearTimeout(flowTimer);
@@ -1244,7 +1247,7 @@ function prefersReducedMotion() {
       stepAdvanceTimer = setTimeout(() => {
         stepAdvanceTimer = null;
         stopScreenReact();
-        btn.classList.remove('holding');
+        btn.classList.remove('holding', 'paused', 'completed');
         btn.style.setProperty('--bar-pct', 0);
         document.documentElement.style.setProperty('--hold-progress', 0);
         holdStartTime = null;
@@ -1273,6 +1276,8 @@ function prefersReducedMotion() {
       holdBuffered = true;
       releaseHoldPointer(btn);
       activePointerId = null;
+      btn.classList.remove('holding');
+      btn.classList.add('paused');
       holdCancelTimer = setTimeout(() => resetHoldInteraction(btn), HOLD_CANCEL_BUFFER_MS);
     }
 
