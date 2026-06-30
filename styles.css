@@ -32,6 +32,12 @@
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
   html, body {
     background: var(--bg);
     color: var(--text-primary);
