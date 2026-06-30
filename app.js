@@ -745,7 +745,8 @@ function prefersReducedMotion() {
     extras.style.display = 'flex';
     setTimeout(() => {
       extras.classList.add('visible');
-      setTimeout(() => restartBtn.classList.add('visible'), 1000);
+      // 글귀의 1.6초 fade-in이 끝난 뒤 0.6초간 여운을 둔다.
+      setTimeout(() => restartBtn.classList.add('visible'), 2200);
     }, 1800);
   }
 
@@ -1242,7 +1243,9 @@ function prefersReducedMotion() {
         playStepCompleteSound(stepAtComplete);
       }
 
-      const nextDelay = stepAtComplete === 3 ? 1800 : 1300;
+      // 마지막 단계는 0.75초 동안 완료 반응을 정리한 뒤,
+      // 별도의 0.35초 정적 구간을 거쳐 완료 화면으로 전환한다.
+      const nextDelay = stepAtComplete === 3 ? 1800 : stepAtComplete >= 4 ? 750 : 1300;
 
       stepAdvanceTimer = setTimeout(() => {
         stepAdvanceTimer = null;
@@ -1256,7 +1259,7 @@ function prefersReducedMotion() {
           completeEnterTimer = setTimeout(() => {
             completeEnterTimer = null;
             goComplete();
-          }, 500);
+          }, 350);
         } else {
           runFlowStep(stepAtComplete + 1);
         }
