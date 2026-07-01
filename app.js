@@ -1801,35 +1801,45 @@ function prefersReducedMotion() {
     return Math.round(180 * clampContextMod(flowEffectProfile.motion * flowEffectProfile.trail));
   }
 
+  function getCompleteEnvelope(frame, maxFrames) {
+    const formationFrames = Math.max(1, Math.round(maxFrames / 3));
+    if (frame < formationFrames) return frame / formationFrames;
+    return Math.max(0, 1 - (frame - formationFrames) / Math.max(1, maxFrames - formationFrames));
+  }
+
+  function getCompleteAlpha(baseAlpha, envelope) {
+    return Math.min(0.52, contextIntensity(baseAlpha) * envelope);
+  }
+
   function fxFall() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
     const maxFrames=getCompleteEffectFrames();
-    const ps=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h*0.5,vy:(0.5+Math.random()*1.5)/flowEffectProfile.motion,a:Math.min(1,contextIntensity(0.6+Math.random()*0.4)),r:1.5+Math.random()*2.5}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.y+=p.vy;p.a-=0.004/flowEffectProfile.trail;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+p.a+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const ps=Array.from({length:18},()=>({x:w*0.12+Math.random()*w*0.76,y:h*0.16+Math.random()*h*0.38,vy:(0.22+Math.random()*0.48)/flowEffectProfile.motion,a:0.24+Math.random()*0.16,r:1+Math.random()*1.2}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ps.forEach(p=>{p.y+=p.vy;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxWave() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2,maxFrames=getCompleteEffectFrames();let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const base=t*2/flowEffectProfile.motion;[base,base-50,base-100].filter(r=>r>0).forEach(r=>{const a=contextIntensity(Math.max(0,0.4-r/280));ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1.5;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),base=24+t*0.72/flowEffectProfile.motion;[base,base-34].filter(r=>r>0).forEach((r,index)=>{const a=getCompleteAlpha(index===0?0.3:0.2,envelope);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxDot() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames(),rise=Math.round(maxFrames/3);let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const raw=t<rise?t/rise*0.7:Math.max(0,0.7-(t-rise)/(maxFrames-rise)*0.7);const a=contextIntensity(raw);ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames();let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),a=getCompleteAlpha(0.36,envelope);const halo=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,34);halo.addColorStop(0,'rgba(220,220,230,'+(a*0.2)+')');halo.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=halo;ctx.fillRect(w/2-34,h/2-34,68,68);ctx.beginPath();ctx.arc(w/2,h/2,2.4,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxScatter() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
     const maxFrames=getCompleteEffectFrames();
-    const ps=Array.from({length:35},()=>{const ang=Math.random()*Math.PI*2,sp=(0.8+Math.random()*1.5)/flowEffectProfile.motion;return{x:w/2,y:h/2,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,a:Math.min(1,contextIntensity(0.7+Math.random()*0.3)),r:1.5+Math.random()*2};});
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a-=0.005/flowEffectProfile.trail;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+p.a+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const ps=Array.from({length:12},()=>{const ang=Math.random()*Math.PI*2,dist=28+Math.random()*82;return{x:w/2+Math.cos(ang)*dist,y:h/2+Math.sin(ang)*dist*0.62,vx:(Math.random()-0.5)*0.12/flowEffectProfile.motion,vy:(-0.04-Math.random()*0.1)/flowEffectProfile.motion,a:0.24+Math.random()*0.14,r:1+Math.random()*1.1};});
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxLines() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
     const maxFrames=getCompleteEffectFrames();
-    const ls=Array.from({length:8},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.2+Math.random()*h*0.6,x2:w*0.2+Math.random()*w*0.6,y2:h*0.2+Math.random()*h*0.6,a:contextIntensity(0.5+Math.random()*0.3)}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ls.forEach(l=>{const a=Math.max(0,l.a-t/(200*flowEffectProfile.trail));ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+a+')';ctx.lineWidth=1;ctx.stroke();l.x2+=(w/2-l.x2)*0.015/flowEffectProfile.motion;l.y2+=(h/2-l.y2)*0.015/flowEffectProfile.motion;});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const ls=Array.from({length:6},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.26+Math.random()*h*0.48,x2:w*0.2+Math.random()*w*0.6,y2:h*0.26+Math.random()*h*0.48,a:0.22+Math.random()*0.14}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ls.forEach(l=>{ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+getCompleteAlpha(l.a,envelope)+')';ctx.lineWidth=0.8;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxGold() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames(),rise=Math.round(maxFrames/3);let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const raw=t<rise?t/rise*0.18:Math.max(0,0.18-(t-rise)/(maxFrames-rise)*0.18);const a=contextIntensity(raw);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.6);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames();let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),a=getCompleteAlpha(0.1,envelope);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.48);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
 
     renderGrid();
