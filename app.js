@@ -82,11 +82,17 @@ function createFlowCopyContext(date = new Date()) {
   const season = month >= 3 && month <= 5 ? 'spring'
     : month >= 6 && month <= 8 ? 'summer'
       : month >= 9 && month <= 11 ? 'autumn' : 'winter';
-  const time = hour >= 18 && hour <= 21 ? 'evening'
-    : hour >= 22 ? 'lateNight'
-      : hour <= 5 ? 'dawn' : 'daytime';
+  let time = 'daytime';
+  if (hour >= 18 && hour <= 21) time = 'evening';
+  else if (hour >= 22) time = 'lateNight';
+  else if (hour <= 5) time = 'dawn';
+
+  let transitionTime = 'daytime';
+  if (hour >= 15 && hour <= 17) transitionTime = 'lateAfternoon';
+  else if (hour >= 18 && hour <= 21) transitionTime = 'evening';
+  else if (hour >= 22 || hour <= 5) transitionTime = 'night';
   const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
-  return { season, time, dateKey };
+  return { season, time, transitionTime, dateKey };
 }
 
 let flowCopyContext = null;
@@ -150,8 +156,9 @@ function pickContextCopy(values, salt = '') {
 
 function getTransitionCopy(emotion) {
   const base = CONTENT[emotion]?.transition || ['', ''];
-  const contextual = flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined'
-    ? HARUMIND_FLOW_COPY.seasons?.[flowCopyContext.season]?.transitionLine2?.[emotion]
+  const contextual = flowCopyContext?.transitionTime !== 'daytime' && typeof HARUMIND_FLOW_COPY !== 'undefined'
+    ? HARUMIND_FLOW_COPY.transitionLine2Packages?.[flowCopyContext.season]?.[flowCopyContext.transitionTime]?.[emotion]
+      || HARUMIND_FLOW_COPY.seasons?.[flowCopyContext.season]?.transitionLine2?.[emotion]
     : null;
   return [base[0], pickContextCopy(contextual, `transition:${emotion}`) || base[1]];
 }
@@ -553,6 +560,8 @@ function prefersReducedMotion() {
   let holdRevealTimer = null;
   let stepAdvanceTimer = null;
   let completeEnterTimer = null;
+  let completeExtrasTimer = null;
+  let completeRestartTimer = null;
   let lifecycleResumeAction = null;
   let transitionRunToken = 0;
   let transitionVisualToken = 0;
@@ -616,12 +625,16 @@ function prefersReducedMotion() {
     clearTimeout(holdRevealTimer);
     clearTimeout(stepAdvanceTimer);
     clearTimeout(completeEnterTimer);
+    clearTimeout(completeExtrasTimer);
+    clearTimeout(completeRestartTimer);
     flowTimer = null;
     flowTextTimer = null;
     flowTextFadeTimer = null;
     holdRevealTimer = null;
     stepAdvanceTimer = null;
     completeEnterTimer = null;
+    completeExtrasTimer = null;
+    completeRestartTimer = null;
   }
 
   function resetFlowCompletion() {
@@ -930,10 +943,14 @@ function prefersReducedMotion() {
     const restartBtn = document.getElementById('complete-restart');
     restartBtn.classList.remove('visible');
     extras.style.display = 'flex';
-    setTimeout(() => {
+    completeExtrasTimer = setTimeout(() => {
+      completeExtrasTimer = null;
       extras.classList.add('visible');
       // 글귀의 1.6초 fade-in이 끝난 뒤 0.6초간 여운을 둔다.
-      setTimeout(() => restartBtn.classList.add('visible'), 2200);
+      completeRestartTimer = setTimeout(() => {
+        completeRestartTimer = null;
+        restartBtn.classList.add('visible');
+      }, 2200);
     }, 1800);
   }
 
@@ -1020,6 +1037,8 @@ function prefersReducedMotion() {
     }
 
     if (activeScreen.id === 's-complete') {
+      lifecycleResumeAction = { type: 'complete' };
+      clearFlowTimers();
       clearFlowEffects();
       return;
     }
@@ -1797,14 +1816,14 @@ function prefersReducedMotion() {
     }, contextDuration(3000, true));
   }
 
-  function getCompleteEffectFrames() {
-    return Math.round(180 * clampContextMod(flowEffectProfile.motion * flowEffectProfile.trail));
+  function getCompleteEffectDuration() {
+    return contextDuration(3000, true);
   }
 
-  function getCompleteEnvelope(frame, maxFrames) {
-    const formationFrames = Math.max(1, Math.round(maxFrames / 3));
-    if (frame < formationFrames) return frame / formationFrames;
-    return Math.max(0, 1 - (frame - formationFrames) / Math.max(1, maxFrames - formationFrames));
+  function getCompleteEnvelope(elapsed, duration) {
+    const formationDuration = duration / 3;
+    if (elapsed < formationDuration) return elapsed / formationDuration;
+    return Math.max(0, 1 - (elapsed - formationDuration) / Math.max(1, duration - formationDuration));
   }
 
   function getCompleteAlpha(baseAlpha, envelope) {
@@ -1813,33 +1832,33 @@ function prefersReducedMotion() {
 
   function fxFall() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const maxFrames=getCompleteEffectFrames();
-    const ps=Array.from({length:18},()=>({x:w*0.12+Math.random()*w*0.76,y:h*0.16+Math.random()*h*0.38,vy:(0.22+Math.random()*0.48)/flowEffectProfile.motion,a:0.24+Math.random()*0.16,r:1+Math.random()*1.2}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ps.forEach(p=>{p.y+=p.vy;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const duration=getCompleteEffectDuration();
+    const ps=Array.from({length:18},()=>({x:w*0.12+Math.random()*w*0.76,y:h*0.16+Math.random()*h*0.38,vy:(13.2+Math.random()*28.8)/flowEffectProfile.motion,a:0.24+Math.random()*0.16,r:1+Math.random()*1.2}));
+    let started=null; const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration);ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration);ps.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y+p.vy*(elapsed/1000),p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
   function fxWave() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2,maxFrames=getCompleteEffectFrames();let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),base=24+t*0.72/flowEffectProfile.motion;[base,base-34].filter(r=>r>0).forEach((r,index)=>{const a=getCompleteAlpha(index===0?0.3:0.2,envelope);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2,duration=getCompleteEffectDuration();let started=null;
+    const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration);ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration),base=24+(elapsed/1000)*43.2/flowEffectProfile.motion;[base,base-34].filter(r=>r>0).forEach((r,index)=>{const a=getCompleteAlpha(index===0?0.3:0.2,envelope);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1;ctx.stroke();});if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
   function fxDot() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames();let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),a=getCompleteAlpha(0.36,envelope);const halo=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,34);halo.addColorStop(0,'rgba(220,220,230,'+(a*0.2)+')');halo.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=halo;ctx.fillRect(w/2-34,h/2-34,68,68);ctx.beginPath();ctx.arc(w/2,h/2,2.4,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,duration=getCompleteEffectDuration();let started=null;
+    const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration);ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration),a=getCompleteAlpha(0.36,envelope);const halo=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,34);halo.addColorStop(0,'rgba(220,220,230,'+(a*0.2)+')');halo.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=halo;ctx.fillRect(w/2-34,h/2-34,68,68);ctx.beginPath();ctx.arc(w/2,h/2,2.4,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
   function fxScatter() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const maxFrames=getCompleteEffectFrames();
-    const ps=Array.from({length:12},()=>{const ang=Math.random()*Math.PI*2,dist=28+Math.random()*82;return{x:w/2+Math.cos(ang)*dist,y:h/2+Math.sin(ang)*dist*0.62,vx:(Math.random()-0.5)*0.12/flowEffectProfile.motion,vy:(-0.04-Math.random()*0.1)/flowEffectProfile.motion,a:0.24+Math.random()*0.14,r:1+Math.random()*1.1};});
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const duration=getCompleteEffectDuration();
+    const ps=Array.from({length:12},()=>{const ang=Math.random()*Math.PI*2,dist=28+Math.random()*82;return{x:w/2+Math.cos(ang)*dist,y:h/2+Math.sin(ang)*dist*0.62,vx:(Math.random()-0.5)*7.2/flowEffectProfile.motion,vy:(-2.4-Math.random()*6)/flowEffectProfile.motion,a:0.24+Math.random()*0.14,r:1+Math.random()*1.1};});
+    let started=null; const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration),seconds=elapsed/1000;ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration);ps.forEach(p=>{ctx.beginPath();ctx.arc(p.x+p.vx*seconds,p.y+p.vy*seconds,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+getCompleteAlpha(p.a,envelope)+')';ctx.fill();});if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
   function fxLines() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const maxFrames=getCompleteEffectFrames();
+    const duration=getCompleteEffectDuration();
     const ls=Array.from({length:6},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.26+Math.random()*h*0.48,x2:w*0.2+Math.random()*w*0.6,y2:h*0.26+Math.random()*h*0.48,a:0.22+Math.random()*0.14}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames);ls.forEach(l=>{ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+getCompleteAlpha(l.a,envelope)+')';ctx.lineWidth=0.8;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    let started=null; const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration);ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration);ls.forEach(l=>{ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+getCompleteAlpha(l.a,envelope)+')';ctx.lineWidth=0.8;ctx.stroke();});if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
   function fxGold() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames();let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(t,maxFrames),a=getCompleteAlpha(0.1,envelope);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.48);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,duration=getCompleteEffectDuration();let started=null;
+    const d=(now)=>{if(started===null)started=now;const elapsed=Math.min(now-started,duration);ctx.clearRect(0,0,w,h);const envelope=getCompleteEnvelope(elapsed,duration),a=getCompleteAlpha(0.1,envelope);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.48);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);if(elapsed<duration)cFXAnim=requestEffectFrame(d);}; cFXAnim=requestEffectFrame(d);
   }
 
     renderGrid();
