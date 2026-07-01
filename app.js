@@ -46,6 +46,128 @@ const FLOW_COMMON = {
   4: "오늘은 여기까지입니다"
 };
 
+const FLOW_STEP_SEMANTICS = {
+  1: {
+    피곤함: { react: 'dark', effect: 'relax' },
+    불안함: { react: 'bright', effect: 'breathe' },
+    공허함: { react: 'gray', effect: 'empty' },
+    쓸쓸함: { react: 'edge', effect: 'presence' },
+    복잡함: { react: 'silent', effect: 'stay' },
+    괜찮음: { react: 'silent', effect: 'silence' }
+  },
+  2: { react: 'dark', effect: 'settle' },
+  3: { react: 'bright', effect: 'okay' },
+  4: { react: 'dark', effect: 'close' }
+};
+
+function getKoreaDateParts(date = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(date);
+    return Object.fromEntries(parts.map(part => [part.type, part.value]));
+  } catch (err) {
+    return {
+      year: String(date.getFullYear()), month: String(date.getMonth() + 1),
+      day: String(date.getDate()), hour: String(date.getHours())
+    };
+  }
+}
+
+function createFlowCopyContext(date = new Date()) {
+  const parts = getKoreaDateParts(date);
+  const month = Number(parts.month);
+  const hour = Number(parts.hour);
+  const season = month >= 3 && month <= 5 ? 'spring'
+    : month >= 6 && month <= 8 ? 'summer'
+      : month >= 9 && month <= 11 ? 'autumn' : 'winter';
+  const time = hour >= 18 && hour <= 21 ? 'evening'
+    : hour >= 22 ? 'lateNight'
+      : hour <= 5 ? 'dawn' : 'daytime';
+  const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
+  return { season, time, dateKey };
+}
+
+let flowCopyContext = null;
+
+function clampContextMod(value) {
+  return Math.min(1.15, Math.max(0.85, value));
+}
+
+function createFlowEffectProfile(context = flowCopyContext) {
+  const base = { tint: '196,168,130', tintOpacity: 0, intensity: 1, motion: 1, trail: 1 };
+  if (!context || typeof HARUMIND_FLOW_COPY === 'undefined') return base;
+  const season = HARUMIND_FLOW_COPY.seasons?.[context.season]?.effect || {};
+  const time = HARUMIND_FLOW_COPY.times?.[context.time]?.effect || {};
+  return {
+    tint: season.tint || base.tint,
+    tintOpacity: Math.min(0.018, Math.max(0, season.tintOpacity || 0)),
+    intensity: clampContextMod((season.intensity || 1) * (time.intensity || 1)),
+    motion: clampContextMod((season.motion || 1) * (time.motion || 1)),
+    trail: clampContextMod((season.trail || 1) * (time.trail || 1))
+  };
+}
+
+let flowEffectProfile = createFlowEffectProfile();
+
+function contextIntensity(value) {
+  return value * flowEffectProfile.intensity;
+}
+
+function contextDuration(value, includeTrail = false) {
+  const modifier = flowEffectProfile.motion * (includeTrail ? flowEffectProfile.trail : 1);
+  return Math.round(value * clampContextMod(modifier));
+}
+
+function applyFlowEffectProfile() {
+  const root = document.documentElement;
+  root.style.setProperty('--context-tint', flowEffectProfile.tint);
+  root.style.setProperty('--context-tint-opacity', flowEffectProfile.tintOpacity);
+  if (flowCopyContext) {
+    root.dataset.flowSeason = flowCopyContext.season;
+    root.dataset.flowTime = flowCopyContext.time;
+  } else {
+    delete root.dataset.flowSeason;
+    delete root.dataset.flowTime;
+  }
+}
+
+function snapshotFlowContext(date = new Date()) {
+  flowCopyContext = createFlowCopyContext(date);
+  flowEffectProfile = createFlowEffectProfile(flowCopyContext);
+  applyFlowEffectProfile();
+  return flowCopyContext;
+}
+
+function pickContextCopy(values, salt = '') {
+  if (!Array.isArray(values) || values.length === 0) return '';
+  const seed = `${flowCopyContext?.dateKey || 'base'}:${salt}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) hash = ((hash * 31) + seed.charCodeAt(i)) >>> 0;
+  return values[hash % values.length] || '';
+}
+
+function getTransitionCopy(emotion) {
+  const base = CONTENT[emotion]?.transition || ['', ''];
+  const contextual = flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined'
+    ? HARUMIND_FLOW_COPY.seasons?.[flowCopyContext.season]?.transitionLine2?.[emotion]
+    : null;
+  return [base[0], pickContextCopy(contextual, `transition:${emotion}`) || base[1]];
+}
+
+function getFlowStepData(step, emotion = selected) {
+  const semantics = step === 1
+    ? FLOW_STEP_SEMANTICS[1][emotion] || { react: 'silent', effect: 'silence' }
+    : FLOW_STEP_SEMANTICS[step] || { react: 'silent', effect: 'silence' };
+  let text = step === 1 ? FLOW_STEP1[emotion] || '' : FLOW_COMMON[step] || '';
+  if (step === 2 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
+    const contextual = HARUMIND_FLOW_COPY.times?.[flowCopyContext.time]?.step2;
+    text = pickContextCopy(contextual, `step2:${emotion}`) || text;
+  }
+  return { text, react: semantics.react, effect: semantics.effect };
+}
+
 const FLOW_DURATION = {
   1: 3500,
   2: 3500,
@@ -428,6 +550,7 @@ function prefersReducedMotion() {
   let flowTimer = null;
   let flowTextTimer = null;
   let flowTextFadeTimer = null;
+  let holdRevealTimer = null;
   let stepAdvanceTimer = null;
   let completeEnterTimer = null;
   let lifecycleResumeAction = null;
@@ -435,16 +558,68 @@ function prefersReducedMotion() {
   let transitionVisualToken = 0;
   let currentStep = 0;
   let completedSteps = 0;
+  const effectAnimationFrames = new Set();
+  const effectTimeouts = new Set();
+  const effectElements = new Set();
+
+  function requestEffectFrame(callback) {
+    const id = requestAnimationFrame(timestamp => {
+      effectAnimationFrames.delete(id);
+      callback(timestamp);
+    });
+    effectAnimationFrames.add(id);
+    return id;
+  }
+
+  function scheduleEffectTimeout(callback, delay) {
+    const id = setTimeout(() => {
+      effectTimeouts.delete(id);
+      callback();
+    }, delay);
+    effectTimeouts.add(id);
+    return id;
+  }
+
+  function trackEffectElement(element) {
+    if (element) effectElements.add(element);
+    return element;
+  }
+
+  function clearFlowEffects() {
+    effectAnimationFrames.forEach(id => cancelAnimationFrame(id));
+    effectAnimationFrames.clear();
+    effectTimeouts.forEach(id => clearTimeout(id));
+    effectTimeouts.clear();
+    effectElements.forEach(element => element.remove());
+    effectElements.clear();
+    if (cFXAnim) cancelAnimationFrame(cFXAnim);
+    cFXAnim = null;
+    if (cFX && cFXCtx) {
+      cFXCtx.clearRect(0, 0, cFX.width, cFX.height);
+      cFX.classList.remove('visible');
+    }
+    const wash = document.getElementById('screen-wash');
+    if (wash) wash.style.cssText = '';
+    const react = document.getElementById('screen-react');
+    if (react) {
+      react.style.background = '';
+      react.style.filter = '';
+      react.style.opacity = '';
+      react.style.transition = '';
+    }
+  }
 
   function clearFlowTimers() {
     clearTimeout(flowTimer);
     clearTimeout(flowTextTimer);
     clearTimeout(flowTextFadeTimer);
+    clearTimeout(holdRevealTimer);
     clearTimeout(stepAdvanceTimer);
     clearTimeout(completeEnterTimer);
     flowTimer = null;
     flowTextTimer = null;
     flowTextFadeTimer = null;
+    holdRevealTimer = null;
     stepAdvanceTimer = null;
     completeEnterTimer = null;
   }
@@ -520,8 +695,10 @@ function prefersReducedMotion() {
     });
   }
 
-  function startTransition() {
+  function startTransition(options = {}) {
     if (!selected) return;
+    if (!options.preserveContext || !flowCopyContext) snapshotFlowContext();
+    clearFlowEffects();
     const runToken = ++transitionRunToken;
     resetFlowCompletion();
     showScreen('transition');
@@ -530,8 +707,9 @@ function prefersReducedMotion() {
     playEmotionEnterSound(selected);
     const line1 = document.getElementById('transition-line1');
     const line2 = document.getElementById('transition-line2');
-    line1.textContent = data.transition[0];
-    line2.textContent = data.transition[1];
+    const transitionCopy = getTransitionCopy(selected);
+    line1.textContent = transitionCopy[0];
+    line2.textContent = transitionCopy[1];
 
     // 감정별 클래스 초기화
     line1.className = 'transition-text';
@@ -599,18 +777,16 @@ function prefersReducedMotion() {
 
   function startFlow() {
     showScreen('flow');
-    hideHoldBtn();
     runFlowStep(1);
-    flowTimer = setTimeout(() => {
-      if (currentStep === 1) showHoldBtn();
-    }, 560);
   }
 
   function runFlowStep(step) {
     clearTimeout(flowTimer);
     clearTimeout(flowTextTimer);
     clearTimeout(flowTextFadeTimer);
+    clearTimeout(holdRevealTimer);
     currentStep = step;
+    hideHoldBtn();
     const _closeBtn = document.getElementById('hold-btn');
     if (_closeBtn) _closeBtn.classList.toggle('closing', step === 4); // 4단계는 닫는 제스처
     document.documentElement.style.setProperty('--hold-progress', 0);
@@ -625,12 +801,20 @@ function prefersReducedMotion() {
     flowTextTimer = setTimeout(() => {
       textEl.classList.remove('step-3', 'step-4');
       textEl.textContent = '';
-      let text = step === 1 ? (FLOW_STEP1[selected] || '') : (FLOW_COMMON[step] || '');
+      const { text } = getFlowStepData(step);
       if (step === 3) textEl.classList.add('step-3');
       if (step === 4) textEl.classList.add('step-4');
       textEl.textContent = text;
       const fadeDelay = (step === 3) ? 200 : (step === 4) ? 500 : 80;
-      flowTextFadeTimer = setTimeout(() => textEl.classList.add('visible'), fadeDelay);
+      flowTextFadeTimer = setTimeout(() => {
+        textEl.classList.add('visible');
+        const revealDelay = step === 1 ? 480 : 0;
+        holdRevealTimer = setTimeout(() => {
+          holdRevealTimer = null;
+          const flowScreen = document.getElementById('s-flow');
+          if (currentStep === step && flowScreen?.classList.contains('active')) showHoldBtn();
+        }, revealDelay);
+      }, fadeDelay);
     }, blankDelay);
 
 
@@ -645,7 +829,7 @@ function prefersReducedMotion() {
     document.body.dataset.flowProgress = String(completedSteps);
     updateFlowTrace(Math.min(completedSteps, 3));
     if (completedSteps >= 4) {
-      setTimeout(() => {
+      scheduleEffectTimeout(() => {
         if (completedSteps >= 4) updateFlowTrace(3, { complete: true });
       }, 420);
     }
@@ -668,13 +852,13 @@ function prefersReducedMotion() {
 
     if (!text) return;
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    requestEffectFrame(() => {
+      requestEffectFrame(() => {
         el.classList.add('visible');
       });
     });
 
-    setTimeout(() => {
+    scheduleEffectTimeout(() => {
       el.classList.remove('visible');
     }, step === 3 ? 1800 : 1300);
   }
@@ -683,13 +867,14 @@ function prefersReducedMotion() {
     const textEl = document.getElementById('flow-text');
     if (!textEl) return;
     textEl.classList.add('rewarded');
-    setTimeout(() => {
+    scheduleEffectTimeout(() => {
       textEl.classList.remove('rewarded');
     }, 900);
   }
 
   function exitFlow() {
     clearFlowTimers();
+    clearFlowEffects();
     transitionRunToken += 1;
     resetTransitionVisual();
     lifecycleResumeAction = null;
@@ -707,6 +892,7 @@ function prefersReducedMotion() {
     const _hint = document.getElementById('transition-hint');
     if (_breath) _breath.classList.remove('visible');
     if (_hint) _hint.classList.remove('visible');
+    clearFlowEffects();
     showScreen('emotion');
   }
 
@@ -714,6 +900,7 @@ function prefersReducedMotion() {
     clearFlowTimers();
     lifecycleResumeAction = null;
     hideHoldBtn();
+    clearFlowEffects();
     playCompleteCloseSound();
     showScreen('complete');
 
@@ -753,6 +940,7 @@ function prefersReducedMotion() {
   function restart() {
     const lastColor = selected ? CONTENT[selected].color : null;
     clearFlowTimers();
+    clearFlowEffects();
     lifecycleResumeAction = null;
     resetFlowCompletion();
     document.getElementById('s-complete').classList.remove('visible');
@@ -763,6 +951,7 @@ function prefersReducedMotion() {
     hideHoldBtn();
     stopScreenReact();
     resetSettled();
+    clearFlowEffects();
     if (cFX) { cFX.classList.remove('visible'); }
     if (cFXAnim) { cancelAnimationFrame(cFXAnim); }
     if (auroraCanvas) {
@@ -813,11 +1002,7 @@ function prefersReducedMotion() {
 
   function resumeFlowStep(step) {
     showScreen('flow');
-    hideHoldBtn();
     runFlowStep(step);
-    flowTimer = setTimeout(() => {
-      if (currentStep === step) showHoldBtn();
-    }, 560);
   }
 
   function suspendForBackground() {
@@ -830,6 +1015,12 @@ function prefersReducedMotion() {
       transitionRunToken += 1;
       resetTransitionVisual();
       clearFlowTimers();
+      clearFlowEffects();
+      return;
+    }
+
+    if (activeScreen.id === 's-complete') {
+      clearFlowEffects();
       return;
     }
 
@@ -840,6 +1031,7 @@ function prefersReducedMotion() {
       : { type: 'flow', step: currentStep };
     clearFlowTimers();
     hideHoldBtn();
+    clearFlowEffects();
   }
 
   function resumeFromBackground() {
@@ -847,7 +1039,7 @@ function prefersReducedMotion() {
     if (!action) return;
     lifecycleResumeAction = null;
     if (action.type === 'transition') {
-      startTransition();
+      startTransition({ preserveContext: true });
     } else if (action.type === 'complete') {
       goComplete();
     } else if (action.type === 'flow') {
@@ -872,11 +1064,6 @@ function prefersReducedMotion() {
 
 
   // ===== 누르는 동안 화면 반응 — 게이지 연동 =====
-
-  function getCurrentFlowText() {
-    if (currentStep === 1) return FLOW_STEP1[selected] || '';
-    return FLOW_COMMON[currentStep] || '';
-  }
 
   // 누적 상태 관리
   let settledDark = 0;    // 어두움 누적값 (0~1)
@@ -906,13 +1093,13 @@ function prefersReducedMotion() {
 
     if (isDark) {
       if (settledBright > 0 || settledGray > 0) { settledBright = 0; settledGray = 0; }
-      settledDark = Math.min(settledDark + (type === 'edge' ? 0.08 : 0.12), 0.45);
+      settledDark = Math.min(settledDark + contextIntensity(type === 'edge' ? 0.08 : 0.12), 0.45);
     } else if (isBright) {
       if (settledDark > 0 || settledGray > 0) { settledDark = 0; settledGray = 0; }
-      settledBright = Math.min(settledBright + 0.05, 0.18);
+      settledBright = Math.min(settledBright + contextIntensity(0.05), 0.18);
     } else if (isGray) {
       if (settledDark > 0 || settledBright > 0) { settledDark = 0; settledBright = 0; }
-      settledGray = Math.min(settledGray + 0.2, 0.7);
+      settledGray = Math.min(settledGray + contextIntensity(0.2), 0.7);
     }
     applySettled();
   }
@@ -924,33 +1111,21 @@ function prefersReducedMotion() {
       el.style.transition = 'background 0.6s ease, filter 0.6s ease';
       el.style.background = '';
       el.style.filter = '';
-      setTimeout(() => { if (el) el.style.transition = ''; }, 700);
+      scheduleEffectTimeout(() => { if (el) el.style.transition = ''; }, 700);
     }
   }
 
-  // 문구별 화면 진행 설정
+  // 단계 의미별 화면 진행 설정
   // type: 'dark'=어두워짐 'bright'=밝아짐 'gray'=채도빠짐
   //       'edge'=가장자리번짐 'top'=위에서내려옴 'silent'=없음
-  const TEXT_REACT_TYPE = {
-    '힘을 풉니다':           'dark',
-    '여기 머뭅니다':         'dark',
-    '숨을 내쉽니다':         'bright',
-    '비워둡니다':            'gray',
-    '여기 있습니다':         'edge',
-    '내려놓습니다':          'top',
-    '흩어진 채 둡니다':       'silent',
-    '그대로입니다':          'silent',
-    '그대로 둡니다':         'dark',
-    '정리하지 않아도 됩니다': 'silent',
-    '괜찮습니다':            'bright',
-    '오늘은 여기까지입니다':  'dark'
-  };
+  function getCurrentReactType() {
+    return getFlowStepData(currentStep).react;
+  }
 
   function updateScreenReact(pct) {
     const el = document.getElementById('screen-react');
     if (!el) return;
-    const text = getCurrentFlowText();
-    const type = TEXT_REACT_TYPE[text] || 'silent';
+    const type = getCurrentReactType();
     const t = pct / 100;
 
     if (type === 'silent') {
@@ -961,23 +1136,23 @@ function prefersReducedMotion() {
     el.style.opacity = '1';
 
     if (type === 'dark') {
-      const a = t * 0.52;
+      const a = contextIntensity(t * 0.52);
       el.style.background = `rgba(0,0,0,${a})`;
       el.style.filter = '';
     } else if (type === 'bright') {
-      const a = t * 0.18;
+      const a = contextIntensity(t * 0.18);
       el.style.background = `rgba(255,255,255,${a})`;
       el.style.filter = '';
     } else if (type === 'gray') {
-      const g = t * 0.85;
+      const g = contextIntensity(t * 0.85);
       el.style.background = 'transparent';
       el.style.filter = `grayscale(${g}) brightness(${1 - t * 0.28})`;
     } else if (type === 'edge') {
-      const a = t * 0.42;
+      const a = contextIntensity(t * 0.42);
       el.style.background = `radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 30%, rgba(196,150,110,${a}) 100%)`;
       el.style.filter = '';
     } else if (type === 'top') {
-      const a = t * 0.45;
+      const a = contextIntensity(t * 0.45);
       el.style.background = `linear-gradient(180deg, rgba(0,0,0,${a}) 0%, rgba(0,0,0,0) 70%)`;
       el.style.filter = '';
     }
@@ -988,30 +1163,30 @@ function prefersReducedMotion() {
   function stopScreenReact() {
     const el = document.getElementById('screen-react');
     if (!el) return;
-    el.style.transition = 'background 0.35s ease, filter 0.35s ease';
+    const duration = contextDuration(350);
+    el.style.transition = `background ${duration}ms ease, filter ${duration}ms ease`;
     el.style.background = '';
     el.style.filter = '';
-    setTimeout(() => { el.style.transition = ''; }, 400);
+    scheduleEffectTimeout(() => { el.style.transition = ''; }, duration + 50);
   }
 
 
   function completeScreenImpact() {
     const el = document.getElementById('screen-react');
     if (!el) return;
-    const text = getCurrentFlowText();
-    const type = TEXT_REACT_TYPE[text] || 'silent';
+    const type = getCurrentReactType();
     if (type === 'silent') return;
 
     if (type === 'dark' || type === 'top') {
       el.style.background = type === 'top'
-        ? 'linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 70%)'
-        : 'rgba(0,0,0,0.65)';
+        ? `linear-gradient(180deg, rgba(0,0,0,${contextIntensity(0.65)}) 0%, rgba(0,0,0,0) 70%)`
+        : `rgba(0,0,0,${contextIntensity(0.65)})`;
     } else if (type === 'bright') {
-      el.style.background = 'rgba(255,255,255,0.26)';
+      el.style.background = `rgba(255,255,255,${contextIntensity(0.26)})`;
     } else if (type === 'gray') {
       el.style.filter = 'grayscale(1) brightness(0.65)';
     } else if (type === 'edge') {
-      el.style.background = 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 20%, rgba(196,150,110,0.58) 100%)';
+      el.style.background = `radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 20%, rgba(196,150,110,${contextIntensity(0.58)}) 100%)`;
     }
 
     addSettled(type);
@@ -1131,6 +1306,7 @@ function prefersReducedMotion() {
   }
   const HOLD_CANCEL_BUFFER_MS = 800;
   let holdActive = false, holdRAF = null, holdStartTime = null;
+  let holdInputReady = false;
   let holdElapsed = 0, activePointerId = null;
   let holdCancelTimer = null, holdBuffered = false;
   let holdResumeUsed = false;
@@ -1167,7 +1343,7 @@ function prefersReducedMotion() {
     if (!btn) return;
 
     function beginHold(inputId) {
-      if (currentStep === 0 || holdActive) return;
+      if (currentStep === 0 || holdActive || !holdInputReady) return;
       const resumeBufferedHold = !!(holdBuffered && holdCancelTimer);
       if (holdCancelTimer) clearTimeout(holdCancelTimer);
       holdCancelTimer = null;
@@ -1216,6 +1392,8 @@ function prefersReducedMotion() {
     }
 
     function onComplete() {
+      holdInputReady = false;
+      btn.setAttribute('aria-disabled', 'true');
       holdActive = false;
       cancelAnimationFrame(holdRAF);
       holdRAF = null;
@@ -1232,6 +1410,7 @@ function prefersReducedMotion() {
       clearTimeout(flowTimer);
       const stepAtComplete = currentStep;
 
+      clearFlowEffects();
       completeScreenImpact();
       applyStepCompletion(stepAtComplete);
       showStepReward(stepAtComplete);
@@ -1313,6 +1492,9 @@ function prefersReducedMotion() {
   function showHoldBtn() {
     const wrap = document.getElementById('hold-wrap');
     if (wrap) wrap.classList.add('visible');
+    const btn = document.getElementById('hold-btn');
+    holdInputReady = true;
+    if (btn) btn.setAttribute('aria-disabled', 'false');
     updateHoldLabel();
   }
 
@@ -1322,11 +1504,13 @@ function prefersReducedMotion() {
   }
 
   function hideHoldBtn() {
+    holdInputReady = false;
     const wrap = document.getElementById('hold-wrap');
     if (wrap) wrap.classList.remove('visible');
     const btn = document.getElementById('hold-btn');
     if (btn) {
       btn.classList.remove('closing');
+      btn.setAttribute('aria-disabled', 'true');
     }
     resetHoldInteraction(btn);
   }
@@ -1388,6 +1572,7 @@ function prefersReducedMotion() {
 
   function syncReducedMotion() {
     if (prefersReducedMotion()) {
+      clearFlowEffects();
       if (auroraAnim) cancelAnimationFrame(auroraAnim);
       auroraAnim = null;
       auroraEmotion = null;
@@ -1414,6 +1599,7 @@ function prefersReducedMotion() {
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    applyFlowEffectProfile();
     loadSoundPreference();
     initAurora();
     initHold();
@@ -1424,8 +1610,7 @@ function prefersReducedMotion() {
     initPageLifecycle();
   });
 
-  // ===== 문구별 연출 시스템 (재설계) =====
-  // 문구 → 연출 매핑
+  // ===== 단계 의미별 연출 시스템 =====
   // 힘을 풉니다  → Aurora 어두워짐 (긴장이 내려가는)
   // 숨을 내쉽니다 → 화면 부드러운 수축 (내쉼)
   // 비워둡니다   → 완전한 정지 (비움)
@@ -1437,31 +1622,22 @@ function prefersReducedMotion() {
   // 괜찮습니다   → 화면 아주 살짝 밝아졌다 원래로
   // 오늘은 여기까지입니다 → Aurora 천천히 꺼짐
 
-  // 문구별 연출 함수 매핑
-  const TEXT_FX_MAP = {
-    '힘을 풉니다':           fxRelax,
-    '여기 머뭅니다':         fxRelax,
-    '숨을 내쉽니다':         fxBreathe,
-    '비워둡니다':            fxEmpty,
-    '여기 있습니다':         fxPresence,
-    '내려놓습니다':          fxLetGo,
-    '흩어진 채 둡니다':       fxStay,
-    '그대로입니다':          fxSilence,
-    '그대로 둡니다':         fxSettle,
-    '정리하지 않아도 됩니다': fxStay,
-    '괜찮습니다':            fxOkay,
-    '오늘은 여기까지입니다':  fxClose
+  const FLOW_EFFECT_HANDLERS = {
+    relax: fxRelax,
+    breathe: fxBreathe,
+    empty: fxEmpty,
+    presence: fxPresence,
+    letGo: fxLetGo,
+    stay: fxStay,
+    silence: fxSilence,
+    settle: fxSettle,
+    okay: fxOkay,
+    close: fxClose
   };
-
-  function getCurrentText() {
-    if (currentStep === 1) return FLOW_STEP1[selected] || '';
-    return FLOW_COMMON[currentStep] || '';
-  }
 
   function playStepReward(step) {
     if (prefersReducedMotion()) return;
-    const text = step === 1 ? (FLOW_STEP1[selected] || '') : (FLOW_COMMON[step] || '');
-    const fn = TEXT_FX_MAP[text];
+    const fn = FLOW_EFFECT_HANDLERS[getFlowStepData(step).effect];
     if (fn) fn();
   }
 
@@ -1471,11 +1647,12 @@ function prefersReducedMotion() {
   function fxRelax() {
     if (!auroraCanvas || !auroraCtx) return;
     let alpha = 0;
+    const target = contextIntensity(0.25);
     const darken = () => {
-      alpha += 0.015; if (alpha > 0.25) return;
+      alpha += 0.015 / flowEffectProfile.motion; if (alpha > target) return;
       auroraCtx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
       auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      requestAnimationFrame(darken);
+      requestEffectFrame(darken);
     };
     darken();
   }
@@ -1484,11 +1661,12 @@ function prefersReducedMotion() {
   function fxBreathe() {
     const overlay = document.getElementById('ripple-overlay');
     if (!overlay) return;
-    const c = document.createElement('div');
+    const c = trackEffectElement(document.createElement('div'));
     c.className = 'ripple-circle';
-    c.style.cssText = 'width:60px;height:60px;border:1px solid rgba(140,100,180,0.5);animation-duration:2s;';
+    const duration = contextDuration(2000, true);
+    c.style.cssText = `width:60px;height:60px;border:1px solid rgba(140,100,180,${contextIntensity(0.5)});animation-duration:${duration}ms;`;
     overlay.appendChild(c);
-    setTimeout(() => c.remove(), 2100);
+    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
   }
 
   // 비워둡니다 — 완전한 정지, 0.8초 아무것도 없음
@@ -1501,21 +1679,24 @@ function prefersReducedMotion() {
   function fxPresence() {
     const overlay = document.getElementById('ripple-overlay');
     if (!overlay) return;
-    const c = document.createElement('div');
+    const c = trackEffectElement(document.createElement('div'));
     c.className = 'ripple-circle';
-    c.style.cssText = 'width:40px;height:40px;border:1px solid rgba(196,150,110,0.6);animation-duration:1.6s;';
+    const duration = contextDuration(1600, true);
+    c.style.cssText = `width:40px;height:40px;border:1px solid rgba(196,150,110,${contextIntensity(0.6)});animation-duration:${duration}ms;`;
     overlay.appendChild(c);
-    setTimeout(() => c.remove(), 1700);
+    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
   }
 
   // 내려놓습니다 — 빛이 아래로 흘러내림
   function fxLetGo() {
     const wash = document.getElementById('screen-wash');
     if (!wash) return;
-    wash.style.cssText = 'background:linear-gradient(180deg,rgba(60,160,160,0.08) 0%,rgba(0,0,0,0) 100%);transition:opacity 0.3s ease-in;';
+    const enterDuration = contextDuration(300);
+    const exitDuration = contextDuration(1200, true);
+    wash.style.cssText = `background:linear-gradient(180deg,rgba(60,160,160,${contextIntensity(0.08)}) 0%,rgba(0,0,0,0) 100%);transition:opacity ${enterDuration}ms ease-in;`;
     wash.style.opacity = '1';
-    setTimeout(() => { wash.style.transition = 'opacity 1.2s ease-out'; wash.style.opacity = '0'; }, 300);
-    setTimeout(() => { wash.style.cssText = ''; }, 1600);
+    scheduleEffectTimeout(() => { wash.style.transition = `opacity ${exitDuration}ms ease-out`; wash.style.opacity = '0'; }, enterDuration);
+    scheduleEffectTimeout(() => { wash.style.cssText = ''; }, enterDuration + exitDuration + 100);
   }
 
   // 그대로입니다 — 침묵 (아무 연출 없음)
@@ -1527,11 +1708,12 @@ function prefersReducedMotion() {
   function fxSettle() {
     const overlay = document.getElementById('ripple-overlay');
     if (!overlay) return;
-    const c = document.createElement('div');
+    const c = trackEffectElement(document.createElement('div'));
     c.className = 'ripple-circle';
-    c.style.cssText = 'width:50px;height:50px;border:1px solid rgba(196,168,130,0.45);animation-duration:1.8s;';
+    const duration = contextDuration(1800, true);
+    c.style.cssText = `width:50px;height:50px;border:1px solid rgba(196,168,130,${contextIntensity(0.45)});animation-duration:${duration}ms;`;
     overlay.appendChild(c);
-    setTimeout(() => c.remove(), 1900);
+    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
   }
 
   // 정리하지 않아도 됩니다 — 선들이 흩어진 채 머뭄
@@ -1543,18 +1725,20 @@ function prefersReducedMotion() {
     const ls = Array.from({length:5}, () => ({
       x1:w*0.2+Math.random()*w*0.6, y1:h*0.2+Math.random()*h*0.6,
       x2:w*0.2+Math.random()*w*0.6, y2:h*0.2+Math.random()*h*0.6,
-      a: 0.25
+      a: contextIntensity(0.25)
     }));
+    const fadeStart = Math.round(60 * flowEffectProfile.motion);
+    const maxFrames = Math.round(140 * clampContextMod(flowEffectProfile.motion * flowEffectProfile.trail));
     let t=0;
     const d=()=>{
       ctx.clearRect(0,0,w,h);
       ls.forEach(l=>{
-        const fade = t > 60 ? Math.max(0, l.a - (t-60)/80*l.a) : l.a;
+        const fade = t > fadeStart ? Math.max(0, l.a - (t-fadeStart)/(maxFrames-fadeStart)*l.a) : l.a;
         ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);
         ctx.strokeStyle='rgba(60,160,160,'+fade+')'; ctx.lineWidth=1; ctx.stroke();
       });
       t++;
-      if (t<140) cFXAnim=requestAnimationFrame(d);
+      if (t<maxFrames) cFXAnim=requestEffectFrame(d);
       else { ctx.clearRect(0,0,w,h); cFX.classList.remove('visible'); }
     };
     d();
@@ -1565,11 +1749,11 @@ function prefersReducedMotion() {
     if (!auroraCanvas || !auroraCtx) return;
     let alpha = 0, dec = false;
     const glow = () => {
-      if (!dec) { alpha += 0.008; if (alpha >= 0.07) dec = true; }
-      else { alpha -= 0.004; if (alpha <= 0) return; }
+      if (!dec) { alpha += 0.008 / flowEffectProfile.motion; if (alpha >= contextIntensity(0.07)) dec = true; }
+      else { alpha -= 0.004 / flowEffectProfile.trail; if (alpha <= 0) return; }
       auroraCtx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
       auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      requestAnimationFrame(glow);
+      requestEffectFrame(glow);
     };
     glow();
   }
@@ -1577,11 +1761,12 @@ function prefersReducedMotion() {
   // 오늘은 여기까지입니다 — Aurora 천천히 꺼지며 완료로
   function fxClose() {
     if (!auroraCanvas) return;
-    auroraCanvas.style.transition = 'opacity 0.6s ease-out';
+    const duration = contextDuration(600, true);
+    auroraCanvas.style.transition = `opacity ${duration}ms ease-out`;
     auroraCanvas.style.opacity = '0';
-    setTimeout(() => {
+    scheduleEffectTimeout(() => {
       if (auroraAnim) cancelAnimationFrame(auroraAnim);
-    }, 700);
+    }, duration + 100);
   }
 
   // ===== 최종 완료 연출 =====
@@ -1605,35 +1790,46 @@ function prefersReducedMotion() {
       쓸쓸함: fxScatter, 복잡함: fxLines, 괜찮음: fxGold
     };
     (fns[emotion] || fxGold)();
-    setTimeout(() => { cFX.classList.remove('visible'); cancelAnimationFrame(cFXAnim); }, 3000);
+    scheduleEffectTimeout(() => {
+      cFX.classList.remove('visible');
+      if (cFXAnim) cancelAnimationFrame(cFXAnim);
+      cFXAnim = null;
+    }, contextDuration(3000, true));
+  }
+
+  function getCompleteEffectFrames() {
+    return Math.round(180 * clampContextMod(flowEffectProfile.motion * flowEffectProfile.trail));
   }
 
   function fxFall() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const ps=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h*0.5,vy:0.5+Math.random()*1.5,a:0.6+Math.random()*0.4,r:1.5+Math.random()*2.5}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.y+=p.vy;p.a-=0.004;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+p.a+')';ctx.fill();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const maxFrames=getCompleteEffectFrames();
+    const ps=Array.from({length:40},()=>({x:Math.random()*w,y:Math.random()*h*0.5,vy:(0.5+Math.random()*1.5)/flowEffectProfile.motion,a:Math.min(1,contextIntensity(0.6+Math.random()*0.4)),r:1.5+Math.random()*2.5}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.y+=p.vy;p.a-=0.004/flowEffectProfile.trail;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(100,120,180,'+p.a+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxWave() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2;let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);[t*2,t*2-50,t*2-100].filter(r=>r>0).forEach(r=>{const a=Math.max(0,0.4-r/280);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1.5;ctx.stroke();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,cx=w/2,cy=h/2,maxFrames=getCompleteEffectFrames();let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const base=t*2/flowEffectProfile.motion;[base,base-50,base-100].filter(r=>r>0).forEach(r=>{const a=contextIntensity(Math.max(0,0.4-r/280));ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(140,100,180,'+a+')';ctx.lineWidth=1.5;ctx.stroke();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxDot() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx;let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const a=t<60?t/60*0.7:Math.max(0,0.7-(t-60)/120*0.7);ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames(),rise=Math.round(maxFrames/3);let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const raw=t<rise?t/rise*0.7:Math.max(0,0.7-(t-rise)/(maxFrames-rise)*0.7);const a=contextIntensity(raw);ctx.beginPath();ctx.arc(w/2,h/2,3,0,Math.PI*2);ctx.fillStyle='rgba(220,220,230,'+a+')';ctx.fill();t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxScatter() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const ps=Array.from({length:35},()=>{const ang=Math.random()*Math.PI*2,sp=0.8+Math.random()*1.5;return{x:w/2,y:h/2,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,a:0.7+Math.random()*0.3,r:1.5+Math.random()*2};});
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a-=0.005;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+p.a+')';ctx.fill();});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const maxFrames=getCompleteEffectFrames();
+    const ps=Array.from({length:35},()=>{const ang=Math.random()*Math.PI*2,sp=(0.8+Math.random()*1.5)/flowEffectProfile.motion;return{x:w/2,y:h/2,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,a:Math.min(1,contextIntensity(0.7+Math.random()*0.3)),r:1.5+Math.random()*2};});
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a-=0.005/flowEffectProfile.trail;if(p.a<=0)return;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(196,150,110,'+p.a+')';ctx.fill();});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxLines() {
     const w=cFX.width,h=cFX.height,ctx=cFXCtx;
-    const ls=Array.from({length:8},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.2+Math.random()*h*0.6,x2:w*0.2+Math.random()*w*0.6,y2:h*0.2+Math.random()*h*0.6,a:0.5+Math.random()*0.3}));
-    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ls.forEach(l=>{const a=Math.max(0,l.a-t/200);ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+a+')';ctx.lineWidth=1;ctx.stroke();l.x2+=(w/2-l.x2)*0.015;l.y2+=(h/2-l.y2)*0.015;});t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const maxFrames=getCompleteEffectFrames();
+    const ls=Array.from({length:8},()=>({x1:w*0.2+Math.random()*w*0.6,y1:h*0.2+Math.random()*h*0.6,x2:w*0.2+Math.random()*w*0.6,y2:h*0.2+Math.random()*h*0.6,a:contextIntensity(0.5+Math.random()*0.3)}));
+    let t=0; const d=()=>{ctx.clearRect(0,0,w,h);ls.forEach(l=>{const a=Math.max(0,l.a-t/(200*flowEffectProfile.trail));ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle='rgba(60,160,160,'+a+')';ctx.lineWidth=1;ctx.stroke();l.x2+=(w/2-l.x2)*0.015/flowEffectProfile.motion;l.y2+=(h/2-l.y2)*0.015/flowEffectProfile.motion;});t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
   function fxGold() {
-    const w=cFX.width,h=cFX.height,ctx=cFXCtx;let t=0;
-    const d=()=>{ctx.clearRect(0,0,w,h);const a=t<60?t/60*0.18:Math.max(0,0.18-(t-60)/120*0.18);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.6);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<180)cFXAnim=requestAnimationFrame(d);}; d();
+    const w=cFX.width,h=cFX.height,ctx=cFXCtx,maxFrames=getCompleteEffectFrames(),rise=Math.round(maxFrames/3);let t=0;
+    const d=()=>{ctx.clearRect(0,0,w,h);const raw=t<rise?t/rise*0.18:Math.max(0,0.18-(t-rise)/(maxFrames-rise)*0.18);const a=contextIntensity(raw);const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w*0.6);g.addColorStop(0,'rgba(196,168,80,'+a+')');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);t++;if(t<maxFrames)cFXAnim=requestEffectFrame(d);}; d();
   }
 
     renderGrid();

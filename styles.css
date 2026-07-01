@@ -12,6 +12,8 @@
     --radius: 14px;
     --flow-progress: 0;
     --hold-progress: 0;
+    --context-tint: 196,168,130;
+    --context-tint-opacity: 0;
 
     /* ── 디자인 토큰 (절제 시스템) ───────────────────── */
     /* 여백 — 8px 베이스 스케일 */
@@ -907,6 +909,13 @@
       rgba(0,0,0,0.08) 100%);
     opacity: calc(var(--flow-progress) * 0.16);
     transition: opacity 0.8s ease;
+  }
+  #screen-settled::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(var(--context-tint), var(--context-tint-opacity));
+    opacity: calc(var(--flow-progress) * 0.7);
+    transition: opacity 1.1s ease;
   }
 
 
