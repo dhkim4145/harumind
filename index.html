@@ -85,8 +85,9 @@
   <div class="screen" id="s-transition" role="region" aria-label="하루를 닫는 전환" tabindex="-1">
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"><span class="sound-icon-label">소리</span></button>
-    <div class="transition-text" id="transition-line1" aria-live="polite"></div>
-    <div class="transition-text transition-line2" id="transition-line2" aria-live="polite"></div>
+    <div class="transition-text" id="transition-line1"></div>
+    <div class="transition-text transition-line2" id="transition-line2"></div>
+    <div class="sr-only" id="transition-announcer" aria-live="polite" aria-atomic="true"></div>
     <div class="transition-breath" id="transition-breath" aria-hidden="true">
       <span class="transition-breath-line"></span>
     </div>
@@ -117,7 +118,6 @@
     <span class="complete-moon" id="complete-moon" aria-hidden="true"></span>
     <div class="complete-emotion" id="complete-emotion"></div>
     <div class="complete-sub">충분합니다</div>
-    <div class="complete-close">내일은 내일의 내가 봅니다</div>
     <div class="complete-extras" id="complete-extras">
       <div class="complete-quote-wrap">
         <div class="complete-quote" id="complete-quote"></div>

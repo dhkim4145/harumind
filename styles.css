@@ -34,6 +34,14 @@
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+
   button {
     -webkit-user-select: none;
     user-select: none;
@@ -471,16 +479,9 @@
   .complete-sub {
     font-family: 'Noto Serif KR', serif;
     font-size: 14px; font-weight: 300; color: var(--text-secondary);
-    letter-spacing: .08em; margin-bottom: 0;
+    letter-spacing: .08em; margin-bottom: 72px;
     opacity: 0; transform: translateY(8px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1) .8s, transform 1s cubic-bezier(.22,1,.36,1) .8s;
-  }
-  .complete-close {
-    font-family: 'Noto Serif KR', serif;
-    font-size: 12px; font-weight: 300; color: var(--text-secondary);
-    letter-spacing: .08em; margin-bottom: 34px; margin-top: 30px;
-    opacity: 0; transform: translateY(6px);
-    transition: opacity 1s cubic-bezier(.22,1,.36,1) 1.4s, transform 1s cubic-bezier(.22,1,.36,1) 1.4s;
   }
   .complete-restart {
     border: none; border-radius: 0; padding: 10px 32px; cursor: pointer;
@@ -498,8 +499,7 @@
 
   #s-complete.visible .complete-title,
   #s-complete.visible .complete-emotion,
-  #s-complete.visible .complete-sub,
-  #s-complete.visible .complete-close { opacity: 1; transform: translateY(0); }
+  #s-complete.visible .complete-sub { opacity: 1; transform: translateY(0); }
 
   .complete-extras {
     display: none; flex-direction: column; align-items: center;
@@ -563,7 +563,7 @@
       padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     }
     .complete-moon { margin-bottom: 24px; }
-    .complete-close { margin-top: 24px; margin-bottom: 26px; }
+    .complete-sub { margin-bottom: 54px; }
     .complete-extras { margin-top: 20px; }
     .complete-quote-wrap { padding-top: 16px; }
     .complete-restart { margin-top: 12px; }
@@ -580,7 +580,7 @@
       margin-bottom: 18px;
     }
     .complete-emotion { margin-bottom: 16px; }
-    .complete-close { margin-top: 18px; margin-bottom: 18px; }
+    .complete-sub { margin-bottom: 40px; }
     .complete-extras { margin-top: 14px; }
     .complete-quote {
       line-height: 1.9;

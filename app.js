@@ -168,6 +168,10 @@ function getFlowStepData(step, emotion = selected) {
     ? FLOW_STEP_SEMANTICS[1][emotion] || { react: 'silent', effect: 'silence' }
     : FLOW_STEP_SEMANTICS[step] || { react: 'silent', effect: 'silence' };
   let text = step === 1 ? FLOW_STEP1[emotion] || '' : FLOW_COMMON[step] || '';
+  if (step === 1 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
+    const variants = HARUMIND_FLOW_COPY.flow1Variants?.[emotion];
+    text = pickContextCopy(variants, `flow1:${emotion}`) || text;
+  }
   if (step === 2 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
     const contextual = HARUMIND_FLOW_COPY.times?.[flowCopyContext.time]?.step2;
     text = pickContextCopy(contextual, `step2:${emotion}`) || text;
@@ -288,6 +292,31 @@ function prefersReducedMotion() {
   let audioCtx = null;
   let masterGain = null;
   let soundEnabled = false;
+  const activeAudioSources = new Set();
+
+  function trackAudioSource(source, nodes = []) {
+    if (!source) return source;
+    const record = { source, nodes };
+    activeAudioSources.add(record);
+    const cleanup = () => {
+      activeAudioSources.delete(record);
+      [source, ...nodes].forEach(node => {
+        try { node.disconnect(); } catch (err) {}
+      });
+    };
+    source.addEventListener('ended', cleanup, { once: true });
+    return source;
+  }
+
+  function stopActiveAudio() {
+    activeAudioSources.forEach(record => {
+      try { record.source.stop(); } catch (err) {}
+      [record.source, ...record.nodes].forEach(node => {
+        try { node.disconnect(); } catch (err) {}
+      });
+    });
+    activeAudioSources.clear();
+  }
 
   function initAudio() {
     if (!soundEnabled) return;
@@ -328,6 +357,7 @@ function prefersReducedMotion() {
     } catch (err) {}
     updateSoundToggle();
     if (soundEnabled) initAudio();
+    else stopActiveAudio();
     if (soundEnabled && options.playTest) playSoundTestBloom();
   }
 
@@ -382,6 +412,7 @@ function prefersReducedMotion() {
       } else {
         gain.connect(masterGain);
       }
+      trackAudioSource(osc, [filter, gain, pan].filter(Boolean));
       osc.start(now);
       osc.stop(now + duration + 0.06);
     } catch (err) {}
@@ -420,6 +451,7 @@ function prefersReducedMotion() {
       } else {
         gain.connect(masterGain);
       }
+      trackAudioSource(src, [filter, gain, pan].filter(Boolean));
       src.start(now);
       src.stop(now + duration + 0.03);
     } catch (err) {}
@@ -496,6 +528,7 @@ function prefersReducedMotion() {
       } else {
         gain.connect(masterGain);
       }
+      trackAudioSource(src, [highpass, lowpass, gain, pan].filter(Boolean));
       src.start(now);
       src.stop(now + soundDuration + 0.05);
     } catch (err) {}
@@ -562,6 +595,8 @@ function prefersReducedMotion() {
   let completeEnterTimer = null;
   let completeExtrasTimer = null;
   let completeRestartTimer = null;
+  let completeExtrasDueAt = null;
+  let completeRestartDueAt = null;
   let lifecycleResumeAction = null;
   let transitionRunToken = 0;
   let transitionVisualToken = 0;
@@ -635,6 +670,8 @@ function prefersReducedMotion() {
     completeEnterTimer = null;
     completeExtrasTimer = null;
     completeRestartTimer = null;
+    completeExtrasDueAt = null;
+    completeRestartDueAt = null;
   }
 
   function resetFlowCompletion() {
@@ -720,9 +757,11 @@ function prefersReducedMotion() {
     playEmotionEnterSound(selected);
     const line1 = document.getElementById('transition-line1');
     const line2 = document.getElementById('transition-line2');
+    const announcer = document.getElementById('transition-announcer');
     const transitionCopy = getTransitionCopy(selected);
     line1.textContent = transitionCopy[0];
     line2.textContent = transitionCopy[1];
+    if (announcer) announcer.textContent = '';
 
     // 감정별 클래스 초기화
     line1.className = 'transition-text';
@@ -740,16 +779,18 @@ function prefersReducedMotion() {
 
     // Aurora 진입 시 밝아짐 (공통)
     if (auroraCanvas && auroraCtx && !prefersReducedMotion()) {
-      let a = 0, dec = false;
-      const burst = () => {
-        if (runToken !== transitionRunToken) return;
-        if (!dec) { a += 0.012; if (a >= 0.12) dec = true; }
-        else { a -= 0.005; if (a <= 0) return; }
+      const duration = 650;
+      let started = null;
+      const burst = timestamp => {
+        if (runToken !== transitionRunToken || prefersReducedMotion()) return;
+        if (started === null) started = timestamp;
+        const progress = Math.min(1, (timestamp - started) / duration);
+        const a = 0.12 * (progress < 0.3 ? progress / 0.3 : 1 - (progress - 0.3) / 0.7);
         auroraCtx.fillStyle = 'rgba(255,255,255,' + a + ')';
         auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-        requestAnimationFrame(burst);
+        if (progress < 1) requestEffectFrame(burst);
       };
-      requestAnimationFrame(burst);
+      requestEffectFrame(burst);
     }
 
     const line2Delay = selected === '공허함' ? 2000 : selected === '피곤함' ? 1600 : 1200;
@@ -764,6 +805,7 @@ function prefersReducedMotion() {
 
     flowTimer = setTimeout(() => {
       line1.classList.add('visible');
+      if (announcer) announcer.textContent = transitionCopy[0];
       if (breath) {
         breath.classList.add('visible');
         line1.classList.add('space-open');
@@ -773,6 +815,7 @@ function prefersReducedMotion() {
 
       flowTimer = setTimeout(() => {
         line2.classList.add('visible');
+        if (announcer) announcer.textContent = transitionCopy[1];
 
         // 힌트 텍스트 등장
         if (hint) hint.classList.add('visible');
@@ -888,6 +931,7 @@ function prefersReducedMotion() {
   function exitFlow() {
     clearFlowTimers();
     clearFlowEffects();
+    stopActiveAudio();
     transitionRunToken += 1;
     resetTransitionVisual();
     lifecycleResumeAction = null;
@@ -897,6 +941,8 @@ function prefersReducedMotion() {
     document.getElementById('transition-line2').classList.remove('visible');
     document.getElementById('transition-line1').classList.remove('space-open');
     document.getElementById('transition-line2').classList.remove('space-open');
+    const announcer = document.getElementById('transition-announcer');
+    if (announcer) announcer.textContent = '';
     if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); resetSettled(); }
     stopScreenReact();
     resetSettled();
@@ -907,6 +953,24 @@ function prefersReducedMotion() {
     if (_hint) _hint.classList.remove('visible');
     clearFlowEffects();
     showScreen('emotion');
+  }
+
+  function scheduleCompleteReveal(extrasDelay = 1800, restartDelay = 4000) {
+    const extras = document.getElementById('complete-extras');
+    const restartBtn = document.getElementById('complete-restart');
+    const now = performance.now();
+    completeExtrasDueAt = now + extrasDelay;
+    completeRestartDueAt = now + restartDelay;
+    completeExtrasTimer = setTimeout(() => {
+      completeExtrasTimer = null;
+      completeExtrasDueAt = null;
+      extras.classList.add('visible');
+    }, extrasDelay);
+    completeRestartTimer = setTimeout(() => {
+      completeRestartTimer = null;
+      completeRestartDueAt = null;
+      restartBtn.classList.add('visible');
+    }, restartDelay);
   }
 
   function goComplete() {
@@ -942,22 +1006,17 @@ function prefersReducedMotion() {
     const extras = document.getElementById('complete-extras');
     const restartBtn = document.getElementById('complete-restart');
     restartBtn.classList.remove('visible');
+    extras.classList.remove('visible');
     extras.style.display = 'flex';
-    completeExtrasTimer = setTimeout(() => {
-      completeExtrasTimer = null;
-      extras.classList.add('visible');
-      // 글귀의 1.6초 fade-in이 끝난 뒤 0.6초간 여운을 둔다.
-      completeRestartTimer = setTimeout(() => {
-        completeRestartTimer = null;
-        restartBtn.classList.add('visible');
-      }, 2200);
-    }, 1800);
+    // 글귀의 1.6초 fade-in이 끝난 뒤 0.6초간 여운을 둔다.
+    scheduleCompleteReveal();
   }
 
   function restart() {
     const lastColor = selected ? CONTENT[selected].color : null;
     clearFlowTimers();
     clearFlowEffects();
+    stopActiveAudio();
     lifecycleResumeAction = null;
     resetFlowCompletion();
     document.getElementById('s-complete').classList.remove('visible');
@@ -1023,6 +1082,7 @@ function prefersReducedMotion() {
   }
 
   function suspendForBackground() {
+    stopActiveAudio();
     if (lifecycleResumeAction) return;
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
@@ -1037,7 +1097,16 @@ function prefersReducedMotion() {
     }
 
     if (activeScreen.id === 's-complete') {
-      lifecycleResumeAction = { type: 'complete' };
+      const extras = document.getElementById('complete-extras');
+      const restartBtn = document.getElementById('complete-restart');
+      const now = performance.now();
+      lifecycleResumeAction = {
+        type: 'complete-resume',
+        extrasVisible: extras.classList.contains('visible'),
+        restartVisible: restartBtn.classList.contains('visible'),
+        extrasRemaining: completeExtrasDueAt === null ? 0 : Math.max(0, completeExtrasDueAt - now),
+        restartRemaining: completeRestartDueAt === null ? 0 : Math.max(0, completeRestartDueAt - now)
+      };
       clearFlowTimers();
       clearFlowEffects();
       return;
@@ -1046,7 +1115,7 @@ function prefersReducedMotion() {
     if (activeScreen.id !== 's-flow' || currentStep === 0) return;
     const stepWasCompleted = completedSteps >= currentStep;
     lifecycleResumeAction = stepWasCompleted
-      ? { type: currentStep >= 4 ? 'complete' : 'flow', step: currentStep + 1 }
+      ? { type: currentStep >= 4 ? 'complete-enter' : 'flow', step: currentStep + 1 }
       : { type: 'flow', step: currentStep };
     clearFlowTimers();
     hideHoldBtn();
@@ -1059,8 +1128,29 @@ function prefersReducedMotion() {
     lifecycleResumeAction = null;
     if (action.type === 'transition') {
       startTransition({ preserveContext: true });
-    } else if (action.type === 'complete') {
+    } else if (action.type === 'complete-enter') {
       goComplete();
+    } else if (action.type === 'complete-resume') {
+      const completeScreen = document.getElementById('s-complete');
+      const extras = document.getElementById('complete-extras');
+      const restartBtn = document.getElementById('complete-restart');
+      showScreen('complete');
+      completeScreen.classList.add('visible');
+      extras.style.display = 'flex';
+      extras.classList.toggle('visible', action.extrasVisible);
+      restartBtn.classList.toggle('visible', action.restartVisible);
+      if (!action.extrasVisible || !action.restartVisible) {
+        scheduleCompleteReveal(
+          action.extrasVisible ? 0 : action.extrasRemaining,
+          action.restartVisible ? 0 : action.restartRemaining
+        );
+        if (action.extrasVisible) {
+          clearTimeout(completeExtrasTimer);
+          completeExtrasTimer = null;
+          completeExtrasDueAt = null;
+          extras.classList.add('visible');
+        }
+      }
     } else if (action.type === 'flow') {
       resumeFlowStep(action.step);
     }
@@ -1232,6 +1322,7 @@ function prefersReducedMotion() {
 
   let auroraCanvas, auroraCtx, auroraAnim, auroraEmotion = null;
   let auroraT = 0;
+  let auroraLastTimestamp = null;
 
   function initAurora() {
     auroraCanvas = document.getElementById('aurora');
@@ -1261,21 +1352,25 @@ function prefersReducedMotion() {
     auroraCanvas.style.opacity = '';
     auroraCanvas.classList.add('visible');
     if (auroraAnim) cancelAnimationFrame(auroraAnim);
-    drawAurora();
+    auroraLastTimestamp = null;
+    auroraAnim = requestAnimationFrame(drawAurora);
   }
 
   function stopAurora() {
     if (auroraCanvas) auroraCanvas.classList.remove('visible');
     if (auroraAnim) cancelAnimationFrame(auroraAnim);
     auroraEmotion = null;
+    auroraLastTimestamp = null;
   }
 
-  function drawAurora() {
+  function drawAurora(timestamp) {
     if (!auroraEmotion || prefersReducedMotion()) return;
     const colors = AURORA_COLORS[auroraEmotion] || AURORA_COLORS['괜찮음'];
     const w = auroraCanvas.width, h = auroraCanvas.height;
     const ctx = auroraCtx;
-    auroraT += 0.003;
+    const delta = auroraLastTimestamp === null ? 1000 / 60 : Math.min(50, timestamp - auroraLastTimestamp);
+    auroraLastTimestamp = timestamp;
+    auroraT += 0.003 * (delta / (1000 / 60));
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1665,15 +1760,18 @@ function prefersReducedMotion() {
   // 힘을 풉니다 — Aurora 한 톤 어두워짐
   function fxRelax() {
     if (!auroraCanvas || !auroraCtx) return;
-    let alpha = 0;
     const target = contextIntensity(0.25);
-    const darken = () => {
-      alpha += 0.015 / flowEffectProfile.motion; if (alpha > target) return;
+    const duration = contextDuration(280);
+    let started = null;
+    const darken = timestamp => {
+      if (started === null) started = timestamp;
+      const progress = Math.min(1, (timestamp - started) / duration);
+      const alpha = target * progress;
       auroraCtx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
       auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      requestEffectFrame(darken);
+      if (progress < 1) requestEffectFrame(darken);
     };
-    darken();
+    requestEffectFrame(darken);
   }
 
   // 숨을 내쉽니다 — 파문 하나, 숨 내쉬듯 느리게
@@ -1746,35 +1844,44 @@ function prefersReducedMotion() {
       x2:w*0.2+Math.random()*w*0.6, y2:h*0.2+Math.random()*h*0.6,
       a: contextIntensity(0.25)
     }));
-    const fadeStart = Math.round(60 * flowEffectProfile.motion);
-    const maxFrames = Math.round(140 * clampContextMod(flowEffectProfile.motion * flowEffectProfile.trail));
-    let t=0;
-    const d=()=>{
+    const fadeStart = contextDuration(1000);
+    const duration = contextDuration(2333, true);
+    let started = null;
+    const d=timestamp=>{
+      if (started === null) started = timestamp;
+      const elapsed = Math.min(duration, timestamp - started);
       ctx.clearRect(0,0,w,h);
       ls.forEach(l=>{
-        const fade = t > fadeStart ? Math.max(0, l.a - (t-fadeStart)/(maxFrames-fadeStart)*l.a) : l.a;
+        const fade = elapsed > fadeStart
+          ? Math.max(0, l.a * (1 - (elapsed - fadeStart) / Math.max(1, duration - fadeStart)))
+          : l.a;
         ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);
         ctx.strokeStyle='rgba(60,160,160,'+fade+')'; ctx.lineWidth=1; ctx.stroke();
       });
-      t++;
-      if (t<maxFrames) cFXAnim=requestEffectFrame(d);
+      if (elapsed < duration) cFXAnim=requestEffectFrame(d);
       else { ctx.clearRect(0,0,w,h); cFX.classList.remove('visible'); }
     };
-    d();
+    cFXAnim=requestEffectFrame(d);
   }
 
   // 괜찮습니다 — 살짝 밝아졌다 원래로
   function fxOkay() {
     if (!auroraCanvas || !auroraCtx) return;
-    let alpha = 0, dec = false;
-    const glow = () => {
-      if (!dec) { alpha += 0.008 / flowEffectProfile.motion; if (alpha >= contextIntensity(0.07)) dec = true; }
-      else { alpha -= 0.004 / flowEffectProfile.trail; if (alpha <= 0) return; }
+    const duration = contextDuration(440, true);
+    const peakAt = 1 / 3;
+    let started = null;
+    const glow = timestamp => {
+      if (started === null) started = timestamp;
+      const progress = Math.min(1, (timestamp - started) / duration);
+      const envelope = progress < peakAt
+        ? progress / peakAt
+        : 1 - (progress - peakAt) / (1 - peakAt);
+      const alpha = contextIntensity(0.07) * Math.max(0, envelope);
       auroraCtx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
       auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      requestEffectFrame(glow);
+      if (progress < 1) requestEffectFrame(glow);
     };
-    glow();
+    requestEffectFrame(glow);
   }
 
   // 오늘은 여기까지입니다 — Aurora 천천히 꺼지며 완료로
@@ -1790,17 +1897,34 @@ function prefersReducedMotion() {
 
   // ===== 최종 완료 연출 =====
   let cFX, cFXCtx, cFXAnim;
+  function resizeCompleteFX() {
+    if (!cFX) return;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    if (cFX.width === width && cFX.height === height) return;
+    if (cFXAnim) {
+      cancelAnimationFrame(cFXAnim);
+      effectAnimationFrames.delete(cFXAnim);
+      cFXAnim = null;
+      cFX.classList.remove('visible');
+    }
+    cFX.width = width;
+    cFX.height = height;
+  }
+
   function initCompleteFX() {
     cFX = document.getElementById('complete-fx');
     if (!cFX) return;
     cFXCtx = cFX.getContext('2d');
-    cFX.width = window.innerWidth; cFX.height = window.innerHeight;
+    resizeCompleteFX();
+    window.addEventListener('resize', resizeCompleteFX);
   }
 
   function playCompleteFX(emotion) {
     if (prefersReducedMotion()) return;
     if (!cFX) initCompleteFX();
     if (!cFX) return;
+    resizeCompleteFX();
     if (cFXAnim) cancelAnimationFrame(cFXAnim);
     cFXCtx.clearRect(0, 0, cFX.width, cFX.height);
     cFX.classList.add('visible');
