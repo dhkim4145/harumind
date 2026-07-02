@@ -79,6 +79,10 @@
     <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="false" onclick="toggleSound()">
       작은 소리 켜기
     </button>
+    <div class="privacy-notice">
+      <p>하루마음은 감정 기록을 저장하지 않습니다.<br>사운드 설정은 기기에 저장될 수 있으며,<br>서비스 안정성과 사용성 개선을 위해 Google Analytics 이용 통계를 확인합니다.</p>
+      <a href="privacy.html">개인정보처리방침</a>
+    </div>
   </div>
 
   <!-- SCREEN 2: TRANSITION -->
@@ -113,8 +117,8 @@
 </div>
 
   <!-- SCREEN 4: COMPLETE -->
-  <div class="screen" id="s-complete" role="region" aria-label="하루 마감 완료" tabindex="-1">
-    <div class="complete-title">오늘은 여기까지입니다</div>
+  <div class="screen" id="s-complete" role="region" aria-labelledby="complete-title" tabindex="-1">
+    <div class="complete-title" id="complete-title">오늘은 여기까지입니다</div>
     <span class="complete-moon" id="complete-moon" aria-hidden="true"></span>
     <div class="complete-emotion" id="complete-emotion"></div>
     <div class="complete-sub">충분합니다</div>
@@ -123,7 +127,7 @@
         <div class="complete-quote" id="complete-quote"></div>
       </div>
     </div>
-    <button class="complete-restart" id="complete-restart" onclick="restart()">다시 시작</button>
+    <button class="complete-restart" id="complete-restart" aria-label="처음 화면으로 돌아가기" onclick="restart()">처음으로</button>
   </div>
 
 </div>

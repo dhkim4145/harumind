@@ -197,6 +197,7 @@
   }
   .btn-primary:disabled { opacity:.24; cursor:not-allowed; }
   .sound-toggle {
+    position: relative;
     align-self: center;
     margin: 12px auto 0;
     border: 1px solid rgba(255,255,255,0.04);
@@ -210,6 +211,13 @@
     cursor: pointer;
     transition: border-color .2s ease, color .2s ease, background .2s ease;
   }
+  .sound-toggle::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: max(100%, 44px); height: 44px;
+    transform: translate(-50%, -50%);
+  }
   .sound-toggle[aria-pressed="true"] {
     border-color: rgba(196,168,130,0.14);
     background: rgba(196,168,130,0.025);
@@ -217,9 +225,30 @@
     box-shadow: 0 0 10px rgba(196,168,130,0.04);
   }
   .sound-toggle:focus-visible { outline:1px solid rgba(196,168,130,0.38); outline-offset:3px; }
+  .privacy-notice {
+    width: 100%; max-width: 336px;
+    margin: 24px auto 0;
+    text-align: center;
+    color: var(--ink-4);
+    font-size: 9.5px; line-height: 1.75;
+    letter-spacing: .015em;
+  }
+  .privacy-notice a {
+    display: inline-flex; align-items: center;
+    min-height: 44px;
+    margin-top: 2px; padding: 6px 4px;
+    color: rgba(234,230,222,0.38);
+    font-size: 10px; line-height: 1.4;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(234,230,222,0.2);
+  }
+  .privacy-notice a:focus-visible {
+    outline: 1px solid rgba(196,168,130,0.38);
+    outline-offset: 3px;
+  }
   .sound-icon-toggle {
-    position: absolute; top: 25px; right: 24px;
-    width: 28px; height: 28px;
+    position: absolute; top: 17px; right: 16px;
+    width: 44px; height: 44px;
     border: none; border-radius: 50%;
     background: transparent;
     color: rgba(234,230,222,0.38);
@@ -231,7 +260,7 @@
   .sound-icon-toggle::before {
     content: '';
     position: absolute;
-    left: 7px; top: 10px;
+    left: 15px; top: 18px;
     width: 5px; height: 8px;
     border-radius: 1px 0 0 1px;
     background: currentColor;
@@ -239,7 +268,7 @@
   .sound-icon-toggle::after {
     content: '';
     position: absolute;
-    left: 12px; top: 8px;
+    left: 20px; top: 16px;
     width: 8px; height: 12px;
     border: 1px solid currentColor;
     border-left: none;
@@ -248,7 +277,7 @@
   }
   .sound-icon-toggle[aria-pressed="false"]::after {
     width: 9px; height: 1px;
-    top: 14px; left: 13px;
+    top: 22px; left: 21px;
     border: none;
     border-top: 1px solid currentColor;
     border-radius: 0;
@@ -270,7 +299,7 @@
     font-weight: 300;
     letter-spacing: .06em;
     color: rgba(234,230,222,0.32);
-    margin-top: 18px;
+    margin-top: 26px;
     white-space: nowrap;
   }
 
@@ -281,6 +310,70 @@
   body.emotion-쓸쓸함 { background: radial-gradient(ellipse at top, #1e1410 0%, #120d0a 60%); }
   body.emotion-복잡함 { background: radial-gradient(ellipse at top, #0f1e22 0%, #090f12 60%); }
   body.emotion-괜찮음 { background: radial-gradient(ellipse at top, #141828 0%, #0a0c14 60%); }
+
+  .privacy-page { min-height: 100dvh; }
+  .privacy-shell {
+    position: relative; z-index: 1;
+    width: min(100%, 720px);
+    margin: 0 auto;
+    padding: 64px 24px calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  .privacy-back {
+    display: inline-block;
+    margin-bottom: 48px; padding: 8px 0;
+    color: var(--ink-3);
+    font-size: 11px; letter-spacing: .06em;
+    text-decoration: none;
+  }
+  .privacy-back:focus-visible,
+  .privacy-content a:focus-visible {
+    outline: 1px solid rgba(196,168,130,0.38);
+    outline-offset: 3px;
+  }
+  .privacy-content h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 24px; font-weight: 300;
+    line-height: 1.5; letter-spacing: -.01em;
+    color: var(--ink-1);
+    margin-bottom: 12px;
+  }
+  .privacy-effective {
+    color: var(--ink-4);
+    font-size: 11px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
+  .privacy-content section { margin-top: 38px; }
+  .privacy-content h2 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 16px; font-weight: 400;
+    line-height: 1.6; letter-spacing: .01em;
+    color: var(--ink-2);
+    margin-bottom: 12px;
+  }
+  .privacy-content p,
+  .privacy-content li {
+    color: rgba(234,230,222,0.58);
+    font-size: 13px; line-height: 1.95;
+    letter-spacing: .005em;
+  }
+  .privacy-content ul { padding-left: 20px; }
+  .privacy-content li + li { margin-top: 6px; }
+  .privacy-content a {
+    color: rgba(196,168,130,0.76);
+    text-underline-offset: 3px;
+  }
+  .privacy-placeholder {
+    margin-top: 14px; padding: 14px 16px;
+    border: 1px solid rgba(196,168,130,0.12);
+    border-radius: 10px;
+    background: rgba(196,168,130,0.035);
+  }
+
+  @media (max-width: 440px) {
+    .privacy-shell { padding: 48px 22px calc(48px + env(safe-area-inset-bottom, 0px)); }
+    .privacy-back { margin-bottom: 36px; }
+    .privacy-effective { margin-bottom: 40px; }
+  }
 
   #s-transition {
     justify-content: center; align-items: center;

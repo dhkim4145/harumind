@@ -173,7 +173,8 @@ function getFlowStepData(step, emotion = selected) {
     text = pickContextCopy(variants, `flow1:${emotion}`) || text;
   }
   if (step === 2 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
-    const contextual = HARUMIND_FLOW_COPY.times?.[flowCopyContext.time]?.step2;
+    const timeCopy = HARUMIND_FLOW_COPY.times?.[flowCopyContext.time];
+    const contextual = timeCopy?.step2ByEmotion?.[emotion] || timeCopy?.step2;
     text = pickContextCopy(contextual, `step2:${emotion}`) || text;
   }
   return { text, react: semantics.react, effect: semantics.effect };
@@ -952,7 +953,10 @@ function prefersReducedMotion() {
     if (_breath) _breath.classList.remove('visible');
     if (_hint) _hint.classList.remove('visible');
     clearFlowEffects();
-    showScreen('emotion');
+    const selectedCard = selected
+      ? document.querySelector(`.e-card[data-key="${selected}"]`)
+      : null;
+    showScreen('emotion', selectedCard);
   }
 
   function scheduleCompleteReveal(extrasDelay = 1800, restartDelay = 4000) {
@@ -1064,15 +1068,16 @@ function prefersReducedMotion() {
     }
   }
 
-  function showScreen(id) {
+  function showScreen(id, focusTarget = null) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const nextScreen = document.getElementById('s-' + id);
     nextScreen.classList.add('active');
     window.scrollTo(0, 0);
     requestAnimationFrame(() => {
       if (!nextScreen.classList.contains('active')) return;
-      try { nextScreen.focus({ preventScroll: true }); }
-      catch (err) { nextScreen.focus(); }
+      const target = focusTarget && focusTarget.isConnected ? focusTarget : nextScreen;
+      try { target.focus({ preventScroll: true }); }
+      catch (err) { target.focus(); }
     });
   }
 
