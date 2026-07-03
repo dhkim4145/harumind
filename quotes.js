@@ -108,9 +108,80 @@ const QUOTES = {
   ]
 };
 
-// 오늘 요일에 맞는 글귀 반환 (0=월, 1=화, ..., 6=일)
-function getTodayQuote(emotion) {
-  const day = new Date().getDay(); // 0=일, 1=월, ..., 6=토
-  const index = day === 0 ? 6 : day - 1; // 일요일=6, 월요일=0으로 변환
-  return QUOTES[emotion]?.[index] || "오늘을 다 이해하지 못해도 괜찮습니다.";
+// 낮에 어색한 시간 표현만 줄 단위로 바꿉니다.
+// 요일 index: 0=월, 1=화, ..., 6=일 / line: 0부터 시작
+// 저녁·밤에는 QUOTES의 기존 문장을 그대로 사용합니다.
+const QUOTE_TIME_VARIANTS = {
+  피곤함: {
+    1: { line: 2, morning: "오늘은 힘을 조금 낮춥니다.", daytime: "지금은 힘을 조금 낮춥니다." },
+    2: { line: 2, morning: "지금은 회복 쪽으로 기웁니다.", daytime: "잠시 회복 쪽으로 기웁니다." }
+  },
+  불안함: {
+    1: { line: 1, morning: "이 시간에는 그 속도를", daytime: "지금은 그 속도를" },
+    2: { line: 0, morning: "답이 아직 오지 않은 시간입니다.", daytime: "답이 아직 오지 않은 시간입니다." }
+  },
+  공허함: {
+    2: { line: 0, morning: "감정이 늦게 오는 시간입니다.", daytime: "감정이 늦게 오는 시간입니다." },
+    6: { line: 1, morning: "하루가 여기까지 온 시간입니다.", daytime: "하루가 여기까지 온 시간입니다." }
+  },
+  쓸쓸함: {
+    3: { line: 0, morning: "누군가 생각나는 시간입니다.", daytime: "누군가 생각나는 시간입니다." },
+    4: { line: 0, morning: "함께여야 할 것 같은 때에도", daytime: "함께여야 할 것 같은 때에도" }
+  },
+  복잡함: {
+    1: { line: 2, morning: "지금은 잠시 멈춥니다.", daytime: "지금은 잠시 멈춥니다." },
+    5: { line: 2, morning: "그래도 오늘은 천천히 닫힙니다.", daytime: "그래도 오늘은 천천히 닫힙니다." }
+  }
+};
+
+function getKoreaQuoteParts(date = new Date()) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+      hourCycle: 'h23'
+    }).formatToParts(date);
+    return Object.fromEntries(parts.map(part => [part.type, part.value]));
+  } catch (err) {
+    return {
+      year: String(date.getFullYear()), month: String(date.getMonth() + 1),
+      day: String(date.getDate()), hour: String(date.getHours())
+    };
+  }
+}
+
+function getQuoteDayIndex(dateKey, date = new Date()) {
+  const match = typeof dateKey === 'string' && dateKey.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const day = match
+    ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))).getUTCDay()
+    : date.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+function getQuoteTimeBand(context, date = new Date()) {
+  if (context && ['morning', 'daytime', 'night'].includes(context.quoteTime)) return context.quoteTime;
+  const hour = Number(getKoreaQuoteParts(date).hour);
+  if (hour >= 6 && hour <= 11) return 'morning';
+  if (hour >= 12 && hour <= 17) return 'daytime';
+  return 'night';
+}
+
+function applyQuoteTimeVariant(quote, emotion, dayIndex, timeBand) {
+  if (typeof quote !== 'string' || !quote.trim() || timeBand === 'night') return quote;
+  const variant = QUOTE_TIME_VARIANTS[emotion]?.[dayIndex];
+  const replacement = variant?.[timeBand];
+  if (!variant || !Number.isInteger(variant.line) || typeof replacement !== 'string' || !replacement.trim()) return quote;
+  const lines = quote.split('\n');
+  if (variant.line < 0 || variant.line >= lines.length) return quote;
+  lines[variant.line] = replacement;
+  return lines.join('\n');
+}
+
+// 감정 × 요일 문구를 고른 뒤, 고정된 Flow 시간대에 맞춰 필요한 줄만 변형합니다.
+function getTodayQuote(emotion, context = null, date = new Date()) {
+  const koreaParts = getKoreaQuoteParts(date);
+  const dateKey = context?.dateKey || `${koreaParts.year}-${koreaParts.month}-${koreaParts.day}`;
+  const index = getQuoteDayIndex(dateKey, date);
+  const quote = QUOTES[emotion]?.[index];
+  if (typeof quote !== 'string' || !quote.trim()) return "오늘을 다 이해하지 못해도 괜찮습니다.";
+  return applyQuoteTimeVariant(quote, emotion, index, getQuoteTimeBand(context, date));
 }

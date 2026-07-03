@@ -91,8 +91,10 @@ function createFlowCopyContext(date = new Date()) {
   if (hour >= 15 && hour <= 17) transitionTime = 'lateAfternoon';
   else if (hour >= 18 && hour <= 21) transitionTime = 'evening';
   else if (hour >= 22 || hour <= 5) transitionTime = 'night';
+  const quoteTime = hour >= 6 && hour <= 11 ? 'morning'
+    : hour >= 12 && hour <= 17 ? 'daytime' : 'night';
   const dateKey = `${parts.year}-${parts.month}-${parts.day}`;
-  return { season, time, transitionTime, dateKey };
+  return { season, time, transitionTime, quoteTime, dateKey };
 }
 
 let flowCopyContext = null;
@@ -996,7 +998,7 @@ function prefersReducedMotion() {
 
     playCompleteFX(selected);
     const fallbackQuote = '오늘을 다 이해하지 못해도 괜찮습니다.';
-    const quote = (typeof getTodayQuote === 'function') ? getTodayQuote(selected) : fallbackQuote;
+    const quote = (typeof getTodayQuote === 'function') ? getTodayQuote(selected, flowCopyContext) : fallbackQuote;
     const safeQuote = (typeof quote === 'string' && quote.trim()) ? quote : fallbackQuote;
     const quoteEl = document.getElementById('complete-quote');
     quoteEl.innerHTML = safeQuote.replace(/\n/g, '<br>');
