@@ -481,7 +481,7 @@
   }
   .flow-stage.holding {
     opacity: .96;
-    transform: translateY(0) scale(1.015);
+    transform: translateY(0);
     color: var(--emotion-flow-text);
     text-shadow: 0 0 10px rgba(234,230,222,0.08);
   }
@@ -496,10 +496,10 @@
     min-height: 66px;
   }
   .flow-text.visible {
-    opacity: calc(0.97 + var(--hold-progress) * 0.03);
-    transform: translateY(calc(var(--hold-progress) * -1px)) scale(calc(1 + var(--hold-progress) * 0.012));
+    opacity: 1;
+    transform: translateY(0);
     filter: blur(0);
-    text-shadow: 0 0 calc(var(--hold-progress) * 12px) rgba(234,230,222,0.08);
+    text-shadow: none;
   }
   .flow-text.step-stay {
     font-size: calc(21px * var(--emotion-flow-scale)); color: var(--emotion-flow-text); letter-spacing: .02em;
@@ -591,9 +591,11 @@
     margin-top: 16px;
     text-decoration: underline; text-underline-offset: 4px;
     text-decoration-color: rgba(72,69,79,0.3);
+    visibility: hidden;
+    pointer-events: none;
   }
   .complete-restart:hover { color: var(--text-secondary); }
-  .complete-restart.visible { opacity: 0.45; transform: translateY(0); }
+  .complete-restart.visible { opacity: 0.45; transform: translateY(0); visibility: visible; pointer-events: auto; }
 
   #s-complete.visible .complete-emotion,
   #s-complete.visible .complete-sub { opacity: 1; transform: translateY(0); }
@@ -776,35 +778,28 @@
     animation: orbBreath 4.6s ease-in-out infinite;
   }
   .hold-btn.holding .hold-orb {
-    opacity: 1;
+    opacity: 0.5;
     animation: none;
-    transform: scale(calc(0.97 + var(--hold-progress, 0) * 0.02));
-    box-shadow: 0 0 calc(4px + var(--hold-progress, 0) * 12px) var(--btn-glow);
-    transition: opacity .1s ease-out, transform .1s ease-out,
-                box-shadow .14s linear;
+    transform: none;
+    box-shadow: none;
+    transition: opacity .18s ease-out;
   }
   .hold-btn.paused .hold-orb {
-    opacity: .78;
+    opacity: 0.5;
     animation: none;
-    transform: scale(.99);
-    box-shadow: 0 0 5px var(--btn-glow);
-    transition: opacity .18s ease-out, transform .18s ease-out,
-                box-shadow .18s ease-out;
+    transform: none;
+    box-shadow: none;
+    transition: opacity .18s ease-out;
   }
   .hold-btn.completed .hold-orb {
-    animation: orbSettle .48s var(--ease) both;
-    box-shadow: 0 0 7px var(--btn-glow);
+    animation: none;
+    transform: none;
+    box-shadow: none;
   }
   @keyframes orbBreath {
     0%, 100% { opacity: 0.38; transform: scale(1); }
     50%      { opacity: 0.72; transform: scale(1.08); }
   }
-  @keyframes orbSettle {
-    0%   { transform: scale(.99); }
-    45%  { transform: scale(1.025); }
-    100% { transform: scale(1); }
-  }
-
   /* 손을 올린 동안 안에서 차오르는 빛 — 진행률 연동 */
   .hold-orb::before {
     content: '';
@@ -825,6 +820,42 @@
             mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1px));
   }
 
+  /* 머무름 Hold — 진행 시간은 유지하되 채움이나 링 없이 호흡만 멈춘다. */
+  .hold-btn.staying .hold-orb::before,
+  .hold-btn.staying .hold-orb::after { opacity: 0; }
+  .hold-btn.staying.holding .hold-orb,
+  .hold-btn.staying.paused .hold-orb {
+    opacity: .78;
+    box-shadow: 0 0 8px var(--btn-glow);
+    transition: opacity .18s ease-out, box-shadow .24s ease-out;
+  }
+  .hold-btn.staying.completed .hold-orb {
+    opacity: .82;
+    box-shadow: 0 0 6px var(--btn-glow);
+  }
+
+  /* 확인 Hold — 채움과 링은 식별 가능하되 국소 범위 안에서만 반응한다. */
+  .hold-btn:not(.staying):not(.closing).holding .hold-orb,
+  .hold-btn:not(.staying):not(.closing).paused .hold-orb {
+    opacity: .72;
+    box-shadow: 0 0 6px var(--btn-glow);
+  }
+  .hold-btn:not(.staying):not(.closing).completed .hold-orb {
+    opacity: .78;
+    box-shadow: 0 0 8px var(--btn-glow);
+  }
+  .hold-btn:not(.staying):not(.closing).holding .hold-orb::before,
+  .hold-btn:not(.staying):not(.closing).paused .hold-orb::before,
+  .hold-btn:not(.staying):not(.closing).completed .hold-orb::before {
+    opacity: calc(.08 + var(--hold-progress, 0) * .92);
+  }
+  .hold-btn:not(.staying):not(.closing).holding .hold-orb::after,
+  .hold-btn:not(.staying):not(.closing).paused .hold-orb::after,
+  .hold-btn:not(.staying):not(.closing).completed .hold-orb::after {
+    opacity: .9;
+    filter: brightness(1.2);
+  }
+
   .hold-btn-label {
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 13px; font-weight: 300; letter-spacing: .06em;
@@ -833,7 +864,6 @@
   }
   /* 손을 올리면 안내는 조용히 사라진다 */
   .hold-btn.holding .hold-btn-label,
-  .hold-btn.paused .hold-btn-label,
   .hold-btn.completed .hold-btn-label { opacity: 0; }
 
   /* 마감 Hold — 손을 올리면 빛이 차오르지 않고 사그라든다. */
@@ -842,6 +872,9 @@
   .hold-btn.closing.holding .hold-orb {
     opacity: calc(1 - var(--hold-progress, 0) * 0.82);
     transition: opacity .14s linear;
+  }
+  .hold-btn.closing.paused .hold-orb {
+    opacity: calc(1 - var(--hold-progress, 0) * 0.82);
   }
 
   

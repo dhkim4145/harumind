@@ -155,16 +155,18 @@ function getFlowStageCopy(step) {
   const stageKey = step === 1 ? 'stay' : step === 2 ? 'confirm' : 'close';
   const fallback = {
     stay: {
-      label: '멈춤',
+      label: '지금',
     },
     confirm: {
-      label: '머묾',
+      label: '잠시',
     },
     close: {
-      label: '닫음',
+      label: '여기까지',
     }
   };
-  const copy = HARUMIND_FLOW_COPY?.flowStages?.[stageKey] || fallback[stageKey];
+  const copy = typeof HARUMIND_FLOW_COPY !== 'undefined'
+    ? HARUMIND_FLOW_COPY.flowStages?.[stageKey] || fallback[stageKey]
+    : fallback[stageKey];
   return {
     label: copy?.label || ''
   };
@@ -662,18 +664,18 @@ function prefersReducedMotion() {
     wash.style.transform = 'scale(0.72)';
     wash.style.transition = 'opacity 0.85s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1)';
     wash.style.opacity = '0';
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    requestEffectFrame(() => {
+      requestEffectFrame(() => {
         if (visualToken !== transitionVisualToken) return;
         wash.classList.add('transition-enter');
         wash.style.opacity = '1';
         wash.style.transform = 'scale(1)';
-        setTimeout(() => {
+        scheduleEffectTimeout(() => {
           if (visualToken !== transitionVisualToken) return;
           wash.style.opacity = '0';
           wash.style.transform = 'scale(1.08)';
         }, 900);
-        setTimeout(() => {
+        scheduleEffectTimeout(() => {
           if (visualToken !== transitionVisualToken) return;
           wash.classList.remove('transition-enter');
           wash.style.background = '';
@@ -784,7 +786,10 @@ function prefersReducedMotion() {
     currentStep = step;
     hideHoldBtn();
     const _closeBtn = document.getElementById('hold-btn');
-    if (_closeBtn) _closeBtn.classList.toggle('closing', step === 3);
+    if (_closeBtn) {
+      _closeBtn.classList.toggle('staying', step === 1);
+      _closeBtn.classList.toggle('closing', step === 3);
+    }
     document.documentElement.style.setProperty('--hold-progress', 0);
 
     const textEl = document.getElementById('flow-text');
@@ -835,6 +840,7 @@ function prefersReducedMotion() {
     transitionRunToken += 1;
     resetTransitionVisual();
     lifecycleResumeAction = null;
+    restoreHoldFocusOnReveal = false;
     currentStep = 0;
     resetFlowCompletion();
     document.getElementById('transition-line1').classList.remove('visible');
@@ -877,7 +883,14 @@ function prefersReducedMotion() {
       completeRestartTimer = null;
       completeRestartDueAt = null;
       restartBtn.classList.add('visible');
+      setRestartAvailability(restartBtn, true);
     }, restartDelay);
+  }
+
+  function setRestartAvailability(button, available) {
+    if (!button) return;
+    button.disabled = !available;
+    button.setAttribute('aria-hidden', available ? 'false' : 'true');
   }
 
   function goComplete() {
@@ -912,6 +925,7 @@ function prefersReducedMotion() {
     const extras = document.getElementById('complete-extras');
     const restartBtn = document.getElementById('complete-restart');
     restartBtn.classList.remove('visible');
+    setRestartAvailability(restartBtn, false);
     extras.classList.remove('visible');
     extras.style.display = 'flex';
     // 글귀의 1.6초 fade-in이 끝난 뒤 0.6초간 여운을 둔다.
@@ -924,9 +938,11 @@ function prefersReducedMotion() {
     clearFlowEffects();
     stopActiveAudio();
     lifecycleResumeAction = null;
+    restoreHoldFocusOnReveal = false;
     resetFlowCompletion();
     document.getElementById('s-complete').classList.remove('visible');
     document.getElementById('complete-restart').classList.remove('visible');
+    setRestartAvailability(document.getElementById('complete-restart'), false);
     const extras = document.getElementById('complete-extras');
     extras.classList.remove('visible');
     extras.style.display = 'none';
@@ -1045,6 +1061,7 @@ function prefersReducedMotion() {
       extras.style.display = 'flex';
       extras.classList.toggle('visible', action.extrasVisible);
       restartBtn.classList.toggle('visible', action.restartVisible);
+      setRestartAvailability(restartBtn, action.restartVisible);
       if (!action.extrasVisible || !action.restartVisible) {
         scheduleCompleteReveal(
           action.extrasVisible ? 0 : action.extrasRemaining,
@@ -1255,6 +1272,7 @@ function prefersReducedMotion() {
   let holdElapsed = 0, activePointerId = null;
   let holdCancelTimer = null, holdBuffered = false;
   let holdResumeUsed = false;
+  let restoreHoldFocusOnReveal = false;
 
   function releaseHoldPointer(btn) {
     if (!btn || typeof activePointerId !== 'number' || !btn.hasPointerCapture) return;
@@ -1279,6 +1297,8 @@ function prefersReducedMotion() {
       btn.classList.remove('holding', 'paused', 'completed');
       btn.style.setProperty('--bar-pct', 0);
     }
+    const stageEl = document.getElementById('flow-stage');
+    if (stageEl) stageEl.classList.remove('holding');
     document.documentElement.style.setProperty('--hold-progress', 0);
     stopScreenReact();
   }
@@ -1339,6 +1359,7 @@ function prefersReducedMotion() {
     }
 
     function onComplete() {
+      const completedWithKeyboard = activePointerId === 'keyboard';
       holdInputReady = false;
       btn.setAttribute('aria-disabled', 'true');
       holdActive = false;
@@ -1358,6 +1379,7 @@ function prefersReducedMotion() {
       if (stageEl) stageEl.classList.remove('holding');
       clearTimeout(flowTimer);
       const stepAtComplete = currentStep;
+      restoreHoldFocusOnReveal = completedWithKeyboard && stepAtComplete < 3;
 
       clearFlowEffects();
       completeScreenImpact();
@@ -1445,6 +1467,14 @@ function prefersReducedMotion() {
     holdInputReady = true;
     if (btn) btn.setAttribute('aria-disabled', 'false');
     updateHoldLabel();
+    if (btn && restoreHoldFocusOnReveal) {
+      restoreHoldFocusOnReveal = false;
+      requestAnimationFrame(() => {
+        if (!holdInputReady || !btn.isConnected) return;
+        try { btn.focus({ preventScroll: true }); }
+        catch (err) { btn.focus(); }
+      });
+    }
   }
 
   function updateHoldLabel() {
@@ -1458,7 +1488,7 @@ function prefersReducedMotion() {
     if (wrap) wrap.classList.remove('visible');
     const btn = document.getElementById('hold-btn');
     if (btn) {
-      btn.classList.remove('closing');
+      btn.classList.remove('staying', 'closing');
       btn.setAttribute('aria-disabled', 'true');
     }
     resetHoldInteraction(btn);
