@@ -31,33 +31,16 @@ const CONTENT = {
   }
 };
 
-const FLOW_STEP1 = {
-  피곤함: "여기 머뭅니다",
-  불안함: "숨을 내쉽니다",
-  공허함: "비워둡니다",
-  쓸쓸함: "여기 있습니다",
-  복잡함: "흩어진 채 둡니다",
-  괜찮음: "그대로입니다"
-};
-
 const FLOW_COMMON = {
-  2: "그대로 둡니다",
-  3: "마음이 머뭅니다",
-  4: "오늘은 여기까지입니다"
+  1: "그대로 둡니다",
+  2: "마음이 머뭅니다",
+  3: "오늘은 여기까지입니다"
 };
 
 const FLOW_STEP_SEMANTICS = {
-  1: {
-    피곤함: { react: 'dark', effect: 'relax' },
-    불안함: { react: 'bright', effect: 'breathe' },
-    공허함: { react: 'gray', effect: 'empty' },
-    쓸쓸함: { react: 'edge', effect: 'presence' },
-    복잡함: { react: 'silent', effect: 'stay' },
-    괜찮음: { react: 'silent', effect: 'silence' }
-  },
-  2: { react: 'dark', effect: 'settle' },
-  3: { react: 'silent', effect: 'silence' },
-  4: { react: 'dark', effect: 'close' }
+  1: { react: 'silent' },
+  2: { react: 'silent' },
+  3: { react: 'dark' }
 };
 
 function getKoreaDateParts(date = new Date()) {
@@ -104,13 +87,11 @@ function clampContextMod(value) {
 }
 
 function createFlowEffectProfile(context = flowCopyContext) {
-  const base = { tint: '196,168,130', tintOpacity: 0, intensity: 1, motion: 1, trail: 1 };
+  const base = { intensity: 1, motion: 1, trail: 1 };
   if (!context || typeof HARUMIND_FLOW_COPY === 'undefined') return base;
   const season = HARUMIND_FLOW_COPY.seasons?.[context.season]?.effect || {};
   const time = HARUMIND_FLOW_COPY.times?.[context.time]?.effect || {};
   return {
-    tint: season.tint || base.tint,
-    tintOpacity: Math.min(0.018, Math.max(0, season.tintOpacity || 0)),
     intensity: clampContextMod((season.intensity || 1) * (time.intensity || 1)),
     motion: clampContextMod((season.motion || 1) * (time.motion || 1)),
     trail: clampContextMod((season.trail || 1) * (time.trail || 1))
@@ -130,8 +111,6 @@ function contextDuration(value, includeTrail = false) {
 
 function applyFlowEffectProfile() {
   const root = document.documentElement;
-  root.style.setProperty('--context-tint', flowEffectProfile.tint);
-  root.style.setProperty('--context-tint-opacity', flowEffectProfile.tintOpacity);
   if (flowCopyContext) {
     root.dataset.flowSeason = flowCopyContext.season;
     root.dataset.flowTime = flowCopyContext.time;
@@ -165,29 +144,10 @@ function getTransitionCopy(emotion) {
   return [base[0], pickContextCopy(contextual, `transition:${emotion}`) || base[1]];
 }
 
-function getFlowStepData(step, emotion = selected) {
-  const semantics = step === 1
-    ? FLOW_STEP_SEMANTICS[1][emotion] || { react: 'silent', effect: 'silence' }
-    : FLOW_STEP_SEMANTICS[step] || { react: 'silent', effect: 'silence' };
-  let text = step === 1 ? FLOW_STEP1[emotion] || '' : FLOW_COMMON[step] || '';
-  if (step === 1 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
-    const variants = HARUMIND_FLOW_COPY.flow1Variants?.[emotion];
-    text = pickContextCopy(variants, `flow1:${emotion}`) || text;
-  }
-  if (step === 2 && flowCopyContext && typeof HARUMIND_FLOW_COPY !== 'undefined') {
-    const timeCopy = HARUMIND_FLOW_COPY.times?.[flowCopyContext.time];
-    const contextual = timeCopy?.step2ByEmotion?.[emotion] || timeCopy?.step2;
-    text = pickContextCopy(contextual, `step2:${emotion}`) || text;
-  }
-  return { text, react: semantics.react, effect: semantics.effect };
+function getFlowStepData(step) {
+  const semantics = FLOW_STEP_SEMANTICS[step] || { react: 'silent' };
+  return { text: FLOW_COMMON[step] || '', react: semantics.react };
 }
-
-const FLOW_DURATION = {
-  1: 3500,
-  2: 3500,
-  3: 4000,
-  '3-pause': 4000
-};
 
 const reducedMotionQuery = typeof window.matchMedia === 'function'
   ? window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -560,23 +520,13 @@ function prefersReducedMotion() {
     playAirNoise(0.82, 0.011, 1050, 0.04, 0);
   }
 
-  function playStepCompleteSound(step) {
-    if (step === 1) {
-      playSoftTone(164, 0.64, 'sine', 0.066, 0, 860, 0.05, -0.1);
-      playTinyChime(328, 0.06, 0.018, 0.12);
-      playAirNoise(0.44, 0.011, 1020, 0.03, 0.05);
-    } else if (step === 2) {
-      playSoftTone(196, 0.68, 'sine', 0.064, 0, 980, 0.052, 0.08);
-      playTinyChime(392, 0.07, 0.02, -0.12);
-      playAirNoise(0.56, 0.012, 1120, 0.03, -0.04);
-    } else if (step === 4) {
-      playAirNoise(0.1, 0.012, 1450, 0, -0.03);
-      playSoftTone(112, 0.16, 'triangle', 0.034, 0.018, 520, 0.008, 0.02);
-    }
+  function playConfirmSound() {
+    playSoftTone(164, 0.32, 'sine', 0.034, 0, 620, 0.025, 0);
   }
 
-  function playOkayRewardSound() {
-    playSoftTone(164, 0.32, 'sine', 0.034, 0, 620, 0.025, 0);
+  function playCloseSound() {
+    playAirNoise(0.1, 0.012, 1450, 0, -0.03);
+    playSoftTone(112, 0.16, 'triangle', 0.034, 0.018, 520, 0.008, 0.02);
   }
 
   let flowTimer = null;
@@ -596,7 +546,6 @@ function prefersReducedMotion() {
   let completedSteps = 0;
   const effectAnimationFrames = new Set();
   const effectTimeouts = new Set();
-  const effectElements = new Set();
 
   function requestEffectFrame(callback) {
     const id = requestAnimationFrame(timestamp => {
@@ -616,18 +565,11 @@ function prefersReducedMotion() {
     return id;
   }
 
-  function trackEffectElement(element) {
-    if (element) effectElements.add(element);
-    return element;
-  }
-
   function clearFlowEffects() {
     effectAnimationFrames.forEach(id => cancelAnimationFrame(id));
     effectAnimationFrames.clear();
     effectTimeouts.forEach(id => clearTimeout(id));
     effectTimeouts.clear();
-    effectElements.forEach(element => element.remove());
-    effectElements.clear();
     if (cFXAnim) cancelAnimationFrame(cFXAnim);
     cFXAnim = null;
     if (cFX && cFXCtx) {
@@ -669,23 +611,7 @@ function prefersReducedMotion() {
 
   function resetFlowCompletion() {
     completedSteps = 0;
-    document.documentElement.style.setProperty('--flow-progress', 0);
     document.documentElement.style.setProperty('--hold-progress', 0);
-    delete document.body.dataset.flowProgress;
-    updateFlowTrace(0);
-    const rewardEl = document.getElementById('step-reward');
-    if (rewardEl) {
-      rewardEl.classList.remove('visible');
-      rewardEl.textContent = '';
-    }
-  }
-
-  function updateFlowTrace(doneCount, options = {}) {
-    const trace = document.getElementById('flow-trace');
-    if (!trace) return;
-    const progress = Math.max(0, Math.min(1, Math.min(doneCount, 3) / 3));
-    trace.style.setProperty('--flow-trace-progress', progress);
-    trace.classList.toggle('complete', !!options.complete);
   }
 
   function colorWithAlpha(color, alpha) {
@@ -837,24 +763,22 @@ function prefersReducedMotion() {
     currentStep = step;
     hideHoldBtn();
     const _closeBtn = document.getElementById('hold-btn');
-    if (_closeBtn) _closeBtn.classList.toggle('closing', step === 4); // 4단계는 닫는 제스처
+    if (_closeBtn) _closeBtn.classList.toggle('closing', step === 3);
     document.documentElement.style.setProperty('--hold-progress', 0);
-    updateFlowTrace(completedSteps);
 
     const textEl = document.getElementById('flow-text');
     textEl.classList.remove('visible');
-    const rewardEl = document.getElementById('step-reward');
-    if (rewardEl) rewardEl.classList.remove('visible');
     const blankDelay = (step === 1) ? 0 : 300;
 
     flowTextTimer = setTimeout(() => {
-      textEl.classList.remove('step-3', 'step-4');
+      textEl.classList.remove('step-stay', 'step-confirm', 'step-close');
       textEl.textContent = '';
       const { text } = getFlowStepData(step);
-      if (step === 3) textEl.classList.add('step-3');
-      if (step === 4) textEl.classList.add('step-4');
+      if (step === 1) textEl.classList.add('step-stay');
+      if (step === 2) textEl.classList.add('step-confirm');
+      if (step === 3) textEl.classList.add('step-close');
       textEl.textContent = text;
-      const fadeDelay = (step === 3) ? 200 : (step === 4) ? 500 : 80;
+      const fadeDelay = step === 3 ? 500 : 200;
       flowTextFadeTimer = setTimeout(() => {
         textEl.classList.add('visible');
         const revealDelay = step === 1 ? 480 : 0;
@@ -874,42 +798,6 @@ function prefersReducedMotion() {
 
   function applyStepCompletion(step) {
     completedSteps = Math.max(completedSteps, step);
-    document.documentElement.style.setProperty('--flow-progress', completedSteps / 4);
-    document.body.dataset.flowProgress = String(completedSteps);
-    updateFlowTrace(Math.min(completedSteps, 3));
-    if (completedSteps >= 4) {
-      scheduleEffectTimeout(() => {
-        if (completedSteps >= 4) updateFlowTrace(3, { complete: true });
-      }, 420);
-    }
-  }
-
-  const STEP_REWARD_TEXT = {
-    1: '하나 내려놓았습니다',
-    2: '조금 가벼워졌습니다',
-    3: '',
-    4: ''
-  };
-
-  function showStepReward(step) {
-    const el = document.getElementById('step-reward');
-    if (!el) return;
-
-    const text = STEP_REWARD_TEXT[step] || '';
-    el.classList.remove('visible');
-    el.textContent = text;
-
-    if (!text) return;
-
-    requestEffectFrame(() => {
-      requestEffectFrame(() => {
-        el.classList.add('visible');
-      });
-    });
-
-    scheduleEffectTimeout(() => {
-      el.classList.remove('visible');
-    }, step === 3 ? 1800 : 1300);
   }
 
   function exitFlow() {
@@ -927,9 +815,8 @@ function prefersReducedMotion() {
     document.getElementById('transition-line2').classList.remove('space-open');
     const announcer = document.getElementById('transition-announcer');
     if (announcer) announcer.textContent = '';
-    if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); resetSettled(); }
+    if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); }
     stopScreenReact();
-    resetSettled();
     hideHoldBtn();
     const _breath = document.getElementById('transition-breath');
     const _hint = document.getElementById('transition-hint');
@@ -1012,7 +899,6 @@ function prefersReducedMotion() {
     extras.style.display = 'none';
     hideHoldBtn();
     stopScreenReact();
-    resetSettled();
     clearFlowEffects();
     if (cFX) { cFX.classList.remove('visible'); }
     if (cFXAnim) { cancelAnimationFrame(cFXAnim); }
@@ -1102,7 +988,7 @@ function prefersReducedMotion() {
     if (activeScreen.id !== 's-flow' || currentStep === 0) return;
     const stepWasCompleted = completedSteps >= currentStep;
     lifecycleResumeAction = stepWasCompleted
-      ? { type: currentStep >= 4 ? 'complete-enter' : 'flow', step: currentStep + 1 }
+      ? { type: currentStep >= 3 ? 'complete-enter' : 'flow', step: currentStep + 1 }
       : { type: 'flow', step: currentStep };
     clearFlowTimers();
     hideHoldBtn();
@@ -1161,59 +1047,7 @@ function prefersReducedMotion() {
 
   // ===== 누르는 동안 화면 반응 — 게이지 연동 =====
 
-  // 누적 상태 관리
-  let settledDark = 0;    // 어두움 누적값 (0~1)
-  let settledBright = 0;  // 밝음 누적값 (0~1)
-  let settledGray = 0;    // 채도 누적값 (0~1)
-
-  function applySettled() {
-    const el = document.getElementById('screen-settled');
-    if (!el) return;
-    if (settledBright > 0) {
-      el.style.background = `rgba(255,255,255,${settledBright})`;
-      el.style.filter = '';
-    } else if (settledGray > 0) {
-      el.style.background = 'transparent';
-      el.style.filter = `grayscale(${settledGray}) brightness(${1 - settledGray * 0.3})`;
-    } else {
-      el.style.background = `rgba(0,0,0,${settledDark})`;
-      el.style.filter = '';
-    }
-  }
-
-  function addSettled(type) {
-    // 타입 전환 시 이전 값 리셋 — 어색한 혼합 방지
-    const isDark  = type === 'dark' || type === 'top' || type === 'edge';
-    const isBright = type === 'bright';
-    const isGray   = type === 'gray';
-
-    if (isDark) {
-      if (settledBright > 0 || settledGray > 0) { settledBright = 0; settledGray = 0; }
-      settledDark = Math.min(settledDark + contextIntensity(type === 'edge' ? 0.08 : 0.12), 0.45);
-    } else if (isBright) {
-      if (settledDark > 0 || settledGray > 0) { settledDark = 0; settledGray = 0; }
-      settledBright = Math.min(settledBright + contextIntensity(0.05), 0.18);
-    } else if (isGray) {
-      if (settledDark > 0 || settledBright > 0) { settledDark = 0; settledBright = 0; }
-      settledGray = Math.min(settledGray + contextIntensity(0.2), 0.7);
-    }
-    applySettled();
-  }
-
-  function resetSettled() {
-    settledDark = 0; settledBright = 0; settledGray = 0;
-    const el = document.getElementById('screen-settled');
-    if (el) {
-      el.style.transition = 'background 0.6s ease, filter 0.6s ease';
-      el.style.background = '';
-      el.style.filter = '';
-      scheduleEffectTimeout(() => { if (el) el.style.transition = ''; }, 700);
-    }
-  }
-
-  // 단계 의미별 화면 진행 설정
-  // type: 'dark'=어두워짐 'bright'=밝아짐 'gray'=채도빠짐
-  //       'edge'=가장자리번짐 'top'=위에서내려옴 'silent'=없음
+  // 머무름과 확인은 화면 밝기를 바꾸지 않고, 마감 Hold에서만 어두워진다.
   function getCurrentReactType() {
     return getFlowStepData(currentStep).react;
   }
@@ -1234,22 +1068,6 @@ function prefersReducedMotion() {
     if (type === 'dark') {
       const a = contextIntensity(t * 0.52);
       el.style.background = `rgba(0,0,0,${a})`;
-      el.style.filter = '';
-    } else if (type === 'bright') {
-      const a = contextIntensity(t * 0.18);
-      el.style.background = `rgba(255,255,255,${a})`;
-      el.style.filter = '';
-    } else if (type === 'gray') {
-      const g = contextIntensity(t * 0.85);
-      el.style.background = 'transparent';
-      el.style.filter = `grayscale(${g}) brightness(${1 - t * 0.28})`;
-    } else if (type === 'edge') {
-      const a = contextIntensity(t * 0.42);
-      el.style.background = `radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 30%, rgba(196,150,110,${a}) 100%)`;
-      el.style.filter = '';
-    } else if (type === 'top') {
-      const a = contextIntensity(t * 0.45);
-      el.style.background = `linear-gradient(180deg, rgba(0,0,0,${a}) 0%, rgba(0,0,0,0) 70%)`;
       el.style.filter = '';
     }
   }
@@ -1273,19 +1091,7 @@ function prefersReducedMotion() {
     const type = getCurrentReactType();
     if (type === 'silent') return;
 
-    if (type === 'dark' || type === 'top') {
-      el.style.background = type === 'top'
-        ? `linear-gradient(180deg, rgba(0,0,0,${contextIntensity(0.65)}) 0%, rgba(0,0,0,0) 70%)`
-        : `rgba(0,0,0,${contextIntensity(0.65)})`;
-    } else if (type === 'bright') {
-      el.style.background = `rgba(255,255,255,${contextIntensity(0.26)})`;
-    } else if (type === 'gray') {
-      el.style.filter = 'grayscale(1) brightness(0.65)';
-    } else if (type === 'edge') {
-      el.style.background = `radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 20%, rgba(196,150,110,${contextIntensity(0.58)}) 100%)`;
-    }
-
-    addSettled(type);
+    if (type === 'dark') el.style.background = `rgba(0,0,0,${contextIntensity(0.65)})`;
   }
 
   function startClosingDim() {
@@ -1399,12 +1205,12 @@ function prefersReducedMotion() {
 
   // ===== HOLD TO CALM =====
   const HOLD_MAP = {
-    피곤함: { 1: 1100, 2: 1400, 3: 1800, 4: 1300 },
-    불안함: { 1: 1300, 2: 1700, 3: 2400, 4: 1300 },
-    공허함: { 1: 1600, 2: 2100, 3: 2800, 4: 1300 },
-    쓸쓸함: { 1: 1300, 2: 1800, 3: 2400, 4: 1300 },
-    복잡함: { 1: 1400, 2: 1700, 3: 2200, 4: 1300 },
-    괜찮음: { 1: 900, 2: 1100, 3: 1400, 4: 1000 }
+    피곤함: { 1: 1100, 2: 1400, 3: 1300 },
+    불안함: { 1: 1300, 2: 1700, 3: 1300 },
+    공허함: { 1: 1600, 2: 2100, 3: 1300 },
+    쓸쓸함: { 1: 1300, 2: 1800, 3: 1300 },
+    복잡함: { 1: 1400, 2: 1700, 3: 1300 },
+    괜찮음: { 1: 900, 2: 1100, 3: 1000 }
   };
   function getHoldDuration() {
     const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];
@@ -1518,19 +1324,18 @@ function prefersReducedMotion() {
 
       clearFlowEffects();
       completeScreenImpact();
-      if (stepAtComplete >= 4) startClosingDim();
+      if (stepAtComplete >= 3) startClosingDim();
       applyStepCompletion(stepAtComplete);
-      showStepReward(stepAtComplete);
-      playStepReward(stepAtComplete);
-      if (stepAtComplete === 3) {
-        playOkayRewardSound();
-      } else {
-        playStepCompleteSound(stepAtComplete);
+      if (stepAtComplete === 2) {
+        playConfirmSound();
+      } else if (stepAtComplete >= 3) {
+        playCloseSound();
+        if (!prefersReducedMotion()) fxClose();
       }
 
       // 마지막 단계는 0.75초 동안 완료 반응을 정리한 뒤,
       // 별도의 0.35초 정적 구간을 거쳐 완료 화면으로 전환한다.
-      const nextDelay = stepAtComplete >= 4 ? 750 : 1300;
+      const nextDelay = stepAtComplete >= 3 ? 750 : 1300;
 
       stepAdvanceTimer = setTimeout(() => {
         stepAdvanceTimer = null;
@@ -1540,7 +1345,7 @@ function prefersReducedMotion() {
         document.documentElement.style.setProperty('--hold-progress', 0);
         holdStartTime = null;
         holdElapsed = 0;
-        if (stepAtComplete >= 4) {
+        if (stepAtComplete >= 3) {
           completeEnterTimer = setTimeout(() => {
             completeEnterTimer = null;
             goComplete();
@@ -1589,10 +1394,9 @@ function prefersReducedMotion() {
   }
 
   const HOLD_LABELS = {
-    1: '손을 가볍게 올려두세요',
-    2: '조금 더 머물러요',
-    3: '손을 가볍게 둡니다',
-    4: '이제 오늘을 닫습니다'
+    1: '손을 가볍게 둡니다',
+    2: '손을 가볍게 둡니다',
+    3: '이제 오늘을 닫습니다'
   };
 
   function showHoldBtn() {
@@ -1716,146 +1520,7 @@ function prefersReducedMotion() {
     initPageLifecycle();
   });
 
-  // ===== 단계 의미별 연출 시스템 =====
-  // 힘을 풉니다  → Aurora 어두워짐 (긴장이 내려가는)
-  // 숨을 내쉽니다 → 화면 부드러운 수축 (내쉼)
-  // 비워둡니다   → 완전한 정지 (비움)
-  // 여기 있습니다 → 파문 하나 퍼졌다 사라짐 (존재감)
-  // 내려놓습니다  → 빛이 아래로 흘러내림
-  // 그대로입니다  → 아무 연출 없음 (침묵이 보상)
-  // 그대로 둡니다 → 파문이 퍼졌다 잔잔히 사라짐
-  // 정리하지 않아도 됩니다 → 흩어진 채 그냥 있음 (선이 머뭄)
-  // 마음이 머뭅니다 → 화면 밝기 변화 없이 머무름
-  // 오늘은 여기까지입니다 → Aurora 천천히 꺼짐
-
-  const FLOW_EFFECT_HANDLERS = {
-    relax: fxRelax,
-    breathe: fxBreathe,
-    empty: fxEmpty,
-    presence: fxPresence,
-    letGo: fxLetGo,
-    stay: fxStay,
-    silence: fxSilence,
-    settle: fxSettle,
-    close: fxClose
-  };
-
-  function playStepReward(step) {
-    if (prefersReducedMotion()) return;
-    const fn = FLOW_EFFECT_HANDLERS[getFlowStepData(step).effect];
-    if (fn) fn();
-  }
-
-  // ===== 연출 함수들 =====
-
-  // 힘을 풉니다 — Aurora 한 톤 어두워짐
-  function fxRelax() {
-    if (!auroraCanvas || !auroraCtx) return;
-    const target = contextIntensity(0.25);
-    const duration = contextDuration(280);
-    let started = null;
-    const darken = timestamp => {
-      if (started === null) started = timestamp;
-      const progress = Math.min(1, (timestamp - started) / duration);
-      const alpha = target * progress;
-      auroraCtx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-      auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      if (progress < 1) requestEffectFrame(darken);
-    };
-    requestEffectFrame(darken);
-  }
-
-  // 숨을 내쉽니다 — 파문 하나, 숨 내쉬듯 느리게
-  function fxBreathe() {
-    const overlay = document.getElementById('ripple-overlay');
-    if (!overlay) return;
-    const c = trackEffectElement(document.createElement('div'));
-    c.className = 'ripple-circle';
-    const duration = contextDuration(2000, true);
-    c.style.cssText = `width:60px;height:60px;border:1px solid rgba(140,100,180,${contextIntensity(0.5)});animation-duration:${duration}ms;`;
-    overlay.appendChild(c);
-    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
-  }
-
-  // 비워둡니다 — 완전한 정지, 0.8초 아무것도 없음
-  function fxEmpty() {
-    // 아무것도 하지 않음 — 정지가 연출
-    // Aurora만 계속 흐름
-  }
-
-  // 여기 있습니다 — 작은 파문 하나
-  function fxPresence() {
-    const overlay = document.getElementById('ripple-overlay');
-    if (!overlay) return;
-    const c = trackEffectElement(document.createElement('div'));
-    c.className = 'ripple-circle';
-    const duration = contextDuration(1600, true);
-    c.style.cssText = `width:40px;height:40px;border:1px solid rgba(196,150,110,${contextIntensity(0.6)});animation-duration:${duration}ms;`;
-    overlay.appendChild(c);
-    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
-  }
-
-  // 내려놓습니다 — 빛이 아래로 흘러내림
-  function fxLetGo() {
-    const wash = document.getElementById('screen-wash');
-    if (!wash) return;
-    const enterDuration = contextDuration(300);
-    const exitDuration = contextDuration(1200, true);
-    wash.style.cssText = `background:linear-gradient(180deg,rgba(60,160,160,${contextIntensity(0.08)}) 0%,rgba(0,0,0,0) 100%);transition:opacity ${enterDuration}ms ease-in;`;
-    wash.style.opacity = '1';
-    scheduleEffectTimeout(() => { wash.style.transition = `opacity ${exitDuration}ms ease-out`; wash.style.opacity = '0'; }, enterDuration);
-    scheduleEffectTimeout(() => { wash.style.cssText = ''; }, enterDuration + exitDuration + 100);
-  }
-
-  // 그대로입니다 — 침묵 (아무 연출 없음)
-  function fxSilence() {
-    // 의도적으로 비움 — 침묵이 보상
-  }
-
-  // 그대로 둡니다 — 파문 퍼졌다 잔잔히
-  function fxSettle() {
-    const overlay = document.getElementById('ripple-overlay');
-    if (!overlay) return;
-    const c = trackEffectElement(document.createElement('div'));
-    c.className = 'ripple-circle';
-    const duration = contextDuration(1800, true);
-    c.style.cssText = `width:50px;height:50px;border:1px solid rgba(196,168,130,${contextIntensity(0.45)});animation-duration:${duration}ms;`;
-    overlay.appendChild(c);
-    scheduleEffectTimeout(() => { effectElements.delete(c); c.remove(); }, duration + 100);
-  }
-
-  // 정리하지 않아도 됩니다 — 선들이 흩어진 채 머뭄
-  function fxStay() {
-    if (!cFX) initCompleteFX();
-    if (!cFX) return;
-    cFX.classList.add('visible');
-    const w=cFX.width, h=cFX.height, ctx=cFXCtx;
-    const ls = Array.from({length:5}, () => ({
-      x1:w*0.2+Math.random()*w*0.6, y1:h*0.2+Math.random()*h*0.6,
-      x2:w*0.2+Math.random()*w*0.6, y2:h*0.2+Math.random()*h*0.6,
-      a: contextIntensity(0.25)
-    }));
-    const fadeStart = contextDuration(1000);
-    const duration = contextDuration(2333, true);
-    let started = null;
-    const d=timestamp=>{
-      if (started === null) started = timestamp;
-      const elapsed = Math.min(duration, timestamp - started);
-      ctx.clearRect(0,0,w,h);
-      ls.forEach(l=>{
-        const fade = elapsed > fadeStart
-          ? Math.max(0, l.a * (1 - (elapsed - fadeStart) / Math.max(1, duration - fadeStart)))
-          : l.a;
-        ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);
-        ctx.strokeStyle='rgba(60,160,160,'+fade+')'; ctx.lineWidth=1; ctx.stroke();
-      });
-      if (elapsed < duration) cFXAnim=requestEffectFrame(d);
-      else { ctx.clearRect(0,0,w,h); cFX.classList.remove('visible'); }
-    };
-    cFXAnim=requestEffectFrame(d);
-  }
-
-  // 오늘은 여기까지입니다 — Aurora 천천히 꺼지며 완료로
+  // 마감 Hold 완료 시 Aurora를 천천히 끈다.
   function fxClose() {
     if (!auroraCanvas) return;
     const duration = contextDuration(600, true);

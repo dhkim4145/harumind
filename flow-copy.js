@@ -1,9 +1,9 @@
 // 하루마음 맥락 문구 데이터
-// 감정별 기본 문구는 app.js에 남겨 두고, 계절과 시간대의 결만 이 파일에서 더합니다.
+// Transition 후보와 계절·시간대의 연출 보정만 이 파일에서 관리합니다.
 const HARUMIND_FLOW_COPY = {
   seasons: {
     spring: {
-      effect: { tint: '188,205,178', tintOpacity: 0.012, intensity: 1.04, motion: 0.98, trail: 1.02 },
+      effect: { intensity: 1.04, motion: 0.98, trail: 1.02 },
       transitionLine2: {
         피곤함: ['조금 느슨해져도 됩니다', '천천히 힘을 풀어둡니다'],
         불안함: ['서두르지 않고 여기서 멈춥니다', '흔들리는 마음도 잠시 그대로 둡니다'],
@@ -14,7 +14,7 @@ const HARUMIND_FLOW_COPY = {
       }
     },
     summer: {
-      effect: { tint: '218,174,122', tintOpacity: 0.014, intensity: 0.98, motion: 1.06, trail: 1.05 },
+      effect: { intensity: 0.98, motion: 1.06, trail: 1.05 },
       transitionLine2: {
         피곤함: ['남은 열기와 함께 쉬어갑니다', '지친 마음을 천천히 식혀둡니다'],
         불안함: ['달아오른 마음도 여기서 멈춥니다', '빠른 숨을 잠시 내려둡니다'],
@@ -25,7 +25,7 @@ const HARUMIND_FLOW_COPY = {
       }
     },
     autumn: {
-      effect: { tint: '184,142,108', tintOpacity: 0.014, intensity: 0.96, motion: 1.04, trail: 1.08 },
+      effect: { intensity: 0.96, motion: 1.04, trail: 1.08 },
       transitionLine2: {
         피곤함: ['오늘의 무게를 가만히 내려둡니다', '느려진 마음을 그대로 둡니다'],
         불안함: ['흔들린 마음도 여기서 멈춥니다', '서두르던 마음을 잠시 둡니다'],
@@ -36,7 +36,7 @@ const HARUMIND_FLOW_COPY = {
       }
     },
     winter: {
-      effect: { tint: '128,158,205', tintOpacity: 0.013, intensity: 0.94, motion: 0.96, trail: 0.98 },
+      effect: { intensity: 0.94, motion: 0.96, trail: 0.98 },
       transitionLine2: {
         피곤함: ['굳은 마음을 천천히 풀어둡니다', '오늘의 피로를 따뜻한 곳에 둡니다'],
         불안함: ['차가워진 마음도 여기서 멈춥니다', '떨리는 마음을 조용히 감싸둡니다'],
@@ -49,29 +49,16 @@ const HARUMIND_FLOW_COPY = {
   },
 
   times: {
-    daytime: {
-      step2ByEmotion: {
-        괜찮음: ['잠시 고요를 지납니다']
-      }
-    },
+    daytime: {},
     evening: {
-      effect: { intensity: 0.98, motion: 1.02, trail: 1.02 },
-      step2: ['남은 기척도 천천히 잦아듭니다', '어두워지는 틈에 잠시 둡니다', '남은 빛과 함께 내려둡니다']
+      effect: { intensity: 0.98, motion: 1.02, trail: 1.02 }
     },
     lateNight: {
-      effect: { intensity: 0.9, motion: 1.08, trail: 1.08 },
-      step2: ['이 밤에는 더 애쓰지 않습니다', '깊어진 밤에 잠시 내려둡니다', '고요해진 틈을 가만히 지납니다']
+      effect: { intensity: 0.9, motion: 1.08, trail: 1.08 }
     },
     dawn: {
-      effect: { intensity: 0.92, motion: 1.06, trail: 1.1 },
-      step2: ['고요한 시간이 천천히 흐릅니다', '아직 어두운 틈에 잠시 둡니다', '새벽의 끝에 조용히 내려둡니다']
+      effect: { intensity: 0.92, motion: 1.06, trail: 1.1 }
     }
-  },
-
-  flow1Variants: {
-    피곤함: ['여기 머뭅니다', '조금 쉬어갑니다'],
-    불안함: ['숨을 내쉽니다', '천천히 숨을 내쉽니다'],
-    쓸쓸함: ['여기 있습니다', '이 자리에 있습니다']
   },
 
   transitionLine2Packages: {
