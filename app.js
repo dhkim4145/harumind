@@ -43,6 +43,8 @@ const FLOW_STEP_SEMANTICS = {
   3: { react: 'dark' }
 };
 
+const FLOW_ENTER_FADE_MS = 200;
+
 function getKoreaDateParts(date = new Date()) {
   try {
     const parts = new Intl.DateTimeFormat('en-CA', {
@@ -147,6 +149,25 @@ function getTransitionCopy(emotion) {
 function getFlowStepData(step) {
   const semantics = FLOW_STEP_SEMANTICS[step] || { react: 'silent' };
   return { text: FLOW_COMMON[step] || '', react: semantics.react };
+}
+
+function getFlowStageCopy(step) {
+  const stageKey = step === 1 ? 'stay' : step === 2 ? 'confirm' : 'close';
+  const fallback = {
+    stay: {
+      label: '멈춤',
+    },
+    confirm: {
+      label: '머묾',
+    },
+    close: {
+      label: '닫음',
+    }
+  };
+  const copy = HARUMIND_FLOW_COPY?.flowStages?.[stageKey] || fallback[stageKey];
+  return {
+    label: copy?.label || ''
+  };
 }
 
 const reducedMotionQuery = typeof window.matchMedia === 'function'
@@ -767,7 +788,17 @@ function prefersReducedMotion() {
     document.documentElement.style.setProperty('--hold-progress', 0);
 
     const textEl = document.getElementById('flow-text');
+    const stageEl = document.getElementById('flow-stage');
     textEl.classList.remove('visible');
+    if (stageEl) {
+      stageEl.classList.remove('visible', 'step-stay', 'step-confirm', 'step-close');
+      const stageCopy = getFlowStageCopy(step);
+      stageEl.textContent = stageCopy.label || '';
+      if (step === 1) stageEl.classList.add('step-stay');
+      if (step === 2) stageEl.classList.add('step-confirm');
+      if (step === 3) stageEl.classList.add('step-close');
+      requestAnimationFrame(() => stageEl.classList.add('visible'));
+    }
     const blankDelay = (step === 1) ? 0 : 300;
 
     flowTextTimer = setTimeout(() => {
@@ -778,21 +809,18 @@ function prefersReducedMotion() {
       if (step === 2) textEl.classList.add('step-confirm');
       if (step === 3) textEl.classList.add('step-close');
       textEl.textContent = text;
-      const fadeDelay = step === 3 ? 500 : 200;
+      const fadeDelay = FLOW_ENTER_FADE_MS;
       flowTextFadeTimer = setTimeout(() => {
         textEl.classList.add('visible');
-        const revealDelay = step === 1 ? 480 : 0;
         holdRevealTimer = setTimeout(() => {
           holdRevealTimer = null;
           const flowScreen = document.getElementById('s-flow');
           if (currentStep === step && flowScreen?.classList.contains('active')) showHoldBtn();
-        }, revealDelay);
+        }, step === 1 ? 480 : 0);
       }, fadeDelay);
     }, blankDelay);
 
-
-
-    // 모든 단계 Hold to Calm으로만 넘어감 — 자동 타이머 없음
+    // Hold 단계는 자동으로 넘어가지 않고 사용자의 입력으로만 진행한다.
     setTimeout(() => updateHoldLabel(), 100);
   }
 
@@ -813,6 +841,11 @@ function prefersReducedMotion() {
     document.getElementById('transition-line2').classList.remove('visible');
     document.getElementById('transition-line1').classList.remove('space-open');
     document.getElementById('transition-line2').classList.remove('space-open');
+    const stageEl = document.getElementById('flow-stage');
+    if (stageEl) {
+      stageEl.classList.remove('visible', 'step-stay', 'step-confirm', 'step-close');
+      stageEl.textContent = '';
+    }
     const announcer = document.getElementById('transition-announcer');
     if (announcer) announcer.textContent = '';
     if (!selected) { document.body.classList.remove(...EMOTION_CLASSES); stopAurora(); }
@@ -1273,6 +1306,8 @@ function prefersReducedMotion() {
       }
       btn.classList.remove('paused', 'completed');
       btn.classList.add('holding');
+      const stageEl = document.getElementById('flow-stage');
+      if (stageEl) stageEl.classList.add('holding');
       animateBar();
     }
 
@@ -1319,6 +1354,8 @@ function prefersReducedMotion() {
       btn.classList.add('completed');
       btn.style.setProperty('--bar-pct', 100);
       document.documentElement.style.setProperty('--hold-progress', 1);
+      const stageEl = document.getElementById('flow-stage');
+      if (stageEl) stageEl.classList.remove('holding');
       clearTimeout(flowTimer);
       const stepAtComplete = currentStep;
 
@@ -1371,6 +1408,8 @@ function prefersReducedMotion() {
       activePointerId = null;
       btn.classList.remove('holding');
       btn.classList.add('paused');
+      const stageEl = document.getElementById('flow-stage');
+      if (stageEl) stageEl.classList.remove('holding');
       holdCancelTimer = setTimeout(() => resetHoldInteraction(btn), HOLD_CANCEL_BUFFER_MS);
     }
 

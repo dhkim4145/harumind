@@ -27,6 +27,14 @@
     /* 모션 — easing 1종 + 속도 3단계 */
     --ease: cubic-bezier(.22,1,.36,1);
     --dur-slow: 1.4s; --dur: 0.9s; --dur-micro: 0.45s;
+    --emotion-transition-1: var(--text-secondary);
+    --emotion-transition-2: var(--text-muted);
+    --emotion-flow-label: rgba(234,230,222,0.84);
+    --emotion-flow-hint: rgba(234,230,222,0.66);
+    --emotion-flow-text: var(--text-primary);
+    --emotion-flow-close: var(--text-secondary);
+    --emotion-flow-scale: 1;
+    --emotion-flow-tracking: .01em;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
@@ -59,6 +67,67 @@
     position:fixed; inset:0;
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     pointer-events:none; z-index:0;
+  }
+
+  body.emotion-피곤함 {
+    --emotion-transition-1: rgba(174,188,226,0.82);
+    --emotion-transition-2: rgba(150,165,202,0.62);
+    --emotion-flow-label: rgba(198,208,232,0.9);
+    --emotion-flow-hint: rgba(184,196,222,0.7);
+    --emotion-flow-text: rgba(228,234,244,0.96);
+    --emotion-flow-close: rgba(176,188,214,0.76);
+    --emotion-flow-scale: 0.995;
+    --emotion-flow-tracking: .02em;
+  }
+  body.emotion-불안함 {
+    --emotion-transition-1: rgba(208,177,232,0.84);
+    --emotion-transition-2: rgba(176,146,206,0.62);
+    --emotion-flow-label: rgba(224,202,241,0.92);
+    --emotion-flow-hint: rgba(214,190,233,0.72);
+    --emotion-flow-text: rgba(241,232,246,0.96);
+    --emotion-flow-close: rgba(198,175,222,0.78);
+    --emotion-flow-scale: 1;
+    --emotion-flow-tracking: .015em;
+  }
+  body.emotion-공허함 {
+    --emotion-transition-1: rgba(188,189,194,0.82);
+    --emotion-transition-2: rgba(140,142,149,0.6);
+    --emotion-flow-label: rgba(212,213,217,0.88);
+    --emotion-flow-hint: rgba(184,186,190,0.68);
+    --emotion-flow-text: rgba(232,232,235,0.94);
+    --emotion-flow-close: rgba(176,178,184,0.74);
+    --emotion-flow-scale: 1;
+    --emotion-flow-tracking: .012em;
+  }
+  body.emotion-쓸쓸함 {
+    --emotion-transition-1: rgba(220,193,166,0.86);
+    --emotion-transition-2: rgba(190,162,134,0.62);
+    --emotion-flow-label: rgba(232,214,192,0.92);
+    --emotion-flow-hint: rgba(214,196,175,0.72);
+    --emotion-flow-text: rgba(244,235,226,0.96);
+    --emotion-flow-close: rgba(204,182,158,0.78);
+    --emotion-flow-scale: 1.005;
+    --emotion-flow-tracking: .012em;
+  }
+  body.emotion-복잡함 {
+    --emotion-transition-1: rgba(164,214,214,0.84);
+    --emotion-transition-2: rgba(124,184,184,0.62);
+    --emotion-flow-label: rgba(196,230,230,0.92);
+    --emotion-flow-hint: rgba(176,214,214,0.72);
+    --emotion-flow-text: rgba(236,246,246,0.96);
+    --emotion-flow-close: rgba(154,194,194,0.78);
+    --emotion-flow-scale: 1;
+    --emotion-flow-tracking: .01em;
+  }
+  body.emotion-괜찮음 {
+    --emotion-transition-1: rgba(226,206,154,0.86);
+    --emotion-transition-2: rgba(194,170,102,0.62);
+    --emotion-flow-label: rgba(244,226,170,0.92);
+    --emotion-flow-hint: rgba(224,206,150,0.72);
+    --emotion-flow-text: rgba(250,242,214,0.96);
+    --emotion-flow-close: rgba(204,180,104,0.78);
+    --emotion-flow-scale: 1.01;
+    --emotion-flow-tracking: .016em;
   }
 
   .app {
@@ -379,7 +448,7 @@
   }
   .transition-text {
     font-family: 'Noto Serif KR', serif;
-    font-size: 18px; font-weight: 300; color: var(--text-secondary);
+    font-size: 18px; font-weight: 300; color: var(--emotion-transition-1);
     letter-spacing: .04em; line-height: 1.7;
     opacity: 0; transform: translateY(8px); filter: blur(3px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1),
@@ -387,15 +456,38 @@
                 filter 1s cubic-bezier(.22,1,.36,1);
   }
   .transition-text.visible { opacity: 1; transform: translateY(0); filter: blur(0); }
-  .transition-line2 { font-size: 15px; color: var(--text-muted); transition-delay: .5s; }
+  .transition-line2 { font-size: 15px; color: var(--emotion-transition-2); transition-delay: .5s; }
 
   #s-flow {
     justify-content: center; align-items: center;
     padding: 0 32px; min-height: 100vh; position: relative;
   }
+  .flow-stage {
+    text-align: center; margin-bottom: 14px;
+    opacity: 0; transform: translateY(6px);
+    transition: opacity .55s cubic-bezier(.22,1,.36,1),
+                transform .55s cubic-bezier(.22,1,.36,1),
+                color .35s ease,
+                text-shadow .35s ease;
+    min-height: 24px;
+  }
+  .flow-stage.visible {
+    opacity: .78; transform: translateY(0);
+  }
+  .flow-stage {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px; line-height: 1.35; letter-spacing: var(--emotion-flow-tracking);
+    color: var(--emotion-flow-label);
+  }
+  .flow-stage.holding {
+    opacity: .96;
+    transform: translateY(0) scale(1.015);
+    color: var(--emotion-flow-text);
+    text-shadow: 0 0 10px rgba(234,230,222,0.08);
+  }
   .flow-text {
     font-family: 'Noto Serif KR', serif;
-    font-size: 22px; font-weight: 300; color: var(--text-primary);
+    font-size: calc(22px * var(--emotion-flow-scale)); font-weight: 300; color: var(--emotion-flow-text);
     letter-spacing: -.01em; line-height: 1.7; text-align: center;
     opacity: 0; transform: translateY(10px); filter: blur(4px);
     transition: opacity .9s cubic-bezier(.22,1,.36,1),
@@ -410,13 +502,13 @@
     text-shadow: 0 0 calc(var(--hold-progress) * 12px) rgba(234,230,222,0.08);
   }
   .flow-text.step-stay {
-    font-size: 21px; color: var(--text-primary); letter-spacing: .02em;
+    font-size: calc(21px * var(--emotion-flow-scale)); color: var(--emotion-flow-text); letter-spacing: .02em;
   }
   .flow-text.step-confirm {
-    font-size: 23px; color: var(--text-primary); letter-spacing: .02em;
+    font-size: calc(23px * var(--emotion-flow-scale)); color: var(--emotion-flow-text); letter-spacing: .02em;
   }
   .flow-text.step-close {
-    font-size: 18px; color: var(--text-secondary); letter-spacing: .04em;
+    font-size: calc(18px * var(--emotion-flow-scale)); color: var(--emotion-flow-close); letter-spacing: .04em;
     transition: opacity 1.4s cubic-bezier(.22,1,.36,1),
                 transform 1.4s cubic-bezier(.22,1,.36,1),
                 filter 1.4s cubic-bezier(.22,1,.36,1);
@@ -477,14 +569,14 @@
   }
   .complete-emotion {
     font-family: 'Noto Serif KR', serif;
-    font-size: 12px; font-weight: 300; color: rgba(234,230,222,0.64);
+    font-size: 12px; font-weight: 300; color: var(--emotion-flow-text);
     letter-spacing: .06em; margin-bottom: 20px;
     opacity: 0; transform: translateY(8px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1) .4s, transform 1s cubic-bezier(.22,1,.36,1) .4s;
   }
   .complete-sub {
     font-family: 'Noto Serif KR', serif;
-    font-size: 14px; font-weight: 300; color: var(--text-secondary);
+    font-size: 14px; font-weight: 300; color: var(--emotion-flow-close);
     letter-spacing: .08em; margin-bottom: 72px;
     opacity: 0; transform: translateY(8px);
     transition: opacity 1s cubic-bezier(.22,1,.36,1) .8s, transform 1s cubic-bezier(.22,1,.36,1) .8s;
