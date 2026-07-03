@@ -570,9 +570,8 @@ function prefersReducedMotion() {
       playTinyChime(392, 0.07, 0.02, -0.12);
       playAirNoise(0.56, 0.012, 1120, 0.03, -0.04);
     } else if (step === 4) {
-      playSoftTone(146, 0.8, 'sine', 0.056, 0, 760, 0.06, -0.04);
-      playSoftTone(292, 0.58, 'sine', 0.03, 0.06, 980, 0.05, 0.1);
-      playAirNoise(0.52, 0.01, 940, 0.035, 0);
+      playAirNoise(0.1, 0.012, 1450, 0, -0.03);
+      playSoftTone(112, 0.16, 'triangle', 0.034, 0.018, 520, 0.008, 0.02);
     }
   }
 
@@ -582,12 +581,6 @@ function prefersReducedMotion() {
     playSoftTone(330, 0.94, 'sine', 0.03, 0.16, 1280, 0.08, 0);
     playTinyChime(392, 0.24, 0.017, -0.12);
     playAirNoise(0.96, 0.011, 1080, 0.08, 0);
-  }
-
-  function playCompleteCloseSound() {
-    playSoftTone(130, 0.94, 'sine', 0.064, 0, 760, 0.07, 0);
-    playSoftTone(260, 0.7, 'sine', 0.03, 0.06, 980, 0.06, -0.1);
-    playAirNoise(0.74, 0.01, 900, 0.04, 0);
   }
 
   let flowTimer = null;
@@ -649,6 +642,7 @@ function prefersReducedMotion() {
     if (wash) wash.style.cssText = '';
     const react = document.getElementById('screen-react');
     if (react) {
+      react.classList.remove('closing-dim');
       react.style.background = '';
       react.style.filter = '';
       react.style.opacity = '';
@@ -984,7 +978,6 @@ function prefersReducedMotion() {
     lifecycleResumeAction = null;
     hideHoldBtn();
     clearFlowEffects();
-    playCompleteCloseSound();
     showScreen('complete');
 
     const completeScreen = document.getElementById('s-complete');
@@ -1308,6 +1301,11 @@ function prefersReducedMotion() {
     addSettled(type);
   }
 
+  function startClosingDim() {
+    const el = document.getElementById('screen-react');
+    if (el) el.classList.add('closing-dim');
+  }
+
   // ===== AURORA 배경 =====
   const CONFIRM_LABELS = {
     피곤함: '오늘 하루, 여기서 내려놓겠습니다',
@@ -1533,6 +1531,7 @@ function prefersReducedMotion() {
 
       clearFlowEffects();
       completeScreenImpact();
+      if (stepAtComplete >= 4) startClosingDim();
       applyStepCompletion(stepAtComplete);
       showStepReward(stepAtComplete);
       playStepReward(stepAtComplete);
