@@ -42,7 +42,7 @@ const FLOW_STEP1 = {
 
 const FLOW_COMMON = {
   2: "그대로 둡니다",
-  3: "괜찮습니다",
+  3: "오늘은 그걸로 됩니다",
   4: "오늘은 여기까지입니다"
 };
 
@@ -56,7 +56,7 @@ const FLOW_STEP_SEMANTICS = {
     괜찮음: { react: 'silent', effect: 'silence' }
   },
   2: { react: 'dark', effect: 'settle' },
-  3: { react: 'bright', effect: 'okay' },
+  3: { react: 'silent', effect: 'silence' },
   4: { react: 'dark', effect: 'close' }
 };
 
@@ -576,11 +576,7 @@ function prefersReducedMotion() {
   }
 
   function playOkayRewardSound() {
-    playSoftTone(196, 1.24, 'sine', 0.074, 0, 960, 0.1, -0.06);
-    playSoftTone(247, 1.1, 'sine', 0.05, 0.07, 1080, 0.1, 0.08);
-    playSoftTone(330, 0.94, 'sine', 0.03, 0.16, 1280, 0.08, 0);
-    playTinyChime(392, 0.24, 0.017, -0.12);
-    playAirNoise(0.96, 0.011, 1080, 0.08, 0);
+    playSoftTone(164, 0.32, 'sine', 0.034, 0, 620, 0.025, 0);
   }
 
   let flowTimer = null;
@@ -846,7 +842,7 @@ function prefersReducedMotion() {
     updateFlowTrace(completedSteps);
 
     const textEl = document.getElementById('flow-text');
-    textEl.classList.remove('visible', 'rewarded');
+    textEl.classList.remove('visible');
     const rewardEl = document.getElementById('step-reward');
     if (rewardEl) rewardEl.classList.remove('visible');
     const blankDelay = (step === 1) ? 0 : 300;
@@ -891,7 +887,7 @@ function prefersReducedMotion() {
   const STEP_REWARD_TEXT = {
     1: '하나 내려놓았습니다',
     2: '조금 가벼워졌습니다',
-    3: '충분합니다',
+    3: '',
     4: ''
   };
 
@@ -914,15 +910,6 @@ function prefersReducedMotion() {
     scheduleEffectTimeout(() => {
       el.classList.remove('visible');
     }, step === 3 ? 1800 : 1300);
-  }
-
-  function emphasizeOkayReward() {
-    const textEl = document.getElementById('flow-text');
-    if (!textEl) return;
-    textEl.classList.add('rewarded');
-    scheduleEffectTimeout(() => {
-      textEl.classList.remove('rewarded');
-    }, 900);
   }
 
   function exitFlow() {
@@ -1537,14 +1524,13 @@ function prefersReducedMotion() {
       playStepReward(stepAtComplete);
       if (stepAtComplete === 3) {
         playOkayRewardSound();
-        emphasizeOkayReward();
       } else {
         playStepCompleteSound(stepAtComplete);
       }
 
       // 마지막 단계는 0.75초 동안 완료 반응을 정리한 뒤,
       // 별도의 0.35초 정적 구간을 거쳐 완료 화면으로 전환한다.
-      const nextDelay = stepAtComplete === 3 ? 1800 : stepAtComplete >= 4 ? 750 : 1300;
+      const nextDelay = stepAtComplete >= 4 ? 750 : 1300;
 
       stepAdvanceTimer = setTimeout(() => {
         stepAdvanceTimer = null;
@@ -1605,7 +1591,7 @@ function prefersReducedMotion() {
   const HOLD_LABELS = {
     1: '손을 가볍게 올려두세요',
     2: '조금 더 머물러요',
-    3: '충분히 머물러도 됩니다',
+    3: '잠시 머뭅니다',
     4: '이제 오늘을 닫습니다'
   };
 
@@ -1739,7 +1725,7 @@ function prefersReducedMotion() {
   // 그대로입니다  → 아무 연출 없음 (침묵이 보상)
   // 그대로 둡니다 → 파문이 퍼졌다 잔잔히 사라짐
   // 정리하지 않아도 됩니다 → 흩어진 채 그냥 있음 (선이 머뭄)
-  // 괜찮습니다   → 화면 아주 살짝 밝아졌다 원래로
+  // 오늘은 그걸로 됩니다 → 화면 밝기 변화 없이 머무름
   // 오늘은 여기까지입니다 → Aurora 천천히 꺼짐
 
   const FLOW_EFFECT_HANDLERS = {
@@ -1751,7 +1737,6 @@ function prefersReducedMotion() {
     stay: fxStay,
     silence: fxSilence,
     settle: fxSettle,
-    okay: fxOkay,
     close: fxClose
   };
 
@@ -1868,26 +1853,6 @@ function prefersReducedMotion() {
       else { ctx.clearRect(0,0,w,h); cFX.classList.remove('visible'); }
     };
     cFXAnim=requestEffectFrame(d);
-  }
-
-  // 괜찮습니다 — 살짝 밝아졌다 원래로
-  function fxOkay() {
-    if (!auroraCanvas || !auroraCtx) return;
-    const duration = contextDuration(440, true);
-    const peakAt = 1 / 3;
-    let started = null;
-    const glow = timestamp => {
-      if (started === null) started = timestamp;
-      const progress = Math.min(1, (timestamp - started) / duration);
-      const envelope = progress < peakAt
-        ? progress / peakAt
-        : 1 - (progress - peakAt) / (1 - peakAt);
-      const alpha = contextIntensity(0.07) * Math.max(0, envelope);
-      auroraCtx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
-      auroraCtx.fillRect(0, 0, auroraCanvas.width, auroraCanvas.height);
-      if (progress < 1) requestEffectFrame(glow);
-    };
-    requestEffectFrame(glow);
   }
 
   // 오늘은 여기까지입니다 — Aurora 천천히 꺼지며 완료로

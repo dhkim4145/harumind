@@ -465,18 +465,7 @@
     text-shadow: 0 0 calc(var(--hold-progress) * 12px) rgba(234,230,222,0.08);
   }
   .flow-text.step-3 {
-    font-size: 28px; color: var(--accent); letter-spacing: .05em;
-    transition: opacity 1.4s cubic-bezier(.22,1,.36,1),
-                transform 1.4s cubic-bezier(.22,1,.36,1),
-                filter 1.4s cubic-bezier(.22,1,.36,1),
-                text-shadow .9s cubic-bezier(.22,1,.36,1);
-  }
-  .flow-text.step-3.visible {
-    text-shadow: 0 0 calc(8px + var(--hold-progress) * 14px) rgba(196,168,130,0.12);
-  }
-  .flow-text.step-3.rewarded {
-    transform: translateY(0) scale(1.06);
-    text-shadow: 0 0 24px rgba(196,168,130,0.28);
+    font-size: 23px; color: var(--text-primary); letter-spacing: .02em;
   }
   .flow-text.step-4 {
     font-size: 18px; color: var(--text-secondary); letter-spacing: .04em;
