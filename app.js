@@ -161,7 +161,7 @@ function getFlowStageCopy(step) {
       label: '잠시',
     },
     close: {
-      label: '여기까지',
+      label: '',
     }
   };
   const copy = typeof HARUMIND_FLOW_COPY !== 'undefined'
@@ -1255,12 +1255,12 @@ function prefersReducedMotion() {
 
   // ===== HOLD TO CALM =====
   const HOLD_MAP = {
-    피곤함: { 1: 1100, 2: 1400, 3: 1300 },
-    불안함: { 1: 1300, 2: 1700, 3: 1300 },
-    공허함: { 1: 1600, 2: 2100, 3: 1300 },
-    쓸쓸함: { 1: 1300, 2: 1800, 3: 1300 },
-    복잡함: { 1: 1400, 2: 1700, 3: 1300 },
-    괜찮음: { 1: 900, 2: 1100, 3: 1000 }
+    피곤함: { 1: 900, 2: 1600, 3: 1000 },
+    불안함: { 1: 1000, 2: 1900, 3: 1000 },
+    공허함: { 1: 1100, 2: 2300, 3: 1100 },
+    쓸쓸함: { 1: 1000, 2: 2000, 3: 1000 },
+    복잡함: { 1: 1000, 2: 1900, 3: 1000 },
+    괜찮음: { 1: 800, 2: 1300, 3: 900 }
   };
   function getHoldDuration() {
     const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];

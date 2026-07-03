@@ -176,7 +176,7 @@ const HARUMIND_FLOW_COPY = {
       label: '잠시',
     },
     close: {
-      label: '여기까지',
+      label: '',
     }
   }
 };

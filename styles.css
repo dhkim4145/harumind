@@ -474,6 +474,10 @@
   .flow-stage.visible {
     opacity: .78; transform: translateY(0);
   }
+  .flow-stage:empty {
+    min-height: 0;
+    margin-bottom: 0;
+  }
   .flow-stage {
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 13px; line-height: 1.35; letter-spacing: var(--emotion-flow-tracking);
@@ -823,6 +827,13 @@
   /* 머무름 Hold — 진행 시간은 유지하되 채움이나 링 없이 호흡만 멈춘다. */
   .hold-btn.staying .hold-orb::before,
   .hold-btn.staying .hold-orb::after { opacity: 0; }
+  .hold-btn.staying.holding .hold-orb::before,
+  .hold-btn.staying.paused .hold-orb::before,
+  .hold-btn.staying.completed .hold-orb::before {
+    background: radial-gradient(circle at 50% 50%, var(--btn-color), transparent 72%);
+    opacity: .3;
+    transform: scale(.76);
+  }
   .hold-btn.staying.holding .hold-orb,
   .hold-btn.staying.paused .hold-orb {
     opacity: .78;
