@@ -1041,8 +1041,8 @@
     background:
       radial-gradient(circle at 50% 46%,
         rgba(234,230,222,var(--dwell-alpha)) 0%,
-        rgba(196,184,170,calc(var(--dwell-alpha) * .45)) 24%,
-        rgba(0,0,0,0) 62%),
+        rgba(196,184,170,calc(var(--dwell-alpha) * .4)) 30%,
+        rgba(0,0,0,0) 72%),
       rgba(8,8,12,var(--settle-alpha));
     opacity: 1;
     transition: backdrop-filter .45s ease, filter .8s ease;

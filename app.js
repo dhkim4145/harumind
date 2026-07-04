@@ -45,11 +45,12 @@ const FLOW_STEP_SEMANTICS = {
 
 const FLOW_ENTER_FADE_MS = 200;
 const FLOW_VISUAL_CONFIG = {
+  settleStart: 0.12,
   settleMotionEnd: 0.3,
   settledMotion: 0.12,
   auroraEase: 0.045,
   settleOverlay: 0.14,
-  dwellOverlay: 0.14
+  dwellOverlay: 0.18
 };
 
 function getKoreaDateParts(date = new Date()) {
@@ -1121,9 +1122,7 @@ function prefersReducedMotion() {
       ? progress
       : state === 'dwell-forming' ? 1 - progress : 0;
     const dwellProgress = state.startsWith('dwell-') ? progress : 0;
-    const textPresence = state.startsWith('flow-settl')
-      ? settleProgress * 0.018
-      : state.startsWith('dwell-')
+    const textPresence = state.startsWith('dwell-')
         ? currentStep === 3 ? dwellProgress * 0.04 : 0.018 + dwellProgress * 0.022
         : 0;
     el.style.setProperty('--settle-progress', settleProgress);
@@ -1192,13 +1191,17 @@ function prefersReducedMotion() {
     const t = pct / 100;
 
     if (type === 'settle') {
-      setFlowVisualState('flow-settling', t);
-      setAuroraMotionTarget(1 - t * (1 - FLOW_VISUAL_CONFIG.settleMotionEnd));
+      const settleEase = 1 - Math.pow(1 - t, 2);
+      const settleProgress = FLOW_VISUAL_CONFIG.settleStart
+        + settleEase * (1 - FLOW_VISUAL_CONFIG.settleStart);
+      setFlowVisualState('flow-settling', settleProgress);
+      setAuroraMotionTarget(1 - settleProgress * (1 - FLOW_VISUAL_CONFIG.settleMotionEnd));
       return;
     }
 
     if (type === 'dwell') {
-      setFlowVisualState('dwell-forming', t);
+      const dwellEase = t * t * (3 - 2 * t);
+      setFlowVisualState('dwell-forming', dwellEase);
       setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
       return;
     }
