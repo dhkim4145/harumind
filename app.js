@@ -38,12 +38,17 @@ const FLOW_COMMON = {
 };
 
 const FLOW_STEP_SEMANTICS = {
-  1: { react: 'silent' },
-  2: { react: 'silent' },
+  1: { react: 'settle' },
+  2: { react: 'dwell' },
   3: { react: 'dark' }
 };
 
 const FLOW_ENTER_FADE_MS = 200;
+const FLOW_VISUAL_CONFIG = {
+  settleMotionEnd: 0.3,
+  settledMotion: 0.12,
+  auroraEase: 0.045
+};
 
 function getKoreaDateParts(date = new Date()) {
   try {
@@ -588,7 +593,7 @@ function prefersReducedMotion() {
     return id;
   }
 
-  function clearFlowEffects() {
+  function clearFlowEffects(options = {}) {
     effectAnimationFrames.forEach(id => cancelAnimationFrame(id));
     effectAnimationFrames.clear();
     effectTimeouts.forEach(id => clearTimeout(id));
@@ -601,13 +606,16 @@ function prefersReducedMotion() {
     }
     const wash = document.getElementById('screen-wash');
     if (wash) wash.style.cssText = '';
-    const react = document.getElementById('screen-react');
-    if (react) {
-      react.classList.remove('closing-dim');
-      react.style.background = '';
-      react.style.filter = '';
-      react.style.opacity = '';
-      react.style.transition = '';
+    if (!options.preserveFlowState) {
+      clearFlowVisualState();
+      const react = document.getElementById('screen-react');
+      if (react) {
+        react.classList.remove('closing-dim');
+        react.style.background = '';
+        react.style.filter = '';
+        react.style.opacity = '';
+        react.style.transition = '';
+      }
     }
   }
 
@@ -790,6 +798,7 @@ function prefersReducedMotion() {
       _closeBtn.classList.toggle('staying', step === 1);
       _closeBtn.classList.toggle('closing', step === 3);
     }
+    prepareFlowVisualStep(step);
     document.documentElement.style.setProperty('--hold-progress', 0);
 
     const textEl = document.getElementById('flow-text');
@@ -1095,9 +1104,66 @@ function prefersReducedMotion() {
 
 
 
-  // ===== 누르는 동안 화면 반응 — 게이지 연동 =====
+  // ===== Hold 단계별 화면 상태 =====
 
-  // 머무름과 확인은 화면 밝기를 바꾸지 않고, 마감 Hold에서만 어두워진다.
+  const FLOW_REACT_CLASSES = ['flow-settling', 'flow-settled', 'dwell-forming', 'dwell-held'];
+
+  function setFlowVisualState(state = '', progress = 0) {
+    const el = document.getElementById('screen-react');
+    if (!el) return;
+    el.classList.remove(...FLOW_REACT_CLASSES);
+    if (state) el.classList.add(state);
+    el.style.setProperty('--settle-progress', state.startsWith('flow-settl') ? progress : 0);
+    el.style.setProperty('--dwell-progress', state.startsWith('dwell-') ? progress : 0);
+    el.style.opacity = state ? '1' : '';
+  }
+
+  function clearFlowVisualState() {
+    setFlowVisualState();
+    setAuroraMotionTarget(1);
+  }
+
+  function prepareFlowVisualStep(step) {
+    const react = document.getElementById('screen-react');
+    if (react) {
+      react.style.background = '';
+      react.style.filter = '';
+    }
+    if (step === 1) {
+      setFlowVisualState();
+      setAuroraMotionTarget(1);
+    } else if (step === 2) {
+      setFlowVisualState('flow-settled', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    } else if (step === 3) {
+      setFlowVisualState('dwell-held', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    }
+  }
+
+  function completeFlowVisualStep(step) {
+    if (step === 1) {
+      setFlowVisualState('flow-settled', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    } else if (step === 2) {
+      setFlowVisualState('dwell-held', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    }
+  }
+
+  function restoreIncompleteFlowVisual() {
+    if (currentStep === 1) {
+      setFlowVisualState();
+      setAuroraMotionTarget(1);
+    } else if (currentStep === 2) {
+      setFlowVisualState('flow-settled', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    } else if (currentStep === 3) {
+      setFlowVisualState('dwell-held', 1);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+    }
+  }
+
   function getCurrentReactType() {
     return getFlowStepData(currentStep).react;
   }
@@ -1108,11 +1174,19 @@ function prefersReducedMotion() {
     const type = getCurrentReactType();
     const t = pct / 100;
 
-    if (type === 'silent') {
-      el.style.opacity = '0';
+    if (type === 'settle') {
+      setFlowVisualState('flow-settling', t);
+      setAuroraMotionTarget(1 - t * (1 - FLOW_VISUAL_CONFIG.settleMotionEnd));
       return;
     }
 
+    if (type === 'dwell') {
+      setFlowVisualState('dwell-forming', t);
+      setAuroraMotionTarget(FLOW_VISUAL_CONFIG.settledMotion);
+      return;
+    }
+
+    setFlowVisualState();
     el.style.opacity = '1';
 
     if (type === 'dark') {
@@ -1124,7 +1198,7 @@ function prefersReducedMotion() {
 
 
 
-  function stopScreenReact() {
+  function stopScreenReact(options = {}) {
     const el = document.getElementById('screen-react');
     if (!el) return;
     const duration = contextDuration(350);
@@ -1132,6 +1206,7 @@ function prefersReducedMotion() {
     el.style.background = '';
     el.style.filter = '';
     scheduleEffectTimeout(() => { el.style.transition = ''; }, duration + 50);
+    if (options.restoreStepState !== false) restoreIncompleteFlowVisual();
   }
 
 
@@ -1139,7 +1214,10 @@ function prefersReducedMotion() {
     const el = document.getElementById('screen-react');
     if (!el) return;
     const type = getCurrentReactType();
-    if (type === 'silent') return;
+    if (type === 'settle' || type === 'dwell') {
+      completeFlowVisualStep(currentStep);
+      return;
+    }
 
     if (type === 'dark') el.style.background = `rgba(0,0,0,${contextIntensity(0.65)})`;
   }
@@ -1171,6 +1249,13 @@ function prefersReducedMotion() {
   let auroraCanvas, auroraCtx, auroraAnim, auroraEmotion = null;
   let auroraT = 0;
   let auroraLastTimestamp = null;
+  let auroraMotionScale = 1;
+  let auroraMotionTarget = 1;
+
+  function setAuroraMotionTarget(value, immediate = false) {
+    auroraMotionTarget = Math.min(1, Math.max(FLOW_VISUAL_CONFIG.settledMotion, value));
+    if (immediate) auroraMotionScale = auroraMotionTarget;
+  }
 
   function initAurora() {
     auroraCanvas = document.getElementById('aurora');
@@ -1218,7 +1303,9 @@ function prefersReducedMotion() {
     const ctx = auroraCtx;
     const delta = auroraLastTimestamp === null ? 1000 / 60 : Math.min(50, timestamp - auroraLastTimestamp);
     auroraLastTimestamp = timestamp;
-    auroraT += 0.003 * (delta / (1000 / 60));
+    const ease = 1 - Math.pow(1 - FLOW_VISUAL_CONFIG.auroraEase, delta / (1000 / 60));
+    auroraMotionScale += (auroraMotionTarget - auroraMotionScale) * ease;
+    auroraT += 0.003 * auroraMotionScale * (delta / (1000 / 60));
 
     ctx.clearRect(0, 0, w, h);
 
@@ -1255,12 +1342,12 @@ function prefersReducedMotion() {
 
   // ===== HOLD TO CALM =====
   const HOLD_MAP = {
-    피곤함: { 1: 900, 2: 1600, 3: 1000 },
-    불안함: { 1: 1000, 2: 1900, 3: 1000 },
-    공허함: { 1: 1100, 2: 2300, 3: 1100 },
-    쓸쓸함: { 1: 1000, 2: 2000, 3: 1000 },
-    복잡함: { 1: 1000, 2: 1900, 3: 1000 },
-    괜찮음: { 1: 800, 2: 1300, 3: 900 }
+    피곤함: { 1: 1500, 2: 3000, 3: 1400 },
+    불안함: { 1: 1600, 2: 3400, 3: 1500 },
+    공허함: { 1: 1800, 2: 4000, 3: 1700 },
+    쓸쓸함: { 1: 1600, 2: 3600, 3: 1500 },
+    복잡함: { 1: 1600, 2: 3400, 3: 1500 },
+    괜찮음: { 1: 1300, 2: 2700, 3: 1300 }
   };
   function getHoldDuration() {
     const map = HOLD_MAP[selected] || HOLD_MAP['피곤함'];
@@ -1394,17 +1481,17 @@ function prefersReducedMotion() {
 
       // 마지막 단계는 0.75초 동안 완료 반응을 정리한 뒤,
       // 별도의 0.35초 정적 구간을 거쳐 완료 화면으로 전환한다.
-      const nextDelay = stepAtComplete >= 3 ? 750 : 1300;
+      const nextDelay = stepAtComplete >= 3 ? 750 : stepAtComplete === 2 ? 2000 : 1300;
 
       stepAdvanceTimer = setTimeout(() => {
         stepAdvanceTimer = null;
-        stopScreenReact();
         btn.classList.remove('holding', 'paused', 'completed');
         btn.style.setProperty('--bar-pct', 0);
         document.documentElement.style.setProperty('--hold-progress', 0);
         holdStartTime = null;
         holdElapsed = 0;
         if (stepAtComplete >= 3) {
+          stopScreenReact({ restoreStepState: false });
           completeEnterTimer = setTimeout(() => {
             completeEnterTimer = null;
             goComplete();
@@ -1551,7 +1638,7 @@ function prefersReducedMotion() {
 
   function syncReducedMotion() {
     if (prefersReducedMotion()) {
-      clearFlowEffects();
+      clearFlowEffects({ preserveFlowState: true });
       if (auroraAnim) cancelAnimationFrame(auroraAnim);
       auroraAnim = null;
       auroraEmotion = null;
