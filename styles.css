@@ -502,8 +502,10 @@
   .flow-text.visible {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
-    text-shadow: none;
+    filter: blur(0)
+            brightness(calc(1 + var(--text-presence, 0)))
+            contrast(calc(1 + var(--text-presence, 0)));
+    text-shadow: 0 0 18px rgba(234,230,222,var(--text-presence, 0));
   }
   .flow-text.step-stay {
     font-size: calc(21px * var(--emotion-flow-scale)); color: var(--emotion-flow-text); letter-spacing: .02em;
@@ -831,34 +833,34 @@
   .hold-btn.staying.paused .hold-orb::before,
   .hold-btn.staying.completed .hold-orb::before {
     background: radial-gradient(circle at 50% 50%, var(--btn-color), transparent 72%);
-    opacity: .3;
+    opacity: .12;
     transform: scale(.76);
   }
   .hold-btn.staying.holding .hold-orb,
   .hold-btn.staying.paused .hold-orb {
-    opacity: .78;
-    box-shadow: 0 0 8px var(--btn-glow);
+    opacity: .48;
+    box-shadow: 0 0 4px var(--btn-glow);
     transition: opacity .18s ease-out, box-shadow .24s ease-out;
   }
   .hold-btn.staying.completed .hold-orb {
-    opacity: .82;
-    box-shadow: 0 0 6px var(--btn-glow);
+    opacity: .52;
+    box-shadow: 0 0 4px var(--btn-glow);
   }
 
   /* 확인 Hold — 채움과 링은 식별 가능하되 국소 범위 안에서만 반응한다. */
   .hold-btn:not(.staying):not(.closing).holding .hold-orb,
   .hold-btn:not(.staying):not(.closing).paused .hold-orb {
-    opacity: .72;
-    box-shadow: 0 0 6px var(--btn-glow);
+    opacity: .5;
+    box-shadow: 0 0 4px var(--btn-glow);
   }
   .hold-btn:not(.staying):not(.closing).completed .hold-orb {
-    opacity: .78;
-    box-shadow: 0 0 8px var(--btn-glow);
+    opacity: .56;
+    box-shadow: 0 0 5px var(--btn-glow);
   }
   .hold-btn:not(.staying):not(.closing).holding .hold-orb::before,
   .hold-btn:not(.staying):not(.closing).paused .hold-orb::before,
   .hold-btn:not(.staying):not(.closing).completed .hold-orb::before {
-    opacity: calc(.08 + var(--hold-progress, 0) * .92);
+    opacity: calc(.06 + var(--hold-progress, 0) * .3);
   }
   .hold-btn:not(.staying):not(.closing).holding .hold-orb::after,
   .hold-btn:not(.staying):not(.closing).paused .hold-orb::after,
@@ -868,8 +870,7 @@
     box-sizing: border-box;
     -webkit-mask: none;
             mask: none;
-    opacity: calc(.12 + var(--hold-progress, 0) * .68);
-    filter: brightness(1.1);
+    opacity: calc(.1 + var(--hold-progress, 0) * .22);
   }
 
   .hold-btn-label {
@@ -881,6 +882,10 @@
   /* 손을 올리면 안내는 조용히 사라진다 */
   .hold-btn.holding .hold-btn-label,
   .hold-btn.completed .hold-btn-label { opacity: 0; }
+  .hold-btn.paused .hold-btn-label {
+    opacity: 1;
+    transition-duration: .2s;
+  }
 
   /* 마감 Hold — 손을 올리면 빛이 차오르지 않고 사그라든다. */
   .hold-btn.closing .hold-orb::before { opacity: 0; }

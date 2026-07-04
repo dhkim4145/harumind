@@ -48,8 +48,8 @@ const FLOW_VISUAL_CONFIG = {
   settleMotionEnd: 0.3,
   settledMotion: 0.12,
   auroraEase: 0.045,
-  settleOverlay: 0.12,
-  dwellOverlay: 0.1
+  settleOverlay: 0.14,
+  dwellOverlay: 0.14
 };
 
 function getKoreaDateParts(date = new Date()) {
@@ -1121,11 +1121,18 @@ function prefersReducedMotion() {
       ? progress
       : state === 'dwell-forming' ? 1 - progress : 0;
     const dwellProgress = state.startsWith('dwell-') ? progress : 0;
+    const textPresence = state.startsWith('flow-settl')
+      ? settleProgress * 0.018
+      : state.startsWith('dwell-')
+        ? currentStep === 3 ? dwellProgress * 0.04 : 0.018 + dwellProgress * 0.022
+        : 0;
     el.style.setProperty('--settle-progress', settleProgress);
     el.style.setProperty('--dwell-progress', dwellProgress);
     el.style.setProperty('--settle-alpha', settleProgress * FLOW_VISUAL_CONFIG.settleOverlay);
     el.style.setProperty('--dwell-alpha', dwellProgress * FLOW_VISUAL_CONFIG.dwellOverlay);
     el.style.opacity = state ? '1' : '';
+    const flowScreen = document.getElementById('s-flow');
+    if (flowScreen) flowScreen.style.setProperty('--text-presence', textPresence);
   }
 
   function clearFlowVisualState() {
