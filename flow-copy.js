@@ -170,10 +170,10 @@ const HARUMIND_FLOW_COPY = {
 
   flowStages: {
     stay: {
-      label: '지금',
+      label: '',
     },
     confirm: {
-      label: '잠시',
+      label: '',
     },
     close: {
       label: '',

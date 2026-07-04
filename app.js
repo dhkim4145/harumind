@@ -47,7 +47,9 @@ const FLOW_ENTER_FADE_MS = 200;
 const FLOW_VISUAL_CONFIG = {
   settleMotionEnd: 0.3,
   settledMotion: 0.12,
-  auroraEase: 0.045
+  auroraEase: 0.045,
+  settleOverlay: 0.12,
+  dwellOverlay: 0.1
 };
 
 function getKoreaDateParts(date = new Date()) {
@@ -160,10 +162,10 @@ function getFlowStageCopy(step) {
   const stageKey = step === 1 ? 'stay' : step === 2 ? 'confirm' : 'close';
   const fallback = {
     stay: {
-      label: '지금',
+      label: '',
     },
     confirm: {
-      label: '잠시',
+      label: '',
     },
     close: {
       label: '',
@@ -792,7 +794,7 @@ function prefersReducedMotion() {
     clearTimeout(flowTextFadeTimer);
     clearTimeout(holdRevealTimer);
     currentStep = step;
-    hideHoldBtn();
+    hideHoldBtn({ preserveFlowState: step > 1 });
     const _closeBtn = document.getElementById('hold-btn');
     if (_closeBtn) {
       _closeBtn.classList.toggle('staying', step === 1);
@@ -1111,10 +1113,18 @@ function prefersReducedMotion() {
   function setFlowVisualState(state = '', progress = 0) {
     const el = document.getElementById('screen-react');
     if (!el) return;
-    el.classList.remove(...FLOW_REACT_CLASSES);
-    if (state) el.classList.add(state);
-    el.style.setProperty('--settle-progress', state.startsWith('flow-settl') ? progress : 0);
-    el.style.setProperty('--dwell-progress', state.startsWith('dwell-') ? progress : 0);
+    FLOW_REACT_CLASSES.forEach(className => {
+      if (className !== state) el.classList.remove(className);
+    });
+    if (state && !el.classList.contains(state)) el.classList.add(state);
+    const settleProgress = state.startsWith('flow-settl')
+      ? progress
+      : state === 'dwell-forming' ? 1 - progress : 0;
+    const dwellProgress = state.startsWith('dwell-') ? progress : 0;
+    el.style.setProperty('--settle-progress', settleProgress);
+    el.style.setProperty('--dwell-progress', dwellProgress);
+    el.style.setProperty('--settle-alpha', settleProgress * FLOW_VISUAL_CONFIG.settleOverlay);
+    el.style.setProperty('--dwell-alpha', dwellProgress * FLOW_VISUAL_CONFIG.dwellOverlay);
     el.style.opacity = state ? '1' : '';
   }
 
@@ -1186,7 +1196,7 @@ function prefersReducedMotion() {
       return;
     }
 
-    setFlowVisualState();
+    setFlowVisualState('dwell-held', 1 - t);
     el.style.opacity = '1';
 
     if (type === 'dark') {
@@ -1368,7 +1378,7 @@ function prefersReducedMotion() {
     } catch (err) {}
   }
 
-  function resetHoldInteraction(btn = document.getElementById('hold-btn')) {
+  function resetHoldInteraction(btn = document.getElementById('hold-btn'), options = {}) {
     holdActive = false;
     holdBuffered = false;
     holdStartTime = null;
@@ -1387,7 +1397,7 @@ function prefersReducedMotion() {
     const stageEl = document.getElementById('flow-stage');
     if (stageEl) stageEl.classList.remove('holding');
     document.documentElement.style.setProperty('--hold-progress', 0);
-    stopScreenReact();
+    if (!options.preserveFlowState) stopScreenReact();
   }
 
   function initHold() {
@@ -1468,7 +1478,7 @@ function prefersReducedMotion() {
       const stepAtComplete = currentStep;
       restoreHoldFocusOnReveal = completedWithKeyboard && stepAtComplete < 3;
 
-      clearFlowEffects();
+      clearFlowEffects({ preserveFlowState: true });
       completeScreenImpact();
       if (stepAtComplete >= 3) startClosingDim();
       applyStepCompletion(stepAtComplete);
@@ -1569,7 +1579,7 @@ function prefersReducedMotion() {
     if (label) label.textContent = HOLD_LABELS[currentStep] || HOLD_LABELS[1];
   }
 
-  function hideHoldBtn() {
+  function hideHoldBtn(options = {}) {
     holdInputReady = false;
     const wrap = document.getElementById('hold-wrap');
     if (wrap) wrap.classList.remove('visible');
@@ -1578,7 +1588,7 @@ function prefersReducedMotion() {
       btn.classList.remove('staying', 'closing');
       btn.setAttribute('aria-disabled', 'true');
     }
-    resetHoldInteraction(btn);
+    resetHoldInteraction(btn, options);
   }
 
   // ===== 시간대/계절 분위기 (위젯·숫자 없이 공기로만) =====
