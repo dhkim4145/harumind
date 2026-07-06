@@ -67,6 +67,31 @@
 <div id="screen-react" aria-hidden="true"></div>
 <div class="screen-wash" id="screen-wash" aria-hidden="true"></div>
 <canvas id="complete-fx" aria-hidden="true"></canvas>
+<div class="room-scene" id="room-scene" aria-hidden="true">
+  <div class="room-air"></div>
+  <div class="room-grain"></div>
+  <div class="room-variant room-variant-empty">
+    <div class="room-lamp-glow"></div>
+    <div class="room-tv"><span class="room-tv-screen"></span></div>
+    <div class="room-sofa"><span></span></div>
+    <div class="room-table"></div>
+    <div class="room-floor-shadow"></div>
+  </div>
+  <div class="room-variant room-variant-lonely">
+    <div class="room-rain-window"></div>
+    <div class="room-lamp-glow room-dining-glow"></div>
+    <div class="room-dining-chair"><span></span></div>
+    <div class="room-dining-table"></div>
+    <div class="room-dining-shadow"></div>
+  </div>
+  <div class="room-variant room-variant-tired">
+    <div class="room-lamp-glow room-tired-glow"></div>
+    <div class="room-floor-lamp"><span></span></div>
+    <div class="room-bed-edge"><span></span></div>
+    <div class="room-light-pool"></div>
+    <div class="room-tired-shadow"></div>
+  </div>
+</div>
 
 
 
@@ -110,7 +135,16 @@
     </div>
   </div>
 
-  <!-- SCREEN 3: FLOW -->
+  <!-- SCREEN 3: ROOM — 감정별 CSS 장면 -->
+  <div class="screen" id="s-room" role="region" aria-labelledby="room-name" aria-describedby="room-copy" tabindex="-1">
+    <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
+    <div class="room-copy-wrap">
+      <div class="room-name" id="room-name">꺼진 TV의 방</div>
+      <div class="room-copy" id="room-copy">소리가 멈춘 자리에, 잠시 머뭅니다.</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: FLOW -->
   <div class="screen" id="s-flow" role="region" aria-label="오늘에 머무르기" tabindex="-1">
     <button class="flow-exit-btn" onclick="exitFlow()" aria-label="감정 선택으로 돌아가기">×</button>
     <button class="sound-icon-toggle" type="button" aria-label="작은 소리 켜기" aria-pressed="false" onclick="toggleSound()"><span class="sound-icon-label">소리</span></button>
@@ -121,12 +155,12 @@
 
 <div class="hold-btn-wrap" id="hold-wrap">
   <button class="hold-btn" id="hold-btn" aria-label="길게 눌러 머무르기" aria-keyshortcuts="Enter Space" aria-disabled="true">
-    <span class="hold-orb" aria-hidden="true"></span>
+    <span class="hold-orb" aria-hidden="true"><span class="hold-progress-ring"></span></span>
     <span class="hold-btn-label">손을 가볍게 둡니다</span>
   </button>
 </div>
 
-  <!-- SCREEN 4: COMPLETE -->
+  <!-- SCREEN 5: COMPLETE -->
   <div class="screen" id="s-complete" role="region" aria-label="오늘 마감 완료" tabindex="-1">
     <span class="complete-moon" id="complete-moon" aria-hidden="true"></span>
     <div class="complete-emotion" id="complete-emotion"></div>

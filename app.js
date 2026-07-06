@@ -199,19 +199,37 @@ function prefersReducedMotion() {
     괜찮음: '무난했지만 닫고 싶은 날'
   };
 
+  const EMOTION_ROOMS = {
+    피곤함: { name: '꺼지지 않은 스탠드의 방', copy: '불은 남아 있고, 몸은 먼저 내려앉아 있습니다.', scene: 'tired', available: true },
+    공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', available: true },
+    쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '나눌 말이 조금 늦게 오는 저녁입니다.', scene: 'lonely', available: true }
+  };
+
+  function getAvailableRoom(emotion = selected) {
+    const room = EMOTION_ROOMS[emotion];
+    return room?.available ? room : null;
+  }
+
   function renderGrid() {
     const grid = document.getElementById('emotion-grid');
     Object.entries(CONTENT).forEach(([name, data]) => {
+      const description = EMOTION_DESC[name] || '';
+      const room = EMOTION_ROOMS[name];
+      const roomName = room?.available ? room.name : '';
       const card = document.createElement('div');
       card.className = 'e-card';
       card.dataset.key = name;
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-pressed', 'false');
+      card.setAttribute('aria-label', [name, description, roomName].filter(Boolean).join(', '));
       card.innerHTML = `
         <div class="e-dot" style="background:${data.color};--dot-color:${data.color};"></div>
         <div class="e-word">${name}</div>
-        <div class="e-desc">${EMOTION_DESC[name] || ''}</div>
+        <div class="e-copy">
+          <div class="e-desc">${description}</div>
+          <div class="e-room-name${roomName ? ' visible' : ''}" aria-hidden="true">${roomName}</div>
+        </div>
       `;
       card.addEventListener('click', () => selectEmotion(name, card));
       card.addEventListener('keydown', (event) => {
@@ -283,9 +301,18 @@ function prefersReducedMotion() {
       panStart: -0.02, panEnd: 0.02
     }
   };
+  const ENTRY_SOUND_GAIN_SCALE = {
+    피곤함: { roomSpace: 1, emotion: 1, transitionSpace: 1 },
+    불안함: { emotion: 0.8, transitionSpace: 0.85 },
+    공허함: { roomSpace: 1 },
+    쓸쓸함: { roomSpace: 0.88 },
+    복잡함: { emotion: 0.8, transitionSpace: 0.85 },
+    괜찮음: { emotion: 1, transitionSpace: 1 }
+  };
   let audioCtx = null;
   let masterGain = null;
   let soundEnabled = false;
+  let activeHoldSound = null;
   const activeAudioSources = new Set();
 
   function trackAudioSource(source, nodes = []) {
@@ -310,6 +337,7 @@ function prefersReducedMotion() {
       });
     });
     activeAudioSources.clear();
+    activeHoldSound = null;
   }
 
   function initAudio() {
@@ -467,6 +495,8 @@ function prefersReducedMotion() {
       const sm = getSeasonAudioMod(); // 계절 질감 변주 (아주 약하게)
       const nMul = preset.noise * sm.noise;
       const tail = options.tail || 0;
+      const gainScale = options.gainScale || 1;
+      const peakGain = preset.gain * gainScale;
       const coreDuration = duration || preset.duration || 3.8;
       const soundDuration = coreDuration + tail;
       const now = baseNow + when;
@@ -501,10 +531,10 @@ function prefersReducedMotion() {
       lowpass.Q.setValueAtTime(0.38, now);
 
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.linearRampToValueAtTime(preset.gain, now + 0.65);
-      gain.gain.setValueAtTime(preset.gain, now + Math.max(0.75, coreDuration - 1.0));
+      gain.gain.linearRampToValueAtTime(peakGain, now + 0.65);
+      gain.gain.setValueAtTime(peakGain, now + Math.max(0.75, coreDuration - 1.0));
       if (tail > 0) {
-        gain.gain.linearRampToValueAtTime(preset.gain * 0.34, now + coreDuration);
+        gain.gain.linearRampToValueAtTime(peakGain * 0.34, now + coreDuration);
       }
       gain.gain.exponentialRampToValueAtTime(0.0001, now + soundDuration);
 
@@ -543,12 +573,12 @@ function prefersReducedMotion() {
     playAirNoise(0.5, 0.012, 1100, 0.03, 0.04);
   }
 
-  function playEmotionEnterSound(emotion) {
+  function playEmotionEnterSound(emotion, gainScale = 1) {
     const base = EMOTION_TONE[emotion] || 174;
-    playSoftTone(base * 0.5, 1.1, 'sine', 0.04, 0, 640, 0.12, -0.08);
-    playSoftTone(base, 0.9, 'sine', 0.064, 0.04, 980, 0.09, 0.08);
-    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.014, 0.12);
-    playAirNoise(0.82, 0.011, 1050, 0.04, 0);
+    playSoftTone(base * 0.5, 1.1, 'sine', 0.04 * gainScale, 0, 640, 0.12, -0.08);
+    playSoftTone(base, 0.9, 'sine', 0.064 * gainScale, 0.04, 980, 0.09, 0.08);
+    playTinyChime(Math.min(base * 1.8, 540), 0.18, 0.014 * gainScale, 0.12);
+    playAirNoise(0.82, 0.011 * gainScale, 1050, 0.04, 0);
   }
 
   function playConfirmSound() {
@@ -560,10 +590,236 @@ function prefersReducedMotion() {
     playSoftTone(112, 0.16, 'triangle', 0.034, 0.018, 520, 0.008, 0.02);
   }
 
+  const HOLD_SOUND_PROFILES = {
+    피곤함: {
+      1: { noise: { gainStart: 0.0065, gainEnd: 0.008, freqStart: 650, freqEnd: 470, q: 0.42 } },
+      2: {
+        noise: { gainStart: 0.0055, gainEnd: 0.0078, freqStart: 600, freqEnd: 450, q: 0.46 },
+        tone: { gainStart: 0.0012, gainEnd: 0.0042, freqStart: 132, freqEnd: 124, filterFreq: 430 }
+      },
+      3: {
+        noise: { gainStart: 0.0075, gainEnd: 0.002, freqStart: 520, freqEnd: 310, q: 0.42 },
+        tone: { gainStart: 0.0032, gainEnd: 0.00045, freqStart: 108, freqEnd: 82, filterFreq: 410 }
+      },
+      complete: { 2: { freq: 128, duration: 0.3, gain: 0.019, filterFreq: 460, attack: 0.04 } }
+    },
+    불안함: {
+      1: { noise: { gainStart: 0.0058, gainEnd: 0.0085, freqStart: 920, freqEnd: 690, qStart: 0.82, qEnd: 0.5 } },
+      2: {
+        noise: { gainStart: 0.005, gainEnd: 0.008, freqStart: 780, freqEnd: 620, qStart: 0.74, qEnd: 0.5 },
+        tone: { gainStart: 0.0012, gainEnd: 0.0043, freqStart: 174, freqEnd: 164, detuneStart: -6, detuneEnd: -1, filterFreq: 650 }
+      },
+      3: {
+        noise: { gainStart: 0.0078, gainEnd: 0.0021, freqStart: 680, freqEnd: 420, qStart: 0.64, qEnd: 0.46 },
+        tone: { gainStart: 0.0033, gainEnd: 0.0005, freqStart: 138, freqEnd: 104, filterFreq: 520 }
+      },
+      complete: { 2: { freq: 156, duration: 0.28, gain: 0.019, filterFreq: 620, attack: 0.035 } }
+    },
+    공허함: {
+      1: { noise: { gainStart: 0.006, gainEnd: 0.011, freqStart: 780, freqEnd: 610, q: 0.48 } },
+      2: {
+        noise: { gainStart: 0.0055, gainEnd: 0.0085, freqStart: 690, freqEnd: 560, q: 0.56 },
+        tone: { gainStart: 0.0014, gainEnd: 0.0048, freqStart: 142, freqEnd: 158 }
+      },
+      3: {
+        noise: { gainStart: 0.008, gainEnd: 0.0022, freqStart: 620, freqEnd: 390, q: 0.5 },
+        tone: { gainStart: 0.0036, gainEnd: 0.0005, freqStart: 122, freqEnd: 94 }
+      },
+      complete: { 2: { freq: 146, duration: 0.3, gain: 0.021, filterFreq: 520, attack: 0.035 } }
+    },
+    쓸쓸함: {
+      1: { noise: { gainStart: 0.006, gainEnd: 0.0095, freqStart: 860, freqEnd: 680, q: 0.55 } },
+      2: {
+        noise: { gainStart: 0.0055, gainEnd: 0.0082, freqStart: 740, freqEnd: 610, q: 0.54 },
+        tone: { gainStart: 0.0013, gainEnd: 0.0045, freqStart: 150, freqEnd: 146, filterFreq: 540 }
+      },
+      3: {
+        noise: { gainStart: 0.0077, gainEnd: 0.002, freqStart: 600, freqEnd: 380, q: 0.5 },
+        tone: { gainStart: 0.0034, gainEnd: 0.00045, freqStart: 118, freqEnd: 90, filterFreq: 470 }
+      },
+      complete: { 2: { freq: 142, duration: 0.3, gain: 0.02, filterFreq: 520, attack: 0.038 } }
+    },
+    복잡함: {
+      1: { noise: { gainStart: 0.0058, gainEnd: 0.009, freqStart: 900, freqEnd: 720, qStart: 0.72, qEnd: 0.55 } },
+      2: {
+        noise: { gainStart: 0.0048, gainEnd: 0.0075, freqStart: 780, freqEnd: 650, q: 0.58 },
+        tones: [
+          { gainStart: 0.0009, gainEnd: 0.0025, freqStart: 151, freqEnd: 154, pan: -0.035, filterFreq: 590 },
+          { gainStart: 0.0008, gainEnd: 0.0022, freqStart: 176, freqEnd: 170, pan: 0.035, filterFreq: 640 }
+        ]
+      },
+      3: {
+        noise: { gainStart: 0.0075, gainEnd: 0.002, freqStart: 640, freqEnd: 400, q: 0.52 },
+        tones: [
+          { gainStart: 0.0025, gainEnd: 0.00035, freqStart: 128, freqEnd: 101, pan: -0.025, filterFreq: 500 },
+          { gainStart: 0.0021, gainEnd: 0.0003, freqStart: 147, freqEnd: 108, pan: 0.025, filterFreq: 530 }
+        ]
+      },
+      complete: { 2: { freq: 150, duration: 0.28, gain: 0.018, filterFreq: 560, attack: 0.035 } }
+    },
+    괜찮음: {
+      1: { noise: { gainStart: 0.005, gainEnd: 0.0075, freqStart: 670, freqEnd: 560, q: 0.44 } },
+      2: {
+        noise: { gainStart: 0.0048, gainEnd: 0.0068, freqStart: 620, freqEnd: 520, q: 0.45 },
+        tone: { gainStart: 0.0011, gainEnd: 0.0037, freqStart: 174, freqEnd: 170, filterFreq: 600 }
+      },
+      3: {
+        noise: { gainStart: 0.0065, gainEnd: 0.0018, freqStart: 520, freqEnd: 360, q: 0.42 },
+        tone: { gainStart: 0.0028, gainEnd: 0.0004, freqStart: 112, freqEnd: 88, filterFreq: 450 }
+      },
+      complete: { 2: { freq: 168, duration: 0.24, gain: 0.017, filterFreq: 600, attack: 0.03 } }
+    }
+  };
+
+  function holdSoundValue(start, end, progress) {
+    return start + (end - start) * Math.max(0, Math.min(1, progress));
+  }
+
+  function createHoldNoiseVoice(profile, now, progress) {
+    const sampleRate = audioCtx.sampleRate;
+    const buffer = audioCtx.createBuffer(1, Math.max(1, Math.floor(sampleRate * 1.2)), sampleRate);
+    const data = buffer.getChannelData(0);
+    let drift = 0;
+    for (let i = 0; i < data.length; i += 1) {
+      drift = drift * 0.994 + (Math.random() * 2 - 1) * 0.006;
+      data[i] = (Math.random() * 2 - 1) * 0.42 + drift;
+    }
+    const source = audioCtx.createBufferSource();
+    const filter = audioCtx.createBiquadFilter();
+    const gain = audioCtx.createGain();
+    const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+    source.buffer = buffer;
+    source.loop = true;
+    filter.type = 'bandpass';
+    filter.Q.setValueAtTime(holdSoundValue(profile.qStart ?? profile.q, profile.qEnd ?? profile.q, progress), now);
+    filter.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(targetGain, now + 0.12);
+    source.connect(filter);
+    filter.connect(gain);
+    if (pan) {
+      pan.pan.setValueAtTime(-0.035, now);
+      gain.connect(pan);
+      pan.connect(masterGain);
+    } else {
+      gain.connect(masterGain);
+    }
+    trackAudioSource(source, [filter, gain, pan].filter(Boolean));
+    source.start(now);
+    return { role: 'noise', source, filter, gain, profile };
+  }
+
+  function createHoldToneVoice(profile, now, progress) {
+    const source = audioCtx.createOscillator();
+    const filter = audioCtx.createBiquadFilter();
+    const gain = audioCtx.createGain();
+    const pan = profile.pan !== undefined && audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+    source.type = 'sine';
+    source.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+    source.detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress), now);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(profile.filterFreq || 480, now);
+    filter.Q.setValueAtTime(0.42, now);
+    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(targetGain, now + 0.14);
+    source.connect(filter);
+    filter.connect(gain);
+    if (pan) {
+      pan.pan.setValueAtTime(profile.pan, now);
+      gain.connect(pan);
+      pan.connect(masterGain);
+    } else {
+      gain.connect(masterGain);
+    }
+    trackAudioSource(source, [filter, gain, pan].filter(Boolean));
+    source.start(now);
+    return { role: 'tone', source, filter, gain, profile };
+  }
+
+  function startHoldSound(emotion = selected, step = currentStep, progress = 0) {
+    const emotionProfile = HOLD_SOUND_PROFILES[emotion];
+    if (!emotionProfile?.[step]) return;
+    const now = getAudioNow();
+    if (now === null) return;
+    stopHoldSound(0.04);
+    const profile = emotionProfile[step];
+    const voices = [createHoldNoiseVoice(profile.noise, now, progress)];
+    if (profile.tone) voices.push(createHoldToneVoice(profile.tone, now, progress));
+    (profile.tones || []).forEach(tone => voices.push(createHoldToneVoice(tone, now, progress)));
+    activeHoldSound = { emotion, step, voices, attackUntil: now + 0.14 };
+  }
+
+  function updateHoldSound(progress) {
+    if (!activeHoldSound || !audioCtx || !soundEnabled) return;
+    const now = audioCtx.currentTime;
+    activeHoldSound.voices.forEach(voice => {
+      const profile = voice.profile;
+      if (now >= activeHoldSound.attackUntil) {
+        voice.gain.gain.cancelScheduledValues(now);
+        voice.gain.gain.setValueAtTime(holdSoundValue(profile.gainStart, profile.gainEnd, progress), now);
+      }
+      if (voice.role === 'noise') {
+        voice.filter.frequency.cancelScheduledValues(now);
+        voice.filter.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+        voice.filter.Q.cancelScheduledValues(now);
+        voice.filter.Q.setValueAtTime(holdSoundValue(profile.qStart ?? profile.q, profile.qEnd ?? profile.q, progress), now);
+      } else {
+        voice.source.frequency.cancelScheduledValues(now);
+        voice.source.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+        voice.source.detune.cancelScheduledValues(now);
+        voice.source.detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress), now);
+      }
+    });
+  }
+
+  function stopHoldSound(fadeSeconds = 0.16) {
+    const state = activeHoldSound;
+    activeHoldSound = null;
+    if (!state) return;
+    const now = audioCtx?.currentTime;
+    state.voices.forEach(voice => {
+      if (now !== undefined) {
+        try {
+          const currentGain = Math.max(0.0001, voice.gain.gain.value);
+          voice.gain.gain.cancelScheduledValues(now);
+          voice.gain.gain.setValueAtTime(currentGain, now);
+          voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
+          voice.source.stop(now + fadeSeconds + 0.03);
+          return;
+        } catch (err) {}
+      }
+      try { voice.source.stop(); } catch (err) {}
+    });
+  }
+
+  function pauseHoldSound() {
+    stopHoldSound(0.16);
+  }
+
+  function completeHoldSound(step) {
+    const emotionProfile = HOLD_SOUND_PROFILES[selected];
+    if (!emotionProfile) return false;
+    stopHoldSound(step >= 3 ? 0.28 : 0.14);
+    const completion = emotionProfile.complete?.[step];
+    if (completion) {
+      playSoftTone(
+        completion.freq, completion.duration, 'sine', completion.gain, 0,
+        completion.filterFreq, completion.attack, 0
+      );
+    }
+    return true;
+  }
+
   let flowTimer = null;
   let flowTextTimer = null;
   let flowTextFadeTimer = null;
   let holdRevealTimer = null;
+  let roomTimer = null;
+  let roomTitleTimer = null;
+  let roomCopyTimer = null;
+  let roomExitTimer = null;
   let stepAdvanceTimer = null;
   let completeEnterTimer = null;
   let completeExtrasTimer = null;
@@ -627,6 +883,10 @@ function prefersReducedMotion() {
     clearTimeout(flowTextTimer);
     clearTimeout(flowTextFadeTimer);
     clearTimeout(holdRevealTimer);
+    clearTimeout(roomTimer);
+    clearTimeout(roomTitleTimer);
+    clearTimeout(roomCopyTimer);
+    clearTimeout(roomExitTimer);
     clearTimeout(stepAdvanceTimer);
     clearTimeout(completeEnterTimer);
     clearTimeout(completeExtrasTimer);
@@ -635,6 +895,10 @@ function prefersReducedMotion() {
     flowTextTimer = null;
     flowTextFadeTimer = null;
     holdRevealTimer = null;
+    roomTimer = null;
+    roomTitleTimer = null;
+    roomCopyTimer = null;
+    roomExitTimer = null;
     stepAdvanceTimer = null;
     completeEnterTimer = null;
     completeExtrasTimer = null;
@@ -704,10 +968,16 @@ function prefersReducedMotion() {
     clearFlowEffects();
     const runToken = ++transitionRunToken;
     resetFlowCompletion();
+    if (getAvailableRoom()) {
+      const roomGainScale = ENTRY_SOUND_GAIN_SCALE[selected]?.roomSpace || 1;
+      playTransitionSpaceSound(selected, 1.8, 0, { tail: 0.3, gainScale: roomGainScale });
+      startRoom();
+      return;
+    }
     showScreen('transition');
     const data = CONTENT[selected];
     playTransitionEntry(data.color);
-    playEmotionEnterSound(selected);
+    playEmotionEnterSound(selected, ENTRY_SOUND_GAIN_SCALE[selected]?.emotion || 1);
     const line1 = document.getElementById('transition-line1');
     const line2 = document.getElementById('transition-line2');
     const announcer = document.getElementById('transition-announcer');
@@ -746,8 +1016,8 @@ function prefersReducedMotion() {
       requestEffectFrame(burst);
     }
 
-    const line2Delay = selected === '공허함' ? 2000 : selected === '피곤함' ? 1600 : 1200;
-    const flowDelay  = selected === '공허함' ? 4000 : 3200;
+    const line2Delay = selected === '피곤함' ? 1600 : 1200;
+    const flowDelay  = 3200;
 
     // 힌트 텍스트
     const hint = document.getElementById('transition-hint');
@@ -763,7 +1033,10 @@ function prefersReducedMotion() {
         breath.classList.add('visible');
         line1.classList.add('space-open');
         line2.classList.add('space-open');
-        playTransitionSpaceSound(selected, (line2Delay + flowDelay) / 1000, 0, { tail: 0.85 });
+        playTransitionSpaceSound(selected, (line2Delay + flowDelay) / 1000, 0, {
+          tail: 0.85,
+          gainScale: ENTRY_SOUND_GAIN_SCALE[selected]?.transitionSpace || 1
+        });
       }
 
       flowTimer = setTimeout(() => {
@@ -784,7 +1057,69 @@ function prefersReducedMotion() {
     }, 400);
   }
 
+  const ROOM_DURATION_MS = 4600;
+
+  function resetRoomVisual() {
+    const roomScreen = document.getElementById('s-room');
+    if (roomScreen) roomScreen.classList.remove('room-visible', 'room-copy-visible', 'room-leaving');
+    document.body.classList.remove(
+      'room-active', 'room-scene-visible', 'room-step-1', 'room-step-2', 'room-step-3',
+      'room-scene-empty', 'room-scene-lonely', 'room-scene-tired'
+    );
+  }
+
+  function setRoomFlowStep(step = 0) {
+    document.body.classList.remove('room-step-1', 'room-step-2', 'room-step-3');
+    if (getAvailableRoom() && document.body.classList.contains('room-active') && step >= 1 && step <= 3) {
+      document.body.classList.add(`room-step-${step}`);
+    }
+  }
+
+  function showRoomScene() {
+    const room = getAvailableRoom();
+    if (!room) return;
+    document.body.classList.add('room-active');
+    document.body.classList.add(`room-scene-${room.scene}`);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (getAvailableRoom()) document.body.classList.add('room-scene-visible');
+      });
+    });
+  }
+
+  function startRoom() {
+    clearTimeout(roomTimer);
+    clearTimeout(roomTitleTimer);
+    clearTimeout(roomCopyTimer);
+    clearTimeout(roomExitTimer);
+    resetRoomVisual();
+    showScreen('room');
+    showRoomScene();
+    const roomScreen = document.getElementById('s-room');
+    const room = getAvailableRoom();
+    document.getElementById('room-name').textContent = room?.name || '';
+    document.getElementById('room-copy').textContent = room?.copy || '';
+    roomTitleTimer = setTimeout(() => {
+      roomTitleTimer = null;
+      if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-visible');
+    }, 700);
+    roomCopyTimer = setTimeout(() => {
+      roomCopyTimer = null;
+      if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-copy-visible');
+    }, 1500);
+    roomExitTimer = setTimeout(() => {
+      roomExitTimer = null;
+      if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-leaving');
+    }, 4000);
+    roomTimer = setTimeout(() => {
+      roomTimer = null;
+      roomScreen?.classList.remove('room-visible', 'room-copy-visible', 'room-leaving');
+      startFlow();
+    }, ROOM_DURATION_MS);
+  }
+
   function startFlow() {
+    if (getAvailableRoom() && !document.body.classList.contains('room-active')) showRoomScene();
     showScreen('flow');
     runFlowStep(1);
   }
@@ -795,6 +1130,7 @@ function prefersReducedMotion() {
     clearTimeout(flowTextFadeTimer);
     clearTimeout(holdRevealTimer);
     currentStep = step;
+    setRoomFlowStep(step);
     hideHoldBtn({ preserveFlowState: step > 1 });
     const _closeBtn = document.getElementById('hold-btn');
     if (_closeBtn) {
@@ -852,6 +1188,7 @@ function prefersReducedMotion() {
     transitionRunToken += 1;
     resetTransitionVisual();
     lifecycleResumeAction = null;
+    resetRoomVisual();
     restoreHoldFocusOnReveal = false;
     currentStep = 0;
     resetFlowCompletion();
@@ -908,6 +1245,7 @@ function prefersReducedMotion() {
   function goComplete() {
     clearFlowTimers();
     lifecycleResumeAction = null;
+    resetRoomVisual();
     hideHoldBtn();
     clearFlowEffects();
     showScreen('complete');
@@ -950,6 +1288,7 @@ function prefersReducedMotion() {
     clearFlowEffects();
     stopActiveAudio();
     lifecycleResumeAction = null;
+    resetRoomVisual();
     restoreHoldFocusOnReveal = false;
     resetFlowCompletion();
     document.getElementById('s-complete').classList.remove('visible');
@@ -1030,6 +1369,14 @@ function prefersReducedMotion() {
       return;
     }
 
+    if (activeScreen.id === 's-room') {
+      lifecycleResumeAction = { type: 'room' };
+      clearFlowTimers();
+      clearFlowEffects();
+      resetRoomVisual();
+      return;
+    }
+
     if (activeScreen.id === 's-complete') {
       const extras = document.getElementById('complete-extras');
       const restartBtn = document.getElementById('complete-restart');
@@ -1062,6 +1409,8 @@ function prefersReducedMotion() {
     lifecycleResumeAction = null;
     if (action.type === 'transition') {
       startTransition({ preserveContext: true });
+    } else if (action.type === 'room') {
+      startRoom();
     } else if (action.type === 'complete-enter') {
       goComplete();
     } else if (action.type === 'complete-resume') {
@@ -1389,6 +1738,7 @@ function prefersReducedMotion() {
   }
 
   function resetHoldInteraction(btn = document.getElementById('hold-btn'), options = {}) {
+    stopHoldSound(0.12);
     holdActive = false;
     holdBuffered = false;
     holdStartTime = null;
@@ -1404,6 +1754,7 @@ function prefersReducedMotion() {
       btn.classList.remove('holding', 'paused', 'completed');
       btn.style.setProperty('--bar-pct', 0);
     }
+    updateHoldLabel();
     const stageEl = document.getElementById('flow-stage');
     if (stageEl) stageEl.classList.remove('holding');
     document.documentElement.style.setProperty('--hold-progress', 0);
@@ -1433,6 +1784,8 @@ function prefersReducedMotion() {
       }
       btn.classList.remove('paused', 'completed');
       btn.classList.add('holding');
+      setHoldLabel('그대로 머뭅니다');
+      startHoldSound(selected, currentStep, Math.min(1, holdElapsed / getHoldDuration()));
       const stageEl = document.getElementById('flow-stage');
       if (stageEl) stageEl.classList.add('holding');
       animateBar();
@@ -1458,6 +1811,7 @@ function prefersReducedMotion() {
       btn.style.setProperty('--bar-pct', pct);
       document.documentElement.style.setProperty('--hold-progress', pct / 100);
       updateScreenReact(pct);
+      updateHoldSound(pct / 100);
       if (pct >= 100) {
         onComplete();
         return;
@@ -1480,6 +1834,7 @@ function prefersReducedMotion() {
       activePointerId = null;
       btn.classList.remove('paused');
       btn.classList.add('completed');
+      setHoldLabel('그대로 머뭅니다');
       btn.style.setProperty('--bar-pct', 100);
       document.documentElement.style.setProperty('--hold-progress', 1);
       const stageEl = document.getElementById('flow-stage');
@@ -1492,10 +1847,11 @@ function prefersReducedMotion() {
       completeScreenImpact();
       if (stepAtComplete >= 3) startClosingDim();
       applyStepCompletion(stepAtComplete);
+      const reactiveSoundHandled = completeHoldSound(stepAtComplete);
       if (stepAtComplete === 2) {
-        playConfirmSound();
+        if (!reactiveSoundHandled) playConfirmSound();
       } else if (stepAtComplete >= 3) {
-        playCloseSound();
+        if (!reactiveSoundHandled) playCloseSound();
         if (!prefersReducedMotion()) fxClose();
       }
 
@@ -1537,6 +1893,8 @@ function prefersReducedMotion() {
       activePointerId = null;
       btn.classList.remove('holding');
       btn.classList.add('paused');
+      pauseHoldSound();
+      updateHoldLabel();
       const stageEl = document.getElementById('flow-stage');
       if (stageEl) stageEl.classList.remove('holding');
       holdCancelTimer = setTimeout(() => resetHoldInteraction(btn), HOLD_CANCEL_BUFFER_MS);
@@ -1585,8 +1943,22 @@ function prefersReducedMotion() {
   }
 
   function updateHoldLabel() {
+    setHoldLabel(HOLD_LABELS[currentStep] || HOLD_LABELS[1]);
+  }
+
+  function setHoldLabel(text) {
     const label = document.querySelector('.hold-btn-label');
-    if (label) label.textContent = HOLD_LABELS[currentStep] || HOLD_LABELS[1];
+    const btn = document.getElementById('hold-btn');
+    if (btn) {
+      const ariaLabel = text === '그대로 머뭅니다'
+        ? '누르는 중, 그대로 머뭅니다'
+        : text === '이제 오늘을 닫습니다' ? '길게 눌러 오늘 닫기' : '길게 눌러 머무르기';
+      btn.setAttribute('aria-label', ariaLabel);
+    }
+    if (!label || label.textContent === text) return;
+    label.classList.remove('label-changing');
+    label.textContent = text;
+    requestAnimationFrame(() => label.classList.add('label-changing'));
   }
 
   function hideHoldBtn(options = {}) {
