@@ -202,7 +202,7 @@ function prefersReducedMotion() {
   const EMOTION_ROOMS = {
     피곤함: { name: '꺼지지 않은 스탠드의 방', copy: '불은 남아 있고, 몸은 먼저 내려앉아 있습니다.', scene: 'tired', available: true },
     공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', available: true },
-    쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '나눌 말이 조금 늦게 오는 저녁입니다.', scene: 'lonely', available: true }
+    쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '빈자리가 말없이 곁에 있습니다.', scene: 'lonely', available: true }
   };
 
   function getAvailableRoom(emotion = selected) {
