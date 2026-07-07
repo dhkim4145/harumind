@@ -204,6 +204,7 @@ function prefersReducedMotion() {
     공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', available: true },
     쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '빈자리가 말없이 곁에 있습니다.', scene: 'lonely', available: true }
   };
+  const EMOTION_GRID_ORDER = ['피곤함', '쓸쓸함', '공허함', '불안함', '복잡함', '괜찮음'];
 
   function getAvailableRoom(emotion = selected) {
     const room = EMOTION_ROOMS[emotion];
@@ -212,7 +213,9 @@ function prefersReducedMotion() {
 
   function renderGrid() {
     const grid = document.getElementById('emotion-grid');
-    Object.entries(CONTENT).forEach(([name, data]) => {
+    EMOTION_GRID_ORDER.forEach((name) => {
+      const data = CONTENT[name];
+      if (!data) return;
       const description = EMOTION_DESC[name] || '';
       const room = EMOTION_ROOMS[name];
       const roomName = room?.available ? room.name : '';
