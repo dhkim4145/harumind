@@ -505,14 +505,36 @@
   }
   body.room-active canvas#aurora.visible { opacity: .14; }
   body.room-active.room-step-3 .room-scene { opacity: .69; }
+  body.room-active.room-image-loaded.room-step-3 .room-scene { opacity: .78; }
+  .room-image {
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 0;
+    width: min(100vw, 420px);
+    height: 100%;
+    transform: translateX(-50%);
+    object-fit: cover;
+    object-position: center center;
+    opacity: 0;
+    filter: saturate(.82) brightness(.86);
+    transition: opacity 1s cubic-bezier(.22,1,.36,1), filter 1s cubic-bezier(.22,1,.36,1);
+  }
+  body.room-active.room-image-loaded.room-scene-visible .room-image { opacity: .9; }
+  body.room-active.room-image-loaded.room-step-2 .room-image { filter: saturate(.8) brightness(.83); }
+  body.room-active.room-image-loaded.room-step-3 .room-image { filter: saturate(.78) brightness(.79); }
   .room-variant {
     display: none;
     position: absolute;
     inset: 0;
+    z-index: 1;
+    opacity: 1;
+    transition: opacity 1s cubic-bezier(.22,1,.36,1);
   }
   body.room-scene-empty .room-variant-empty,
   body.room-scene-lonely .room-variant-lonely,
   body.room-scene-tired .room-variant-tired { display: block; }
+  body.room-image-loaded .room-variant { opacity: 0; }
   body.room-scene-lonely .room-scene {
     background:
       radial-gradient(ellipse at 14% 30%, rgba(151,103,60,.045), rgba(91,67,48,.012) 28%, transparent 52%),
@@ -528,6 +550,7 @@
     content: '';
     position: absolute;
     left: 0; right: 0; top: 62%; bottom: 0;
+    z-index: 2;
     background: linear-gradient(174deg, rgba(28, 32, 40, 0.2), rgba(4, 6, 10, 0.78) 64%);
     border-top: 1px solid rgba(150, 157, 169, 0.022);
   }
@@ -537,6 +560,8 @@
     inset: 0;
     pointer-events: none;
   }
+  .room-air { z-index: 3; }
+  .room-grain { z-index: 4; }
   .room-air {
     background:
       radial-gradient(ellipse at 50% 42%, rgba(102,112,128,0.018), transparent 46%),

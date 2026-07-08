@@ -200,9 +200,9 @@ function prefersReducedMotion() {
   };
 
   const EMOTION_ROOMS = {
-    피곤함: { name: '꺼지지 않은 스탠드의 방', copy: '불은 남아 있고, 몸은 먼저 내려앉아 있습니다.', scene: 'tired', available: true },
-    공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', available: true },
-    쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '빈자리가 말없이 곁에 있습니다.', scene: 'lonely', available: true }
+    피곤함: { name: '꺼지지 않은 스탠드의 방', copy: '불은 남아 있고, 몸은 먼저 내려앉아 있습니다.', scene: 'tired', image: 'assets/rooms/tired_floor_lamp.webp', available: true },
+    공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', image: 'assets/rooms/empty_tv.webp', available: true },
+    쓸쓸함: { name: '혼자 남은 식탁의 방', copy: '빈자리가 말없이 곁에 있습니다.', scene: 'lonely', image: 'assets/rooms/lonely_table.webp', available: true }
   };
   const EMOTION_GRID_ORDER = ['피곤함', '쓸쓸함', '공허함', '불안함', '복잡함', '괜찮음'];
 
@@ -332,9 +332,24 @@ function prefersReducedMotion() {
     return source;
   }
 
+  function disconnectHoldRoom(space) {
+    if (!space) return;
+    [space.input, space.dry, space.delay, space.feedback, space.wetFilter, space.wet, space.pan]
+      .filter(Boolean)
+      .forEach(node => {
+        try { node.disconnect(); } catch (err) {}
+      });
+  }
+
   function stopActiveAudio() {
+    disconnectHoldRoom(activeHoldSound?.room);
     activeAudioSources.forEach(record => {
       try { record.source.stop(); } catch (err) {}
+      record.nodes.forEach(node => {
+        if (typeof node.stop === 'function') {
+          try { node.stop(); } catch (err) {}
+        }
+      });
       [record.source, ...record.nodes].forEach(node => {
         try { node.disconnect(); } catch (err) {}
       });
@@ -593,6 +608,21 @@ function prefersReducedMotion() {
     playSoftTone(112, 0.16, 'triangle', 0.034, 0.018, 520, 0.008, 0.02);
   }
 
+  const HOLD_SOUND_MIX = {
+    noiseGain: 2.35,
+    toneGain: 1.14,
+    completeGain: 1.68
+  };
+
+  const HOLD_ROOM_SPACE = {
+    피곤함: { delay: 0.058, feedback: 0.16, wet: 0.27, tone: 0.76, presence: 0.38, pan: -0.025 },
+    불안함: { delay: 0.041, feedback: 0.12, wet: 0.2, tone: 0.7, presence: 0.43, pan: 0.026 },
+    공허함: { delay: 0.074, feedback: 0.19, wet: 0.34, tone: 0.66, presence: 0.44, pan: 0 },
+    쓸쓸함: { delay: 0.066, feedback: 0.17, wet: 0.3, tone: 0.68, presence: 0.4, pan: -0.018 },
+    복잡함: { delay: 0.047, feedback: 0.14, wet: 0.24, tone: 0.72, presence: 0.45, pan: 0.022 },
+    괜찮음: { delay: 0.052, feedback: 0.13, wet: 0.22, tone: 0.7, presence: 0.34, pan: 0 }
+  };
+
   const HOLD_SOUND_PROFILES = {
     피곤함: {
       1: { noise: { gainStart: 0.0065, gainEnd: 0.008, freqStart: 650, freqEnd: 470, q: 0.42 } },
@@ -678,67 +708,139 @@ function prefersReducedMotion() {
     return start + (end - start) * Math.max(0, Math.min(1, progress));
   }
 
-  function createHoldNoiseVoice(profile, now, progress) {
+  function getHoldRoomPreset(emotion = selected) {
+    return HOLD_ROOM_SPACE[emotion] || HOLD_ROOM_SPACE.괜찮음;
+  }
+
+  function createHoldRoomSpace(emotion, step, now) {
+    const preset = getHoldRoomPreset(emotion);
+    const input = audioCtx.createGain();
+    const dry = audioCtx.createGain();
+    const delay = audioCtx.createDelay(0.12);
+    const feedback = audioCtx.createGain();
+    const wetFilter = audioCtx.createBiquadFilter();
+    const wet = audioCtx.createGain();
+    const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+
+    input.gain.setValueAtTime(1, now);
+    dry.gain.setValueAtTime(step === 3 ? 0.86 : 0.92, now);
+    delay.delayTime.setValueAtTime(preset.delay, now);
+    feedback.gain.setValueAtTime(preset.feedback, now);
+    wetFilter.type = 'lowpass';
+    wetFilter.frequency.setValueAtTime(step === 1 ? 1280 : step === 2 ? 1460 : 980, now);
+    wetFilter.Q.setValueAtTime(0.32, now);
+    wet.gain.setValueAtTime(preset.wet, now);
+
+    input.connect(dry);
+    dry.connect(masterGain);
+    input.connect(delay);
+    delay.connect(feedback);
+    feedback.connect(delay);
+    delay.connect(wetFilter);
+    wetFilter.connect(wet);
+    if (pan) {
+      pan.pan.setValueAtTime(preset.pan, now);
+      wet.connect(pan);
+      pan.connect(masterGain);
+    } else {
+      wet.connect(masterGain);
+    }
+
+    return { input, dry, delay, feedback, wetFilter, wet, pan, preset };
+  }
+
+  function createHoldNoiseVoice(profile, now, progress, destination, roomPreset = getHoldRoomPreset()) {
     const sampleRate = audioCtx.sampleRate;
     const buffer = audioCtx.createBuffer(1, Math.max(1, Math.floor(sampleRate * 1.2)), sampleRate);
     const data = buffer.getChannelData(0);
     let drift = 0;
+    let body = 0;
     for (let i = 0; i < data.length; i += 1) {
-      drift = drift * 0.994 + (Math.random() * 2 - 1) * 0.006;
-      data[i] = (Math.random() * 2 - 1) * 0.42 + drift;
+      drift = drift * 0.994 + (Math.random() * 2 - 1) * 0.0055;
+      body = body * 0.985 + (Math.random() * 2 - 1) * 0.0025;
+      data[i] = (Math.random() * 2 - 1) * 0.34 + drift + body * 1.8;
     }
     const source = audioCtx.createBufferSource();
     const filter = audioCtx.createBiquadFilter();
+    const ceiling = audioCtx.createBiquadFilter();
+    const bodyGain = audioCtx.createGain();
+    const presenceFilter = audioCtx.createBiquadFilter();
+    const presenceGain = audioCtx.createGain();
     const gain = audioCtx.createGain();
-    const pan = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
     source.buffer = buffer;
     source.loop = true;
     filter.type = 'bandpass';
     filter.Q.setValueAtTime(holdSoundValue(profile.qStart ?? profile.q, profile.qEnd ?? profile.q, progress), now);
     filter.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
-    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress);
+    ceiling.type = 'lowpass';
+    ceiling.frequency.setValueAtTime(holdSoundValue(
+      profile.ceilingStart ?? profile.freqStart * 2.55,
+      profile.ceilingEnd ?? profile.freqEnd * 2.2,
+      progress
+    ), now);
+    ceiling.Q.setValueAtTime(0.34, now);
+    bodyGain.gain.setValueAtTime(0.88, now);
+    presenceFilter.type = 'bandpass';
+    presenceFilter.frequency.setValueAtTime(holdSoundValue(
+      profile.presenceStart ?? Math.max(1080, profile.freqStart * 1.88),
+      profile.presenceEnd ?? Math.max(920, profile.freqEnd * 2.05),
+      progress
+    ), now);
+    presenceFilter.Q.setValueAtTime(profile.presenceQ ?? 0.38, now);
+    presenceGain.gain.setValueAtTime((profile.presenceGain ?? roomPreset.presence) * (0.9 + progress * 0.28), now);
+    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress) * HOLD_SOUND_MIX.noiseGain;
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.linearRampToValueAtTime(targetGain, now + 0.12);
     source.connect(filter);
-    filter.connect(gain);
-    if (pan) {
-      pan.pan.setValueAtTime(-0.035, now);
-      gain.connect(pan);
-      pan.connect(masterGain);
-    } else {
-      gain.connect(masterGain);
-    }
-    trackAudioSource(source, [filter, gain, pan].filter(Boolean));
+    filter.connect(ceiling);
+    ceiling.connect(bodyGain);
+    bodyGain.connect(gain);
+    source.connect(presenceFilter);
+    presenceFilter.connect(presenceGain);
+    presenceGain.connect(gain);
+    gain.connect(destination || masterGain);
+    trackAudioSource(source, [filter, ceiling, bodyGain, presenceFilter, presenceGain, gain].filter(Boolean));
     source.start(now);
-    return { role: 'noise', source, filter, gain, profile };
+    return { role: 'noise', source, filter, ceiling, presenceFilter, presenceGain, gain, profile };
   }
 
-  function createHoldToneVoice(profile, now, progress) {
+  function createHoldToneVoice(profile, now, progress, destination, roomPreset = getHoldRoomPreset()) {
     const source = audioCtx.createOscillator();
+    const harmonic = audioCtx.createOscillator();
+    const harmonicGain = audioCtx.createGain();
     const filter = audioCtx.createBiquadFilter();
     const gain = audioCtx.createGain();
     const pan = profile.pan !== undefined && audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
-    source.type = 'sine';
-    source.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+    const baseFreq = holdSoundValue(profile.freqStart, profile.freqEnd, progress);
+    const harmonicRatio = profile.harmonicRatio || 2.01;
+    source.type = profile.type || 'triangle';
+    harmonic.type = 'sine';
+    source.frequency.setValueAtTime(baseFreq, now);
+    harmonic.frequency.setValueAtTime(baseFreq * harmonicRatio, now);
     source.detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress), now);
+    harmonic.detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress) + 4, now);
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(profile.filterFreq || 480, now);
-    filter.Q.setValueAtTime(0.42, now);
-    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress);
+    filter.Q.setValueAtTime(profile.q || 0.48, now);
+    harmonicGain.gain.setValueAtTime(profile.harmonicGain ?? 0.18, now);
+    const targetGain = holdSoundValue(profile.gainStart, profile.gainEnd, progress) * HOLD_SOUND_MIX.toneGain * roomPreset.tone;
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.linearRampToValueAtTime(targetGain, now + 0.14);
     source.connect(filter);
+    harmonic.connect(harmonicGain);
+    harmonicGain.connect(filter);
     filter.connect(gain);
     if (pan) {
       pan.pan.setValueAtTime(profile.pan, now);
       gain.connect(pan);
-      pan.connect(masterGain);
+      pan.connect(destination || masterGain);
     } else {
-      gain.connect(masterGain);
+      gain.connect(destination || masterGain);
     }
-    trackAudioSource(source, [filter, gain, pan].filter(Boolean));
+    trackAudioSource(source, [harmonic, harmonicGain, filter, gain, pan].filter(Boolean));
     source.start(now);
-    return { role: 'tone', source, filter, gain, profile };
+    harmonic.start(now);
+    return { role: 'tone', source, sources: [source, harmonic], filter, harmonicGain, gain, profile };
   }
 
   function startHoldSound(emotion = selected, step = currentStep, progress = 0) {
@@ -748,10 +850,11 @@ function prefersReducedMotion() {
     if (now === null) return;
     stopHoldSound(0.04);
     const profile = emotionProfile[step];
-    const voices = [createHoldNoiseVoice(profile.noise, now, progress)];
-    if (profile.tone) voices.push(createHoldToneVoice(profile.tone, now, progress));
-    (profile.tones || []).forEach(tone => voices.push(createHoldToneVoice(tone, now, progress)));
-    activeHoldSound = { emotion, step, voices, attackUntil: now + 0.14 };
+    const room = createHoldRoomSpace(emotion, step, now);
+    const voices = [createHoldNoiseVoice(profile.noise, now, progress, room.input, room.preset)];
+    if (profile.tone) voices.push(createHoldToneVoice(profile.tone, now, progress, room.input, room.preset));
+    (profile.tones || []).forEach(tone => voices.push(createHoldToneVoice(tone, now, progress, room.input, room.preset)));
+    activeHoldSound = { emotion, step, voices, room, attackUntil: now + 0.14 };
   }
 
   function updateHoldSound(progress) {
@@ -761,20 +864,62 @@ function prefersReducedMotion() {
       const profile = voice.profile;
       if (now >= activeHoldSound.attackUntil) {
         voice.gain.gain.cancelScheduledValues(now);
-        voice.gain.gain.setValueAtTime(holdSoundValue(profile.gainStart, profile.gainEnd, progress), now);
+        const mixGain = voice.role === 'noise' ? HOLD_SOUND_MIX.noiseGain : HOLD_SOUND_MIX.toneGain;
+        voice.gain.gain.setValueAtTime(holdSoundValue(profile.gainStart, profile.gainEnd, progress) * mixGain, now);
       }
       if (voice.role === 'noise') {
         voice.filter.frequency.cancelScheduledValues(now);
         voice.filter.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
         voice.filter.Q.cancelScheduledValues(now);
         voice.filter.Q.setValueAtTime(holdSoundValue(profile.qStart ?? profile.q, profile.qEnd ?? profile.q, progress), now);
+        if (voice.ceiling) {
+          voice.ceiling.frequency.cancelScheduledValues(now);
+          voice.ceiling.frequency.setValueAtTime(holdSoundValue(
+            profile.ceilingStart ?? profile.freqStart * 2.55,
+            profile.ceilingEnd ?? profile.freqEnd * 2.2,
+            progress
+          ), now);
+        }
+        if (voice.presenceFilter) {
+          voice.presenceFilter.frequency.cancelScheduledValues(now);
+          voice.presenceFilter.frequency.setValueAtTime(holdSoundValue(
+            profile.presenceStart ?? Math.max(1080, profile.freqStart * 1.88),
+            profile.presenceEnd ?? Math.max(920, profile.freqEnd * 2.05),
+            progress
+          ), now);
+        }
+        if (voice.presenceGain) {
+          voice.presenceGain.gain.cancelScheduledValues(now);
+          const roomPresence = getHoldRoomPreset(activeHoldSound.emotion).presence;
+          voice.presenceGain.gain.setValueAtTime((profile.presenceGain ?? roomPresence) * (0.9 + progress * 0.28), now);
+        }
       } else {
+        const baseFreq = holdSoundValue(profile.freqStart, profile.freqEnd, progress);
+        const harmonicRatio = profile.harmonicRatio || 2.01;
         voice.source.frequency.cancelScheduledValues(now);
-        voice.source.frequency.setValueAtTime(holdSoundValue(profile.freqStart, profile.freqEnd, progress), now);
+        voice.source.frequency.setValueAtTime(baseFreq, now);
         voice.source.detune.cancelScheduledValues(now);
         voice.source.detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress), now);
+        if (voice.sources?.[1]) {
+          voice.sources[1].frequency.cancelScheduledValues(now);
+          voice.sources[1].frequency.setValueAtTime(baseFreq * harmonicRatio, now);
+          voice.sources[1].detune.cancelScheduledValues(now);
+          voice.sources[1].detune.setValueAtTime(holdSoundValue(profile.detuneStart ?? -3, profile.detuneEnd ?? -3, progress) + 4, now);
+        }
       }
     });
+    if (activeHoldSound.room) {
+      const room = activeHoldSound.room;
+      const step = activeHoldSound.step;
+      room.wetFilter.frequency.cancelScheduledValues(now);
+      room.wetFilter.frequency.setValueAtTime(step === 1
+        ? 1280 - progress * 140
+        : step === 2
+          ? 1360 + progress * 160
+          : 980 - progress * 260, now);
+      room.wet.gain.cancelScheduledValues(now);
+      room.wet.gain.setValueAtTime(room.preset.wet * (step === 3 ? 1 - progress * 0.28 : 0.92 + progress * 0.08), now);
+    }
   }
 
   function stopHoldSound(fadeSeconds = 0.16) {
@@ -789,28 +934,67 @@ function prefersReducedMotion() {
           voice.gain.gain.cancelScheduledValues(now);
           voice.gain.gain.setValueAtTime(currentGain, now);
           voice.gain.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
-          voice.source.stop(now + fadeSeconds + 0.03);
+          (voice.sources || [voice.source]).forEach(source => source.stop(now + fadeSeconds + 0.03));
           return;
         } catch (err) {}
       }
-      try { voice.source.stop(); } catch (err) {}
+      (voice.sources || [voice.source]).forEach(source => {
+        try { source.stop(); } catch (err) {}
+      });
     });
+    if (state.room && now !== undefined) {
+      try {
+        state.room.input.gain.cancelScheduledValues(now);
+        state.room.input.gain.setValueAtTime(Math.max(0.0001, state.room.input.gain.value), now);
+        state.room.input.gain.exponentialRampToValueAtTime(0.0001, now + fadeSeconds);
+      } catch (err) {}
+      setTimeout(() => {
+        disconnectHoldRoom(state.room);
+      }, Math.ceil((fadeSeconds + 0.05) * 1000));
+    }
   }
 
   function pauseHoldSound() {
     stopHoldSound(0.16);
   }
 
+  function playHoldCompletionSound(completion) {
+    const gain = completion.gain * HOLD_SOUND_MIX.completeGain;
+    playSoftTone(
+      completion.freq, completion.duration * 1.08, 'triangle', gain, 0,
+      completion.filterFreq, completion.attack, -0.02
+    );
+    playSoftTone(
+      completion.freq * 1.505, completion.duration * 0.72, 'sine', gain * 0.18, 0.026,
+      Math.min(completion.filterFreq * 1.45, 980), completion.attack * 0.72, 0.025
+    );
+    playAirNoise(0.34, gain * 0.32, completion.filterFreq * 1.68, 0.018, 0.015);
+  }
+
+  function playHoldCloseTail(emotion) {
+    const closeTail = {
+      피곤함: { freq: 92, air: 560, gain: 0.022, pan: -0.02 },
+      불안함: { freq: 108, air: 820, gain: 0.019, pan: 0.018 },
+      공허함: { freq: 86, air: 660, gain: 0.023, pan: 0 },
+      쓸쓸함: { freq: 94, air: 760, gain: 0.021, pan: -0.015 },
+      복잡함: { freq: 102, air: 740, gain: 0.019, pan: 0.02 },
+      괜찮음: { freq: 98, air: 600, gain: 0.018, pan: 0 }
+    }[emotion] || { freq: 94, air: 640, gain: 0.019, pan: 0 };
+    playAirNoise(0.3, closeTail.gain * 0.62, closeTail.air, 0, closeTail.pan);
+    playSoftTone(closeTail.freq, 0.22, 'triangle', closeTail.gain * 1.08, 0.035, closeTail.air * 0.72, 0.018, closeTail.pan * -0.5);
+  }
+
   function completeHoldSound(step) {
     const emotionProfile = HOLD_SOUND_PROFILES[selected];
     if (!emotionProfile) return false;
     stopHoldSound(step >= 3 ? 0.28 : 0.14);
+    if (step >= 3) {
+      playHoldCloseTail(selected);
+      return true;
+    }
     const completion = emotionProfile.complete?.[step];
     if (completion) {
-      playSoftTone(
-        completion.freq, completion.duration, 'sine', completion.gain, 0,
-        completion.filterFreq, completion.attack, 0
-      );
+      playHoldCompletionSound(completion);
     }
     return true;
   }
@@ -823,6 +1007,8 @@ function prefersReducedMotion() {
   let roomTitleTimer = null;
   let roomCopyTimer = null;
   let roomExitTimer = null;
+  let roomImageLoadToken = 0;
+  let activeRoomImagePreload = null;
   let stepAdvanceTimer = null;
   let completeEnterTimer = null;
   let completeExtrasTimer = null;
@@ -1064,11 +1250,52 @@ function prefersReducedMotion() {
 
   function resetRoomVisual() {
     const roomScreen = document.getElementById('s-room');
+    const roomImage = document.getElementById('room-image');
     if (roomScreen) roomScreen.classList.remove('room-visible', 'room-copy-visible', 'room-leaving');
+    roomImageLoadToken += 1;
+    if (activeRoomImagePreload) {
+      activeRoomImagePreload.onload = null;
+      activeRoomImagePreload.onerror = null;
+      activeRoomImagePreload = null;
+    }
+    if (roomImage) {
+      roomImage.removeAttribute('src');
+      roomImage.removeAttribute('srcset');
+    }
     document.body.classList.remove(
       'room-active', 'room-scene-visible', 'room-step-1', 'room-step-2', 'room-step-3',
-      'room-scene-empty', 'room-scene-lonely', 'room-scene-tired'
+      'room-scene-empty', 'room-scene-lonely', 'room-scene-tired',
+      'room-image-loading', 'room-image-loaded', 'room-image-failed'
     );
+  }
+
+  function preloadRoomImage(room) {
+    const imagePath = room?.image;
+    const roomImage = document.getElementById('room-image');
+    if (!imagePath || !roomImage) return;
+
+    const token = ++roomImageLoadToken;
+    document.body.classList.add('room-image-loading');
+    const preload = new Image();
+    activeRoomImagePreload = preload;
+    preload.onload = () => {
+      if (token !== roomImageLoadToken || getAvailableRoom()?.image !== imagePath) return;
+      activeRoomImagePreload = null;
+      roomImage.src = imagePath;
+      document.body.classList.remove('room-image-loading', 'room-image-failed');
+      requestAnimationFrame(() => {
+        if (token === roomImageLoadToken && getAvailableRoom()?.image === imagePath) {
+          document.body.classList.add('room-image-loaded');
+        }
+      });
+    };
+    preload.onerror = () => {
+      if (token !== roomImageLoadToken || getAvailableRoom()?.image !== imagePath) return;
+      activeRoomImagePreload = null;
+      document.body.classList.remove('room-image-loading', 'room-image-loaded');
+      document.body.classList.add('room-image-failed');
+    };
+    preload.src = imagePath;
   }
 
   function setRoomFlowStep(step = 0) {
@@ -1083,6 +1310,7 @@ function prefersReducedMotion() {
     if (!room) return;
     document.body.classList.add('room-active');
     document.body.classList.add(`room-scene-${room.scene}`);
+    preloadRoomImage(room);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (getAvailableRoom()) document.body.classList.add('room-scene-visible');
