@@ -154,6 +154,13 @@ function getTransitionCopy(emotion) {
   return [base[0], pickContextCopy(contextual, `transition:${emotion}`) || base[1]];
 }
 
+function getRoomEntryCopy(emotion, fallback = '') {
+  const candidates = typeof HARUMIND_FLOW_COPY !== 'undefined'
+    ? HARUMIND_FLOW_COPY.roomEntryCopy?.[emotion]
+    : null;
+  return pickContextCopy(candidates, `room:${emotion}`) || fallback;
+}
+
 function getFlowStepData(step) {
   const semantics = FLOW_STEP_SEMANTICS[step] || { react: 'silent' };
   return { text: FLOW_COMMON[step] || '', react: semantics.react };
@@ -199,6 +206,7 @@ function prefersReducedMotion() {
     괜찮음: '무난했지만 닫고 싶은 날'
   };
 
+  const ROOM_EMOTIONS = Object.freeze(['피곤함', '공허함', '쓸쓸함']);
   const EMOTION_ROOMS = {
     피곤함: { name: '꺼지지 않은 스탠드의 방', copy: '불은 남아 있고, 몸은 먼저 내려앉아 있습니다.', scene: 'tired', image: 'assets/rooms/tired_floor_lamp.webp', available: true },
     공허함: { name: '꺼진 TV의 방', copy: '소리가 멈춘 자리에, 잠시 머뭅니다.', scene: 'empty', image: 'assets/rooms/empty_tv.webp', available: true },
@@ -206,7 +214,12 @@ function prefersReducedMotion() {
   };
   const EMOTION_GRID_ORDER = ['피곤함', '쓸쓸함', '공허함', '불안함', '복잡함', '괜찮음'];
 
+  function isRoomEmotion(emotion) {
+    return ROOM_EMOTIONS.includes(emotion);
+  }
+
   function getAvailableRoom(emotion = selected) {
+    if (!isRoomEmotion(emotion)) return null;
     const room = EMOTION_ROOMS[emotion];
     return room?.available ? room : null;
   }
@@ -217,8 +230,7 @@ function prefersReducedMotion() {
       const data = CONTENT[name];
       if (!data) return;
       const description = EMOTION_DESC[name] || '';
-      const room = EMOTION_ROOMS[name];
-      const roomName = room?.available ? room.name : '';
+      const roomName = getAvailableRoom(name)?.name || '';
       const card = document.createElement('div');
       card.className = 'e-card';
       card.dataset.key = name;
@@ -1329,7 +1341,7 @@ function prefersReducedMotion() {
     const roomScreen = document.getElementById('s-room');
     const room = getAvailableRoom();
     document.getElementById('room-name').textContent = room?.name || '';
-    document.getElementById('room-copy').textContent = room?.copy || '';
+    document.getElementById('room-copy').textContent = getRoomEntryCopy(selected, room?.copy || '');
     roomTitleTimer = setTimeout(() => {
       roomTitleTimer = null;
       if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-visible');
