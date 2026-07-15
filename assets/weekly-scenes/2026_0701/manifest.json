@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "week": "2026_0701",
+  "basePath": "assets/weekly-scenes/2026_0701/",
+  "scenes": {
+    "tired": {
+      "label": "피곤함",
+      "poster": "tired.webp",
+      "hold1": "기다리던 자리에 잠시 앉습니다"
+    },
+    "anxious": {
+      "label": "불안함",
+      "poster": "anxious.webp",
+      "hold1": "아직 건너지 않은 자리에 섭니다"
+    },
+    "empty": {
+      "label": "공허함",
+      "poster": "empty.webp",
+      "hold1": "지나간 자리 아래에 멈춥니다"
+    },
+    "lonely": {
+      "label": "쓸쓸함",
+      "poster": "lonely.webp",
+      "hold1": "골목 입구에 잠시 서 있습니다"
+    },
+    "complex": {
+      "label": "복잡함",
+      "poster": "complex.webp",
+      "hold1": "멀리 흐르는 쪽을 바라봅니다"
+    },
+    "okay": {
+      "label": "괜찮음",
+      "poster": "okay.webp",
+      "hold1": "비가 그친 자리에 잠시 앉습니다"
+    }
+  }
+}

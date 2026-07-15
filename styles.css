@@ -523,6 +523,23 @@
   body.room-active.room-image-loaded.room-scene-visible .room-image { opacity: .9; }
   body.room-active.room-image-loaded.room-step-2 .room-image { filter: saturate(.8) brightness(.83); }
   body.room-active.room-image-loaded.room-step-3 .room-image { filter: saturate(.78) brightness(.79); }
+  body.weekly-scene-active.weekly-scene-loaded.room-scene-visible .room-image {
+    opacity: .9;
+    transform: translateX(-50%) scale(1);
+    filter: saturate(.82) brightness(.86);
+  }
+  body.weekly-scene-active.weekly-step-1 .room-image {
+    transform: translateX(-50%) scale(1);
+    filter: saturate(.82) brightness(.86);
+  }
+  body.weekly-scene-active.weekly-step-2 .room-image {
+    transform: translateX(-50%) scale(1.008);
+    filter: saturate(.82) brightness(.87);
+  }
+  body.weekly-scene-active.weekly-step-3 .room-image {
+    transform: translateX(-50%) scale(1.008);
+    filter: saturate(.8) brightness(.82);
+  }
   .room-variant {
     display: none;
     position: absolute;
@@ -986,11 +1003,16 @@
                 filter 1.4s cubic-bezier(.22,1,.36,1);
   }
 
-   .flow-exit-btn {
+  .flow-exit-btn {
     position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); left: 22px;
     background: transparent; border: none; color: var(--text-muted);
     font-size: 20px; line-height: 1; cursor: pointer;
     padding: 4px 8px; opacity: 0.75; transition: opacity .2s ease; z-index: 10;
+  }
+  body.weekly-scene-active .flow-exit-btn {
+    color: rgba(234,230,222,0.74);
+    opacity: .86;
+    text-shadow: 0 1px 10px rgba(0,0,0,0.78), 0 0 8px rgba(234,230,222,0.08);
   }
   .flow-exit-btn:hover { opacity: 1; }
 
@@ -1661,5 +1683,8 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
+    }
+    body.weekly-scene-active .room-image {
+      transform: translateX(-50%) scale(1) !important;
     }
   }

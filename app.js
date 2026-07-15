@@ -163,7 +163,8 @@ function getRoomEntryCopy(emotion, fallback = '') {
 
 function getFlowStepData(step) {
   const semantics = FLOW_STEP_SEMANTICS[step] || { react: 'silent' };
-  return { text: FLOW_COMMON[step] || '', react: semantics.react };
+  const weeklyHold1 = step === 1 ? getActiveWeeklyHold1() : '';
+  return { text: weeklyHold1 || FLOW_COMMON[step] || '', react: semantics.react };
 }
 
 function getFlowStageCopy(step) {
@@ -230,20 +231,19 @@ function prefersReducedMotion() {
       const data = CONTENT[name];
       if (!data) return;
       const description = EMOTION_DESC[name] || '';
-      const roomName = getAvailableRoom(name)?.name || '';
       const card = document.createElement('div');
       card.className = 'e-card';
       card.dataset.key = name;
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-pressed', 'false');
-      card.setAttribute('aria-label', [name, description, roomName].filter(Boolean).join(', '));
+      card.setAttribute('aria-label', [name, description].filter(Boolean).join(', '));
       card.innerHTML = `
         <div class="e-dot" style="background:${data.color};--dot-color:${data.color};"></div>
         <div class="e-word">${name}</div>
         <div class="e-copy">
           <div class="e-desc">${description}</div>
-          <div class="e-room-name${roomName ? ' visible' : ''}" aria-hidden="true">${roomName}</div>
+          <div class="e-room-name" aria-hidden="true"></div>
         </div>
       `;
       card.addEventListener('click', () => selectEmotion(name, card));
@@ -271,6 +271,7 @@ function prefersReducedMotion() {
     document.body.classList.remove(...EMOTION_CLASSES);
     document.body.classList.add('emotion-' + name);
     startAurora(name);
+    preloadWeeklyPosterForEmotion(name);
     const confirmBtn = document.getElementById('confirm-btn');
     if (confirmBtn) confirmBtn.textContent = CONFIRM_LABELS[name] || '오늘은 여기까지입니다';
   }
@@ -1019,8 +1020,15 @@ function prefersReducedMotion() {
   let roomTitleTimer = null;
   let roomCopyTimer = null;
   let roomExitTimer = null;
+  let weeklyIntroTimer = null;
   let roomImageLoadToken = 0;
   let activeRoomImagePreload = null;
+  let activeScene = { source: 'none', emotion: null, stableKey: null, poster: '' };
+  let weeklySceneLock = { locked: false, emotion: null, scene: null };
+  let weeklySceneManifest = null;
+  let weeklySceneManifestReady = false;
+  let weeklySceneManifestLoading = false;
+  const weeklyScenePosterCache = new Map();
   let stepAdvanceTimer = null;
   let completeEnterTimer = null;
   let completeExtrasTimer = null;
@@ -1088,6 +1096,7 @@ function prefersReducedMotion() {
     clearTimeout(roomTitleTimer);
     clearTimeout(roomCopyTimer);
     clearTimeout(roomExitTimer);
+    clearTimeout(weeklyIntroTimer);
     clearTimeout(stepAdvanceTimer);
     clearTimeout(completeEnterTimer);
     clearTimeout(completeExtrasTimer);
@@ -1100,6 +1109,7 @@ function prefersReducedMotion() {
     roomTitleTimer = null;
     roomCopyTimer = null;
     roomExitTimer = null;
+    weeklyIntroTimer = null;
     stepAdvanceTimer = null;
     completeEnterTimer = null;
     completeExtrasTimer = null;
@@ -1118,6 +1128,242 @@ function prefersReducedMotion() {
     if (!m) return color;
     const parts = m[1].split(',').map(v => v.trim());
     return `rgba(${parts[0]},${parts[1]},${parts[2]},${alpha})`;
+  }
+
+  const WEEKLY_SCENE_POINTER_URL = 'assets/weekly-scenes/current.json';
+  const WEEKLY_SCENE_DEBUG = false;
+  const EMOTION_STABLE_KEYS = Object.freeze({
+    '피곤함': 'tired',
+    '불안함': 'anxious',
+    '공허함': 'empty',
+    '쓸쓸함': 'lonely',
+    '복잡함': 'complex',
+    '괜찮음': 'okay'
+  });
+  const WEEKLY_SCENE_KEYS = new Set(Object.values(EMOTION_STABLE_KEYS));
+
+  function debugWeeklyScene(...args) {
+    if (WEEKLY_SCENE_DEBUG) console.info('[weekly-scene]', ...args);
+  }
+
+  function getEmotionStableKey(emotion) {
+    return EMOTION_STABLE_KEYS[emotion] || '';
+  }
+
+  function joinAssetPath(basePath = '', assetPath = '') {
+    if (!assetPath) return '';
+    if (/^(https?:)?\/\//.test(assetPath) || assetPath.startsWith('/')) return assetPath;
+    return `${basePath || ''}${assetPath}`.replace(/([^:]\/)\/+/g, '$1');
+  }
+
+  function normalizeWeeklyHold1(value) {
+    if (typeof value !== 'string') return '';
+    const text = value.replace(/\s+/g, ' ').trim();
+    if (!text || text.length > 36) return '';
+    return text;
+  }
+
+  function normalizeWeeklySceneManifest(raw) {
+    if (!raw || ![1, 2].includes(raw.version) || typeof raw.scenes !== 'object') return null;
+    const basePath = typeof raw.basePath === 'string' ? raw.basePath : '';
+    const scenes = {};
+    Object.entries(raw.scenes).forEach(([key, scene]) => {
+      if (!WEEKLY_SCENE_KEYS.has(key) || !scene || typeof scene.poster !== 'string') return;
+      const poster = scene.poster.trim();
+      if (!poster) return;
+      scenes[key] = {
+        key,
+        label: typeof scene.label === 'string' ? scene.label : '',
+        poster: joinAssetPath(basePath, poster),
+        hold1: raw.version === 2 ? normalizeWeeklyHold1(scene.hold1) : ''
+      };
+    });
+    return {
+      version: raw.version,
+      week: typeof raw.week === 'string' ? raw.week : '',
+      scenes
+    };
+  }
+
+  async function loadWeeklySceneManifest(manifestUrl) {
+    if (!manifestUrl) return;
+    try {
+      const response = await fetch(manifestUrl);
+      if (!response.ok) {
+        debugWeeklyScene('manifest unavailable', response.status);
+        return;
+      }
+      const manifest = normalizeWeeklySceneManifest(await response.json());
+      if (!manifest) return;
+      weeklySceneManifest = manifest;
+      weeklySceneManifestReady = true;
+      if (selected) preloadWeeklyPosterForEmotion(selected);
+    } catch (err) {
+      debugWeeklyScene('manifest fallback', err);
+    }
+  }
+
+  async function loadWeeklyScenePointer() {
+    if (weeklySceneManifestLoading) return;
+    weeklySceneManifestLoading = true;
+    try {
+      const response = await fetch(WEEKLY_SCENE_POINTER_URL, { cache: 'no-store' });
+      if (!response.ok) {
+        debugWeeklyScene('pointer unavailable', response.status);
+        return;
+      }
+      const pointer = await response.json();
+      const manifestUrl = typeof pointer?.manifest === 'string' ? pointer.manifest : '';
+      await loadWeeklySceneManifest(manifestUrl);
+    } catch (err) {
+      debugWeeklyScene('pointer fallback', err);
+    } finally {
+      weeklySceneManifestLoading = false;
+    }
+  }
+
+  function getWeeklyScene(emotion) {
+    if (!weeklySceneManifestReady || !weeklySceneManifest) return null;
+    const stableKey = getEmotionStableKey(emotion);
+    if (!stableKey) return null;
+    const scene = weeklySceneManifest.scenes?.[stableKey];
+    return scene?.poster ? { ...scene, emotion, stableKey } : null;
+  }
+
+  function preloadWeeklyPosterForEmotion(emotion) {
+    const scene = getWeeklyScene(emotion);
+    if (!scene) return null;
+    const cached = weeklyScenePosterCache.get(scene.stableKey);
+    if (cached && cached.poster === scene.poster) return cached;
+
+    const record = { status: 'loading', poster: scene.poster, image: null };
+    weeklyScenePosterCache.set(scene.stableKey, record);
+    const image = new Image();
+    record.image = image;
+    image.onload = () => {
+      record.status = 'loaded';
+    };
+    image.onerror = () => {
+      record.status = 'failed';
+      record.image = null;
+    };
+    image.src = scene.poster;
+    return record;
+  }
+
+  function getReadyWeeklyScene(emotion) {
+    const scene = getWeeklyScene(emotion);
+    if (!scene) return null;
+    const cached = weeklyScenePosterCache.get(scene.stableKey);
+    if (cached?.status === 'loaded' && cached.poster === scene.poster) return scene;
+    preloadWeeklyPosterForEmotion(emotion);
+    return null;
+  }
+
+  function resetWeeklySceneLock() {
+    weeklySceneLock = { locked: false, emotion: null, scene: null };
+  }
+
+  function getActiveWeeklyHold1() {
+    const scene = weeklySceneLock.scene;
+    if (
+      !weeklySceneLock.locked ||
+      !scene?.hold1 ||
+      activeScene.source !== 'weekly' ||
+      activeScene.emotion !== weeklySceneLock.emotion ||
+      activeScene.stableKey !== scene.stableKey
+    ) return '';
+    return scene.hold1;
+  }
+
+  function lockWeeklySceneForEmotion(emotion) {
+    if (weeklySceneLock.locked) {
+      return weeklySceneLock.emotion === emotion ? weeklySceneLock.scene : null;
+    }
+    const scene = getReadyWeeklyScene(emotion);
+    weeklySceneLock = { locked: true, emotion, scene };
+    return scene;
+  }
+
+  function hasWeeklySceneActive() {
+    return activeScene.source === 'weekly';
+  }
+
+  function clearWeeklySceneClasses() {
+    document.body.classList.remove(
+      'weekly-scene-active', 'weekly-scene-loaded',
+      'weekly-step-1', 'weekly-step-2', 'weekly-step-3'
+    );
+  }
+
+  function showWeeklyScene(scene) {
+    const roomImage = document.getElementById('room-image');
+    if (!scene || !roomImage) return false;
+    const token = ++roomImageLoadToken;
+    activeRoomImagePreload = null;
+    activeScene = {
+      source: 'weekly',
+      emotion: scene.emotion,
+      stableKey: scene.stableKey,
+      poster: scene.poster
+    };
+    roomImage.src = scene.poster;
+    document.body.classList.add('room-active', 'weekly-scene-active', 'weekly-scene-loaded', 'room-image-loaded');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (token === roomImageLoadToken && hasWeeklySceneActive()) {
+          document.body.classList.add('room-scene-visible');
+        }
+      });
+    });
+    return true;
+  }
+
+  function setWeeklySceneStep(step = 0) {
+    document.body.classList.remove('weekly-step-1', 'weekly-step-2', 'weekly-step-3');
+    if (hasWeeklySceneActive() && step >= 1 && step <= 3) {
+      document.body.classList.add(`weekly-step-${step}`);
+    }
+  }
+
+  function prepareWeeklySceneBeforeFlow() {
+    if (getAvailableRoom() || hasWeeklySceneActive() || weeklySceneLock.locked) return;
+    const scene = getReadyWeeklyScene(selected);
+    if (!scene) return;
+    weeklySceneLock = { locked: true, emotion: selected, scene };
+    showWeeklyScene(scene);
+  }
+
+  const WEEKLY_INTRO_DURATION_MS = 850;
+
+  function startWeeklySceneIntro(scene) {
+    if (!scene) return false;
+    resetRoomVisual();
+    if (!showWeeklyScene(scene)) return false;
+    clearTimeout(roomTimer);
+    clearTimeout(roomTitleTimer);
+    clearTimeout(roomCopyTimer);
+    clearTimeout(roomExitTimer);
+    clearTimeout(weeklyIntroTimer);
+    roomTimer = null;
+    roomTitleTimer = null;
+    roomCopyTimer = null;
+    roomExitTimer = null;
+    weeklyIntroTimer = null;
+
+    showScreen('room');
+    const roomScreen = document.getElementById('s-room');
+    if (roomScreen) roomScreen.classList.remove('room-visible', 'room-copy-visible', 'room-leaving');
+    document.getElementById('room-name').textContent = '';
+    document.getElementById('room-copy').textContent = '';
+
+    const introToken = transitionRunToken;
+    weeklyIntroTimer = setTimeout(() => {
+      weeklyIntroTimer = null;
+      if (introToken !== transitionRunToken || !hasWeeklySceneActive()) return;
+      startFlow();
+    }, WEEKLY_INTRO_DURATION_MS);
+    return true;
   }
 
   function resetTransitionVisual() {
@@ -1166,9 +1412,13 @@ function prefersReducedMotion() {
   function startTransition(options = {}) {
     if (!selected) return;
     if (!options.preserveContext || !flowCopyContext) snapshotFlowContext();
+    if (!options.preserveContext) resetWeeklySceneLock();
+    preloadWeeklyPosterForEmotion(selected);
     clearFlowEffects();
     const runToken = ++transitionRunToken;
     resetFlowCompletion();
+    const weeklyScene = lockWeeklySceneForEmotion(selected);
+    if (startWeeklySceneIntro(weeklyScene)) return;
     if (getAvailableRoom()) {
       const roomGainScale = ENTRY_SOUND_GAIN_SCALE[selected]?.roomSpace || 1;
       playTransitionSpaceSound(selected, 1.8, 0, { tail: 0.3, gainScale: roomGainScale });
@@ -1230,6 +1480,7 @@ function prefersReducedMotion() {
     flowTimer = setTimeout(() => {
       line1.classList.add('visible');
       if (announcer) announcer.textContent = transitionCopy[0];
+      prepareWeeklySceneBeforeFlow();
       if (breath) {
         breath.classList.add('visible');
         line1.classList.add('space-open');
@@ -1243,6 +1494,7 @@ function prefersReducedMotion() {
       flowTimer = setTimeout(() => {
         line2.classList.add('visible');
         if (announcer) announcer.textContent = transitionCopy[1];
+        prepareWeeklySceneBeforeFlow();
 
         // 힌트 텍스트 등장
         if (hint) hint.classList.add('visible');
@@ -1274,6 +1526,8 @@ function prefersReducedMotion() {
       roomImage.removeAttribute('src');
       roomImage.removeAttribute('srcset');
     }
+    activeScene = { source: 'none', emotion: null, stableKey: null, poster: '' };
+    clearWeeklySceneClasses();
     document.body.classList.remove(
       'room-active', 'room-scene-visible', 'room-step-1', 'room-step-2', 'room-step-3',
       'room-scene-empty', 'room-scene-lonely', 'room-scene-tired',
@@ -1289,20 +1543,36 @@ function prefersReducedMotion() {
     const token = ++roomImageLoadToken;
     document.body.classList.add('room-image-loading');
     const preload = new Image();
+    const expectedEmotion = selected;
     activeRoomImagePreload = preload;
     preload.onload = () => {
-      if (token !== roomImageLoadToken || getAvailableRoom()?.image !== imagePath) return;
+      if (
+        token !== roomImageLoadToken ||
+        activeScene.source !== 'room' ||
+        activeScene.emotion !== expectedEmotion ||
+        activeScene.poster !== imagePath
+      ) return;
       activeRoomImagePreload = null;
       roomImage.src = imagePath;
       document.body.classList.remove('room-image-loading', 'room-image-failed');
       requestAnimationFrame(() => {
-        if (token === roomImageLoadToken && getAvailableRoom()?.image === imagePath) {
+        if (
+          token === roomImageLoadToken &&
+          activeScene.source === 'room' &&
+          activeScene.emotion === expectedEmotion &&
+          activeScene.poster === imagePath
+        ) {
           document.body.classList.add('room-image-loaded');
         }
       });
     };
     preload.onerror = () => {
-      if (token !== roomImageLoadToken || getAvailableRoom()?.image !== imagePath) return;
+      if (
+        token !== roomImageLoadToken ||
+        activeScene.source !== 'room' ||
+        activeScene.emotion !== expectedEmotion ||
+        activeScene.poster !== imagePath
+      ) return;
       activeRoomImagePreload = null;
       document.body.classList.remove('room-image-loading', 'room-image-loaded');
       document.body.classList.add('room-image-failed');
@@ -1312,22 +1582,29 @@ function prefersReducedMotion() {
 
   function setRoomFlowStep(step = 0) {
     document.body.classList.remove('room-step-1', 'room-step-2', 'room-step-3');
-    if (getAvailableRoom() && document.body.classList.contains('room-active') && step >= 1 && step <= 3) {
+    if (!hasWeeklySceneActive() && getAvailableRoom() && document.body.classList.contains('room-active') && step >= 1 && step <= 3) {
       document.body.classList.add(`room-step-${step}`);
     }
   }
 
   function showRoomScene() {
     const room = getAvailableRoom();
-    if (!room) return;
+    if (!room) return false;
+    activeScene = {
+      source: 'room',
+      emotion: selected,
+      stableKey: getEmotionStableKey(selected),
+      poster: room.image || ''
+    };
     document.body.classList.add('room-active');
     document.body.classList.add(`room-scene-${room.scene}`);
     preloadRoomImage(room);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (getAvailableRoom()) document.body.classList.add('room-scene-visible');
+        if (activeScene.source === 'room' && getAvailableRoom()) document.body.classList.add('room-scene-visible');
       });
     });
+    return false;
   }
 
   function startRoom() {
@@ -1345,11 +1622,11 @@ function prefersReducedMotion() {
     roomTitleTimer = setTimeout(() => {
       roomTitleTimer = null;
       if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-visible');
-    }, 700);
+    }, 420);
     roomCopyTimer = setTimeout(() => {
       roomCopyTimer = null;
       if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-copy-visible');
-    }, 1500);
+    }, 950);
     roomExitTimer = setTimeout(() => {
       roomExitTimer = null;
       if (roomScreen?.classList.contains('active')) roomScreen.classList.add('room-leaving');
@@ -1362,7 +1639,11 @@ function prefersReducedMotion() {
   }
 
   function startFlow() {
-    if (getAvailableRoom() && !document.body.classList.contains('room-active')) showRoomScene();
+    if (getAvailableRoom() && !document.body.classList.contains('room-active')) {
+      showRoomScene();
+    } else if (!getAvailableRoom() && !document.body.classList.contains('room-active')) {
+      weeklySceneLock = { locked: true, emotion: selected, scene: null };
+    }
     showScreen('flow');
     runFlowStep(1);
   }
@@ -1374,6 +1655,7 @@ function prefersReducedMotion() {
     clearTimeout(holdRevealTimer);
     currentStep = step;
     setRoomFlowStep(step);
+    setWeeklySceneStep(step);
     hideHoldBtn({ preserveFlowState: step > 1 });
     const _closeBtn = document.getElementById('hold-btn');
     if (_closeBtn) {
@@ -1431,6 +1713,7 @@ function prefersReducedMotion() {
     transitionRunToken += 1;
     resetTransitionVisual();
     lifecycleResumeAction = null;
+    resetWeeklySceneLock();
     resetRoomVisual();
     restoreHoldFocusOnReveal = false;
     currentStep = 0;
@@ -1488,6 +1771,7 @@ function prefersReducedMotion() {
   function goComplete() {
     clearFlowTimers();
     lifecycleResumeAction = null;
+    resetWeeklySceneLock();
     resetRoomVisual();
     hideHoldBtn();
     clearFlowEffects();
@@ -1531,6 +1815,7 @@ function prefersReducedMotion() {
     clearFlowEffects();
     stopActiveAudio();
     lifecycleResumeAction = null;
+    resetWeeklySceneLock();
     resetRoomVisual();
     restoreHoldFocusOnReveal = false;
     resetFlowCompletion();
@@ -1613,7 +1898,7 @@ function prefersReducedMotion() {
     }
 
     if (activeScreen.id === 's-room') {
-      lifecycleResumeAction = { type: 'room' };
+      lifecycleResumeAction = { type: hasWeeklySceneActive() ? 'weekly-intro' : 'room' };
       clearFlowTimers();
       clearFlowEffects();
       resetRoomVisual();
@@ -1651,6 +1936,8 @@ function prefersReducedMotion() {
     if (!action) return;
     lifecycleResumeAction = null;
     if (action.type === 'transition') {
+      startTransition({ preserveContext: true });
+    } else if (action.type === 'weekly-intro') {
       startTransition({ preserveContext: true });
     } else if (action.type === 'room') {
       startRoom();
@@ -2301,6 +2588,7 @@ function prefersReducedMotion() {
 
   document.addEventListener('DOMContentLoaded', function() {
     applyFlowEffectProfile();
+    loadWeeklyScenePointer();
     loadSoundPreference();
     initAurora();
     initHold();
