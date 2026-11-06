@@ -328,6 +328,37 @@
     outline: 1px solid rgba(196,168,130,0.38);
     outline-offset: 3px;
   }
+  .related-menu {
+    margin: 8px auto 0;
+    max-width: 100%;
+    text-align: center;
+  }
+  .sudoku-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    max-width: 100%;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    color: var(--accent);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+    text-underline-offset: 4px;
+  }
+  .sudoku-link:hover {
+    text-decoration: underline;
+  }
+  .sudoku-link:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
   .sound-icon-toggle {
     position: absolute; top: 17px; right: 16px;
     width: 44px; height: 44px;
